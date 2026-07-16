@@ -85,7 +85,7 @@ OpenSpec CLI 提供工具链；项目内初始化后的 OpenSpec 工作区回答
 6. 使用 `.ai/workflows/feature-development.yaml` 作为工作流契约。
 7. 需求完成后归档到 `knowledge/archive/{feature}/`。
 
-提示词模板、项目自定义指令、多 Agent 使用方式和飞书 MCP 集成说明见 `docs/USAGE.md` 和 `docs/USAGE_zh.md`。
+提示词模板、项目自定义指令、多 Agent 使用方式和飞书项目 MCP（`FeishuProjectMcp`）集成说明见 `docs/USAGE.md` 和 `docs/USAGE_zh.md`。
 
 ## 一键接入开发项目
 
@@ -118,15 +118,15 @@ npx --yes github:hpuhsp/OSD-Workflow --target . --with-docs
 
 安装器默认不会覆盖已有文件。
 
-## 开发使用说明：从飞书需求到代码
+## 开发使用说明：从飞书项目需求到代码
 
-本节描述当需求来自飞书时，团队应如何按该模板完成一条研发闭环。
+本节描述当需求来自飞书项目时，团队应如何按该模板完成一条研发闭环。
 
 ### 1. 收集需求上下文
 
 编码前至少收集以下信息：
 
-- 飞书项目或任务链接。
+- 飞书项目任务或项目需求链接。
 - 需求标题。
 - 业务背景和用户问题。
 - 验收标准。

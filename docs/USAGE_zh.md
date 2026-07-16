@@ -1,6 +1,6 @@
 # 使用指南
 
-本文说明如何在日常多 AI Agent 开发中使用这套 Workflow，包括提示词写法、项目自定义指令、多 Agent 协作和飞书 MCP 集成方式。
+本文说明如何在日常多 AI Agent 开发中使用这套 Workflow，包括提示词写法、项目自定义指令、多 Agent 协作和飞书项目 MCP（`FeishuProjectMcp`）集成方式。
 
 ## 心智模型
 
@@ -28,7 +28,7 @@ Agent/Harness 级 Superpowers
 标准流程是：
 
 ```text
-飞书需求
+飞书项目需求
 -> 需求上下文
 -> OpenSpec 变更
 -> 规格评审
@@ -47,7 +47,7 @@ Agent/Harness 级 Superpowers
 第一段：先创建并评审规格，不直接编码。
 
 ```text
-使用飞书 MCP 读取这个需求：{飞书需求链接或任务 ID}
+使用飞书项目 MCP（FeishuProjectMcp）读取这个需求：{飞书项目需求链接或任务 ID}
 
 严格按当前项目 .ai/workflows/feature-development.yaml 执行。
 每个阶段开始前，读取该阶段引用的所有 skill 和 rule 文件。
@@ -134,10 +134,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPl
 只有必需文件或验证证据真实存在于磁盘上，阶段才算完成。
 ```
 
-### 从飞书需求创建 OpenSpec
+### 从飞书项目需求创建 OpenSpec
 
 ```text
-使用飞书 MCP 读取需求 {飞书链接或任务 ID}。
+使用飞书项目 MCP（FeishuProjectMcp）读取需求 {飞书项目链接或任务 ID}。
 
 严格执行 .ai/workflows/feature-development.yaml，把它作为强制工作流契约。
 每个阶段开始前，读取该阶段引用的所有 skill 和 rule 文件。
@@ -219,7 +219,7 @@ OpenSpec 变更准备好后停止，等待评审。
 ```text
 本项目使用 .ai/workflows/feature-development.yaml 作为默认 AI Coding Workflow。
 
-当用户提供飞书需求、任务链接、Bug 报告、功能请求或重构请求时：
+当用户提供飞书项目需求、任务链接、Bug 报告、功能请求或重构请求时：
 1. 行动前先读取 .ai/workflows/feature-development.yaml 和 .ai/rules/workflow-execution-rule.md。
 2. 每个 workflow 阶段开始前，读取该阶段引用的所有 skill 和 rule 文件。
 3. 先进入需求分析和项目级 OpenSpec 创建。
@@ -234,17 +234,17 @@ OpenSpec 变更准备好后停止，等待评审。
 有了这条项目指令后，日常提示词可以缩短为：
 
 ```text
-按项目 Workflow 处理这个飞书需求：{链接}
+按项目 Workflow 处理这个飞书项目需求：{链接}
 ```
 
-## 飞书 MCP 集成
+## 飞书项目 MCP 集成
 
-当本地已配置飞书 MCP 时，Agent 应先通过 MCP 拉取需求，再创建 OpenSpec 资产。
+当本地已配置飞书项目 MCP（`FeishuProjectMcp`）时，Agent 应先通过它拉取需求，再创建 OpenSpec 资产。
 
 推荐 MCP 拉取顺序：
 
 ```text
-1. 读取飞书任务或项目需求。
+1. 读取飞书项目任务或项目需求。
 2. 提取标题、描述、负责人、状态、优先级和截止日期。
 3. 提取验收标准。
 4. 读取评论和讨论结论。
@@ -256,7 +256,7 @@ OpenSpec 变更准备好后停止，等待评审。
 推荐提示词：
 
 ```text
-使用飞书 MCP 拉取这个需求：{飞书链接或任务 ID}
+使用飞书项目 MCP（FeishuProjectMcp）拉取这个需求：{飞书项目链接或任务 ID}
 
 然后执行项目 Workflow：
 1. 标准化需求上下文。
@@ -337,13 +337,13 @@ OpenSpec 变更准备好后停止，等待评审。
 配置好项目自定义指令后，日常使用可以简化为：
 
 ```text
-按项目 Workflow 处理这个飞书需求：{链接}
+按项目 Workflow 处理这个飞书项目需求：{链接}
 ```
 
 更稳妥的写法：
 
 ```text
-按项目 Workflow 处理这个飞书需求：{链接}
+按项目 Workflow 处理这个飞书项目需求：{链接}
 完成 OpenSpec 创建后停止，等待我确认。
 ```
 

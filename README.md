@@ -85,7 +85,7 @@ Stages:
 6. Use `.ai/workflows/feature-development.yaml` as the workflow contract.
 7. Archive completed work under `knowledge/archive/{feature}/`.
 
-For prompt templates, project custom instructions, multi-agent usage, and Lark MCP integration, see `docs/USAGE.md` and `docs/USAGE_zh.md`.
+For prompt templates, project custom instructions, multi-agent usage, and Feishu Project MCP (`FeishuProjectMcp`) integration, see `docs/USAGE.md` and `docs/USAGE_zh.md`.
 
 ## One-Command Bootstrap
 
@@ -118,15 +118,15 @@ Useful options:
 
 The installer does not overwrite existing files by default.
 
-## Development Guide: Lark Requirement To Code
+## Development Guide: Feishu Project Requirement To Code
 
-This section describes the expected development flow when a requirement comes from Lark.
+This section describes the expected development flow when a requirement comes from Feishu Project.
 
 ### 1. Capture Requirement Context
 
 Collect the minimum requirement context before coding:
 
-- Lark task or project link.
+- Feishu project task or project link.
 - Requirement title.
 - Business background and user problem.
 - Acceptance criteria.
@@ -165,7 +165,7 @@ Before implementation, review:
 - `.qoder/repowiki`, when available
 - `.codegraph`, when available
 
-Do not treat the original Lark description as the only source of truth after OpenSpec is created. The accepted OpenSpec change becomes the project-level source of truth.
+Do not treat the original Feishu Project description as the only source of truth after OpenSpec is created. The accepted OpenSpec change becomes the project-level source of truth.
 
 ### 4. Produce An Implementation Plan
 

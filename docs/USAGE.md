@@ -1,6 +1,6 @@
 # Usage Guide
 
-This guide explains how to use this workflow in daily multi-agent development, including prompt patterns, project custom instructions, and Lark MCP integration.
+This guide explains how to use this workflow in daily multi-agent development, including prompt patterns, project custom instructions, and Feishu Project MCP (`FeishuProjectMcp`) integration.
 
 ## Mental Model
 
@@ -28,7 +28,7 @@ Project-level .ai template
 The normal flow is:
 
 ```text
-Lark requirement
+Feishu project requirement
 -> Requirement context
 -> OpenSpec change
 -> Spec review
@@ -47,7 +47,7 @@ Use a two-step workflow by default.
 Step 1: create and review the spec before coding.
 
 ```text
-Use Lark MCP to read this requirement: {Lark requirement link or task ID}
+Use Feishu Project MCP (`FeishuProjectMcp`) to read this requirement: {Feishu project requirement link or task ID}
 
 Strictly execute the current project workflow at .ai/workflows/feature-development.yaml.
 Before each stage, read every skill and rule file referenced by that stage.
@@ -134,10 +134,10 @@ Do not treat TodoWrite, internal task lists, chat summaries, or unstored reasoni
 The stage is complete only when the required file or verification evidence exists on disk.
 ```
 
-### Create OpenSpec From Lark Requirement
+### Create OpenSpec From Feishu Project Requirement
 
 ```text
-Use Lark MCP to read requirement {Lark link or task ID}.
+Use Feishu Project MCP (FeishuProjectMcp) to read requirement {Feishu project link or task ID}.
 
 Strictly execute .ai/workflows/feature-development.yaml as a binding workflow contract.
 Before each stage, read every skill and rule file referenced by that stage.
@@ -187,7 +187,7 @@ Do not treat TodoWrite or chat summaries as implementation plan, test report, re
 ### Handle A Bug Fix
 
 ```text
-Use the current project AI workflow to handle this bug: {bug description or Lark link}.
+Use the current project AI workflow to handle this bug: {bug description or Feishu project link}.
 
 First create an OpenSpec change that captures:
 - observed behavior
@@ -219,7 +219,7 @@ Add a short instruction like this to the project-level agent rules, such as `.ag
 ```text
 This project uses .ai/workflows/feature-development.yaml as the default AI Coding Workflow.
 
-When the user provides a Lark requirement, task link, bug report, feature request, or refactoring request:
+When the user provides a Feishu project requirement, task link, bug report, feature request, or refactoring request:
 1. Read .ai/workflows/feature-development.yaml and .ai/rules/workflow-execution-rule.md before action.
 2. Before each workflow stage, read every skill and rule file referenced by that stage.
 3. Start with requirement analysis and project-level OpenSpec creation.
@@ -234,17 +234,17 @@ When the user provides a Lark requirement, task link, bug report, feature reques
 This instruction lets the user write shorter daily prompts, such as:
 
 ```text
-Handle this Lark requirement with the project workflow: {link}
+Handle this Feishu project requirement with the project workflow: {link}
 ```
 
-## Lark MCP Integration
+## Feishu Project MCP Integration
 
-When Lark MCP is configured locally, the agent should use it before creating OpenSpec assets.
+When Feishu Project MCP (`FeishuProjectMcp`) is configured locally, the agent should use it before creating OpenSpec assets.
 
 Recommended MCP pull sequence:
 
 ```text
-1. Read the Lark task or project requirement.
+1. Read the Feishu project task or project requirement.
 2. Extract title, description, owner, status, priority, and due date.
 3. Extract acceptance criteria.
 4. Read comments and discussion decisions.
@@ -256,7 +256,7 @@ Recommended MCP pull sequence:
 Recommended prompt:
 
 ```text
-Use Lark MCP to pull this requirement: {Lark link or task ID}
+Use Feishu Project MCP (FeishuProjectMcp) to pull this requirement: {Feishu project link or task ID}
 
 Then execute the project workflow:
 1. Normalize the requirement context.
@@ -287,7 +287,7 @@ Recommended division:
 
 ```text
 Requirement / product agent
--> Pull Lark context
+-> Pull Feishu Project context
 -> Normalize requirement
 -> Create OpenSpec proposal
 
@@ -322,7 +322,7 @@ Each agent must also read the workflow stage's referenced skill and rule files b
 Use these rules in prompts or custom instructions:
 
 - Do not code before the OpenSpec change exists, unless explicitly instructed.
-- Do not treat the original Lark text as the only source of truth after OpenSpec is created.
+- Do not treat the original Feishu Project text as the only source of truth after OpenSpec is created.
 - Keep code changes scoped to the accepted spec.
 - Map each acceptance criterion to verification evidence.
 - Read each stage's referenced skill and rule files before executing that stage.
@@ -337,13 +337,13 @@ Use these rules in prompts or custom instructions:
 Once project custom instructions are configured, this should be enough for daily use:
 
 ```text
-Handle this Lark requirement with the project workflow: {link}
+Handle this Feishu project requirement with the project workflow: {link}
 ```
 
 For safer execution:
 
 ```text
-Handle this Lark requirement with the project workflow: {link}
+Handle this Feishu project requirement with the project workflow: {link}
 Stop after OpenSpec creation and wait for my confirmation.
 ```
 
