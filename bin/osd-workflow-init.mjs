@@ -154,9 +154,10 @@ function printSummary(target, summary, dryRun) {
   }
 
   console.log("\nNext steps:");
-  console.log("  1. Configure project-level OpenSpec in the target project.");
-  console.log("  2. Ensure user-level Superpowers is available for each developer.");
-  console.log("  3. Start from .ai/workflows/feature-development.yaml for feature work.");
+  console.log("  1. Install or confirm the global OpenSpec CLI: npm install -g @fission-ai/openspec@latest.");
+  console.log("  2. Run openspec init in the target project if it has not been initialized.");
+  console.log("  3. Ensure Superpowers is available in each developer's AI agent or harness.");
+  console.log("  4. Start from .ai/workflows/feature-development.yaml for feature work.");
 }
 
 function run() {

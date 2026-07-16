@@ -170,6 +170,7 @@ foreach ($group in $groups) {
 
 Write-Host ""
 Write-Host "Next steps:"
-Write-Host "  1. Configure project-level OpenSpec in the target project."
-Write-Host "  2. Ensure user-level Superpowers is available for each developer."
-Write-Host "  3. Start from .ai/workflows/feature-development.yaml for feature work."
+Write-Host "  1. Install or confirm the global OpenSpec CLI: npm install -g @fission-ai/openspec@latest."
+Write-Host "  2. Run openspec init in the target project if it has not been initialized."
+Write-Host "  3. Ensure Superpowers is available in each developer's AI agent or harness."
+Write-Host "  4. Start from .ai/workflows/feature-development.yaml for feature work."
