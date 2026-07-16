@@ -72,6 +72,36 @@ Continue with .ai/workflows/feature-development.yaml:
 
 This keeps the requirement-to-spec boundary explicit and prevents agents from jumping directly from a rough description into code.
 
+## CLI Bootstrap
+
+Use the installer when you need to connect an existing project to this workflow.
+
+PowerShell, recommended for Windows:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=Join-Path $env:TEMP 'osd-workflow-install.ps1'; iwr https://raw.githubusercontent.com/hpuhsp/OSD-Workflow/main/scripts/install.ps1 -OutFile $p; & $p -Target . -WithDocs"
+```
+
+From a cloned copy of this repository:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs
+```
+
+Node.js / npx:
+
+```bash
+npx --yes github:hpuhsp/OSD-Workflow --target . --with-docs
+```
+
+Preview before writing:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs -DryRun
+```
+
+The installer copies `.ai/`, `openspec/`, and `knowledge/` by default. It copies `docs/` only when `--with-docs` or `-WithDocs` is set. Existing files are skipped unless `--force` or `-Force` is provided.
+
 ## Prompt Templates
 
 ### Create OpenSpec From Lark Requirement

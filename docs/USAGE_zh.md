@@ -72,6 +72,36 @@ openspec/changes/{feature}/ 下的 OpenSpec 变更已确认。
 
 这种方式能把“需求到规格”的边界显式化，避免 Agent 直接从粗糙需求描述跳到编码。
 
+## CLI 一键接入
+
+当你需要把这套 Workflow 接入已有开发项目时，优先使用安装器。
+
+PowerShell，推荐 Windows 使用：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=Join-Path $env:TEMP 'osd-workflow-install.ps1'; iwr https://raw.githubusercontent.com/hpuhsp/OSD-Workflow/main/scripts/install.ps1 -OutFile $p; & $p -Target . -WithDocs"
+```
+
+从本仓库克隆目录执行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs
+```
+
+Node.js / npx：
+
+```bash
+npx --yes github:hpuhsp/OSD-Workflow --target . --with-docs
+```
+
+写入前预览：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs -DryRun
+```
+
+安装器默认复制 `.ai/`、`openspec/` 和 `knowledge/`。只有指定 `--with-docs` 或 `-WithDocs` 时才复制 `docs/`。已有文件默认跳过，只有指定 `--force` 或 `-Force` 时才覆盖。
+
 ## 提示词模板
 
 ### 从飞书需求创建 OpenSpec

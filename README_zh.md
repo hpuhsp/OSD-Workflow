@@ -114,6 +114,8 @@ OpenSpec 回答“项目为什么改、改什么、如何验收”。
 - `.ai/skills/knowledge-archive/SKILL.md`：知识归档结构和完成标准。
 - `.ai/agents/developer-agent.yaml`：开发 Agent 上下文契约。
 - `.ai/agents/test-agent.yaml`：测试 Agent 上下文契约。
+- `bin/osd-workflow-init.mjs`：Node.js CLI 安装器。
+- `scripts/install.ps1`：PowerShell CLI 安装器。
 
 ## 使用方式
 
@@ -125,6 +127,37 @@ OpenSpec 回答“项目为什么改、改什么、如何验收”。
 6. 需求完成后归档到 `knowledge/archive/{feature}/`。
 
 提示词模板、项目自定义指令、多 Agent 使用方式和飞书 MCP 集成说明见 `docs/USAGE.md` 和 `docs/USAGE_zh.md`。
+
+## 一键接入开发项目
+
+可以使用 CLI 安装器将这套 Workflow 接入已有开发项目。
+
+PowerShell，推荐 Windows 使用：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=Join-Path $env:TEMP 'osd-workflow-install.ps1'; iwr https://raw.githubusercontent.com/hpuhsp/OSD-Workflow/main/scripts/install.ps1 -OutFile $p; & $p -Target . -WithDocs"
+```
+
+从本仓库克隆目录执行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs
+```
+
+Node.js / npx：
+
+```bash
+npx --yes github:hpuhsp/OSD-Workflow --target . --with-docs
+```
+
+常用参数：
+
+- `--target` / `-Target`：目标项目目录。
+- `--with-docs` / `-WithDocs`：同时复制 `docs/` 使用指南。
+- `--dry-run` / `-DryRun`：只预览变更，不写入文件。
+- `--force` / `-Force`：覆盖已有 Workflow 文件。
+
+安装器默认不会覆盖已有文件。
 
 ## 开发使用说明：从飞书需求到代码
 

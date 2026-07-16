@@ -114,6 +114,8 @@ Stages:
 - `.ai/skills/knowledge-archive/SKILL.md`: archive structure and completion criteria.
 - `.ai/agents/developer-agent.yaml`: developer agent context contract.
 - `.ai/agents/test-agent.yaml`: test agent context contract.
+- `bin/osd-workflow-init.mjs`: Node.js CLI installer.
+- `scripts/install.ps1`: PowerShell CLI installer.
 
 ## How To Use
 
@@ -125,6 +127,37 @@ Stages:
 6. Archive completed work under `knowledge/archive/{feature}/`.
 
 For prompt templates, project custom instructions, multi-agent usage, and Lark MCP integration, see `docs/USAGE.md` and `docs/USAGE_zh.md`.
+
+## One-Command Bootstrap
+
+Use the CLI installer to add this workflow to an existing development project.
+
+PowerShell, recommended for Windows:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=Join-Path $env:TEMP 'osd-workflow-install.ps1'; iwr https://raw.githubusercontent.com/hpuhsp/OSD-Workflow/main/scripts/install.ps1 -OutFile $p; & $p -Target . -WithDocs"
+```
+
+From a cloned copy of this repository:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs
+```
+
+Node.js / npx:
+
+```bash
+npx --yes github:hpuhsp/OSD-Workflow --target . --with-docs
+```
+
+Useful options:
+
+- `--target` / `-Target`: target project directory.
+- `--with-docs` / `-WithDocs`: also copy `docs/` usage guides.
+- `--dry-run` / `-DryRun`: preview changes without writing files.
+- `--force` / `-Force`: overwrite existing workflow files.
+
+The installer does not overwrite existing files by default.
 
 ## Development Guide: Lark Requirement To Code
 

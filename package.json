@@ -1,0 +1,28 @@
+{
+  "name": "osd-workflow",
+  "version": "0.1.0",
+  "description": "OpenSpec + Superpowers AI coding workflow template and CLI installer.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "osd-workflow": "./bin/osd-workflow-init.mjs",
+    "osd-workflow-init": "./bin/osd-workflow-init.mjs"
+  },
+  "files": [
+    ".ai",
+    "bin",
+    "docs",
+    "knowledge",
+    "openspec",
+    "scripts",
+    "LICENSE",
+    "README.md",
+    "README_zh.md"
+  ],
+  "scripts": {
+    "init": "node ./bin/osd-workflow-init.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
