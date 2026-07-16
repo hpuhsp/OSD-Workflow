@@ -1,0 +1,25 @@
+agent:
+  name: developer-agent
+  purpose: "Implement accepted project-level OpenSpec changes through user-level Superpowers execution."
+
+  runtime:
+    superpowers_scope: "user-level"
+    openspec_scope: "project-level"
+
+  rules:
+    - "../rules/development-rule.md"
+
+  default_workflow: "../workflows/feature-development.yaml"
+
+  required_context:
+    - "openspec/changes/{feature}/proposal.md"
+    - "openspec/changes/{feature}/spec.md"
+    - "openspec/changes/{feature}/design.md"
+
+  optional_context:
+    - ".qoder/repowiki"
+    - ".codegraph"
+
+  outputs:
+    - "Code changes"
+    - "knowledge/archive/{feature}/implementation.md"

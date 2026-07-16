@@ -1,0 +1,280 @@
+# 使用指南
+
+本文说明如何在日常多 AI Agent 开发中使用这套 Workflow，包括提示词写法、项目自定义指令、多 Agent 协作和飞书 MCP 集成方式。
+
+## 心智模型
+
+这套模板应作为项目级工作流契约使用。
+
+```text
+用户级 Superpowers
+-> AI Agent 应该如何执行工作
+-> 计划、编排、验证、评审纪律
+
+项目级 OpenSpec
+-> 项目为什么要改
+-> 需要改什么
+-> 如何验收
+-> 需要沉淀什么知识
+
+项目级 .ai 模板
+-> 团队共享的工作流、规则、Skill 映射和 Agent 上下文契约
+```
+
+标准流程是：
+
+```text
+飞书需求
+-> 需求上下文
+-> OpenSpec 变更
+-> 规格评审
+-> 实施计划
+-> 编码
+-> 测试生成
+-> 验证
+-> 代码评审
+-> 知识归档
+```
+
+## 推荐日常模式
+
+默认使用两段式工作流。
+
+第一段：先创建并评审规格，不直接编码。
+
+```text
+使用飞书 MCP 读取这个需求：{飞书需求链接或任务 ID}
+
+按当前项目 .ai/workflows/feature-development.yaml 执行。
+
+只执行到需求分析、OpenSpec 创建和规格评审阶段。
+创建：
+- openspec/changes/{feature}/proposal.md
+- openspec/changes/{feature}/spec.md
+- openspec/changes/{feature}/design.md
+
+完成规格评审点后停止，等待我确认。不要开始编码。
+```
+
+第二段：规格确认后继续开发。
+
+```text
+openspec/changes/{feature}/ 下的 OpenSpec 变更已确认。
+
+继续按 .ai/workflows/feature-development.yaml 执行：
+1. 生成实施计划。
+2. 实现代码变更。
+3. 生成或更新测试。
+4. 执行验证。
+5. 完成代码评审。
+6. 归档到 knowledge/archive/{feature}/。
+```
+
+这种方式能把“需求到规格”的边界显式化，避免 Agent 直接从粗糙需求描述跳到编码。
+
+## 提示词模板
+
+### 从飞书需求创建 OpenSpec
+
+```text
+使用飞书 MCP 读取需求 {飞书链接或任务 ID}。
+
+提取：
+- 标题
+- 背景
+- 描述
+- 验收标准
+- 评论和决策
+- 附件或截图
+- 优先级和期望发布约束
+
+然后在 openspec/changes/{feature}/ 下创建项目级 OpenSpec 变更。
+
+必须生成：
+- proposal.md
+- spec.md
+- design.md
+
+遵循：
+- .ai/workflows/feature-development.yaml
+- .ai/skills/openspec-create/SKILL.md
+
+创建 OpenSpec 变更后停止，等待评审。
+```
+
+### 规格确认后继续开发
+
+```text
+openspec/changes/{feature}/ 下的 OpenSpec 变更已确认。
+
+继续执行工作流：
+- 使用 .ai/skills/implementation-plan/SKILL.md
+- 遵循 .ai/rules/development-rule.md
+- 使用 .ai/skills/test-generation/SKILL.md 生成验证
+- 遵循 .ai/rules/testing-rule.md
+- 使用 .ai/rules/code-review-rule.md 完成评审
+- 使用 .ai/skills/knowledge-archive/SKILL.md 完成归档
+
+实现范围必须严格对齐已确认的 OpenSpec 变更。
+```
+
+### 处理 Bug 修复
+
+```text
+使用当前项目 AI Workflow 处理这个 Bug：{Bug 描述或飞书链接}。
+
+先创建 OpenSpec 变更，捕获：
+- 实际行为
+- 期望行为
+- 复现步骤
+- 验收标准
+- 回归测试预期
+
+OpenSpec 变更准备好后停止，等待评审。
+```
+
+### 小改动并明确跳过完整规格
+
+仅在低风险变更且用户明确要求跳过完整规格流程时使用。
+
+```text
+这是一个低风险变更。跳过完整 OpenSpec 创建，但仍遵循项目规则：
+- 总结需求
+- 识别影响文件
+- 实现最小安全变更
+- 执行聚焦验证
+- 记录剩余风险
+```
+
+## 项目自定义指令
+
+建议把下面的短指令放到项目级 Agent 规则中，例如 `.agent/AGENTS.md`、`.agents/AGENTS.md`，或当前 AI Agent 支持的等价项目指令文件。
+
+```text
+本项目使用 .ai/workflows/feature-development.yaml 作为默认 AI Coding Workflow。
+
+当用户提供飞书需求、任务链接、Bug 报告、功能请求或重构请求时：
+1. 先进入需求分析和项目级 OpenSpec 创建。
+2. 除非用户明确要求跳过规格流程，否则不要直接编码。
+3. OpenSpec 资产存放在 openspec/changes/{feature}/。
+4. OpenSpec 是项目级事实来源，负责需求、规格、设计和验收标准。
+5. 如果用户级 Superpowers 可用且被允许，则用它作为计划、编码、验证、评审和归档的执行纪律。
+6. 已完成工作归档到 knowledge/archive/{feature}/。
+```
+
+有了这条项目指令后，日常提示词可以缩短为：
+
+```text
+按项目 Workflow 处理这个飞书需求：{链接}
+```
+
+## 飞书 MCP 集成
+
+当本地已配置飞书 MCP 时，Agent 应先通过 MCP 拉取需求，再创建 OpenSpec 资产。
+
+推荐 MCP 拉取顺序：
+
+```text
+1. 读取飞书任务或项目需求。
+2. 提取标题、描述、负责人、状态、优先级和截止日期。
+3. 提取验收标准。
+4. 读取评论和讨论结论。
+5. 在必要时下载或总结附件。
+6. 标准化为需求上下文。
+7. 创建 OpenSpec 变更文件。
+```
+
+推荐提示词：
+
+```text
+使用飞书 MCP 拉取这个需求：{飞书链接或任务 ID}
+
+然后执行项目 Workflow：
+1. 标准化需求上下文。
+2. 创建 openspec/changes/{feature}/proposal.md。
+3. 创建 openspec/changes/{feature}/spec.md。
+4. 创建 openspec/changes/{feature}/design.md。
+5. 编码前停在规格评审点。
+```
+
+确认后继续：
+
+```text
+规格已确认。基于已确认的 OpenSpec 变更继续执行 Workflow。
+
+完成：
+- 实施计划
+- 代码变更
+- 验证
+- 评审报告
+- 知识归档
+```
+
+## 多 Agent 使用方式
+
+不同 Agent 可以参与同一条需求，只要共享同一套项目级资产。
+
+推荐分工：
+
+```text
+需求 / 产品 Agent
+-> 拉取飞书上下文
+-> 标准化需求
+-> 创建 OpenSpec proposal
+
+架构 / 计划 Agent
+-> 评审 OpenSpec
+-> 产出 design 和 implementation plan
+-> 必要时检查 RepoWiki 和 CodeGraph
+
+开发 Agent
+-> 实现已确认规格
+-> 保持变更范围对齐 OpenSpec
+
+测试 Agent
+-> 将验收标准映射到测试
+-> 生成或更新验证
+-> 记录 test-report.md
+
+评审 Agent
+-> 评审正确性、风险和测试缺口
+-> 记录 review-report.md
+
+归档 Agent
+-> 收集最终产物
+-> 写入 knowledge/archive/{feature}/
+```
+
+交接规则很简单：每个 Agent 在行动前都应读取当前 OpenSpec 变更。
+
+## Agent 约束
+
+可以在提示词或自定义指令中加入这些约束：
+
+- 除非明确要求，否则不要在 OpenSpec 变更创建前编码。
+- OpenSpec 创建后，不要再把飞书原始文本作为唯一事实来源。
+- 代码变更范围必须对齐已确认规格。
+- 每条验收标准都要映射到验证证据。
+- 归档需求、规格、设计、实现、测试和评审产物。
+- 保持 Superpowers 用户级、OpenSpec 项目级。
+
+## 最小提示词
+
+配置好项目自定义指令后，日常使用可以简化为：
+
+```text
+按项目 Workflow 处理这个飞书需求：{链接}
+```
+
+更稳妥的写法：
+
+```text
+按项目 Workflow 处理这个飞书需求：{链接}
+完成 OpenSpec 创建后停止，等待我确认。
+```
+
+继续开发时：
+
+```text
+规格已确认。继续完成实现、验证、评审和归档。
+```

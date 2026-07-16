@@ -1,0 +1,102 @@
+workflow:
+  name: feature-development
+  description: "Pilot workflow for OpenSpec + Superpowers AI coding work."
+
+  runtime_contract:
+    superpowers:
+      scope: "user-level"
+      role: "Workflow orchestration, execution discipline, skill sequencing, and verification gates."
+      required: true
+      stored_in_project: false
+    openspec:
+      scope: "project-level"
+      role: "Requirement specification, design decisions, change history, and knowledge archive."
+      required: true
+      stored_in_project: true
+      paths:
+        - "openspec/changes/{feature}/"
+        - "knowledge/archive/{feature}/"
+    template:
+      scope: "project-level"
+      role: "Team workflow contract, rules, and project skill mapping."
+      path: ".ai/"
+
+  inputs:
+    - requirement_title
+    - requirement_description
+    - acceptance_criteria
+    - comments
+    - attachments
+
+  knowledge_sources:
+    openspec:
+      purpose: "Requirement, specification, design decisions, and archive."
+      paths:
+        - "openspec/changes/{feature}/proposal.md"
+        - "openspec/changes/{feature}/spec.md"
+        - "openspec/changes/{feature}/design.md"
+    repowiki:
+      purpose: "Project structure, architecture, and module understanding."
+      path: ".qoder/repowiki"
+      optional: true
+    codegraph:
+      purpose: "Call relationships, impact analysis, and test generation support."
+      path: ".codegraph"
+      optional: true
+
+  stages:
+    - id: requirement-analysis
+      name: Requirement Analysis
+      output: "Normalized requirement context and acceptance criteria."
+
+    - id: openspec-create
+      name: OpenSpec Create
+      executor: "project-level OpenSpec"
+      skill: ".ai/skills/openspec-create/SKILL.md"
+      output: "openspec/changes/{feature}/"
+
+    - id: spec-review
+      name: Spec Review
+      output: "Reviewed proposal, spec, and design."
+
+    - id: implementation-plan
+      name: Implementation Plan
+      executor: "user-level Superpowers with project-level OpenSpec context"
+      skill: ".ai/skills/implementation-plan/SKILL.md"
+      output: "Implementation steps and affected modules."
+
+    - id: coding
+      name: AI Coding
+      executor: "user-level Superpowers"
+      rules:
+        - ".ai/rules/development-rule.md"
+      output: "Code changes aligned to the approved spec."
+
+    - id: codegraph-analysis
+      name: CodeGraph Impact Analysis
+      optional: true
+      output: "Affected call paths, modules, and regression risk."
+
+    - id: test-generation
+      name: AI Test Generation
+      executor: "user-level Superpowers"
+      skill: ".ai/skills/test-generation/SKILL.md"
+      rules:
+        - ".ai/rules/testing-rule.md"
+      output: "Focused tests and verification steps."
+
+    - id: verification
+      name: Verification
+      output: "Test and validation evidence."
+
+    - id: code-review
+      name: Code Review
+      rules:
+        - ".ai/rules/code-review-rule.md"
+      output: "Review findings and final result."
+
+    - id: archive
+      name: Knowledge Archive
+      executor: "project-level OpenSpec archive triggered by user-level Superpowers"
+      skill: ".ai/skills/knowledge-archive/SKILL.md"
+      output: "knowledge/archive/{feature}/"

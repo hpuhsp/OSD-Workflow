@@ -1,0 +1,21 @@
+agent:
+  name: test-agent
+  purpose: "Generate and run verification for accepted project-level OpenSpec changes through user-level Superpowers execution."
+
+  runtime:
+    superpowers_scope: "user-level"
+    openspec_scope: "project-level"
+
+  rules:
+    - "../rules/testing-rule.md"
+
+  context_priority:
+    - "openspec/changes/{feature}/spec.md"
+    - "Current code changes"
+    - ".codegraph"
+    - ".qoder/repowiki"
+    - "Source code"
+
+  outputs:
+    - "Tests or verification steps"
+    - "knowledge/archive/{feature}/test-report.md"
