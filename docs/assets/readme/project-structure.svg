@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="860" viewBox="0 0 1280 860">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#5a5a5a"/></marker>
+</defs>
+<rect width="1280" height="860" fill="#f8f6f3"/>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif;}</style>
+<text x="640.0" y="58" text-anchor="middle" font-size="34" font-weight="700" fill="#1a1a1a">Project Template Structure</text>
+<text x="640.0" y="92" text-anchor="middle" font-size="18" font-weight="400" fill="#6a6a6a">一键接入后写入目标项目的核心目录</text>
+<rect x="490" y="125" width="300" height="80" rx="22" fill="#f4e4c1" stroke="#4a4a4a" stroke-width="2.5"/>
+<text x="640" y="174" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a1a">OSD Workflow</text>
+<line x1="640" y1="205" x2="265" y2="262" stroke="#5a5a5a" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="105" y="290" width="320" height="90" rx="22" fill="#9dd4c7" stroke="#4a4a4a" stroke-width="2.5"/>
+<text x="265" y="332" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a1a">.ai/</text>
+<text x="265" y="360" text-anchor="middle" font-size="14" font-weight="400" fill="#6a6a6a">Workflow contract</text>
+<rect x="133" y="415" width="264" height="52" rx="14" fill="#fffaf0" stroke="#4a4a4a" stroke-width="2"/>
+<text x="265" y="448" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">rules/</text>
+<rect x="133" y="480" width="264" height="52" rx="14" fill="#fffaf0" stroke="#4a4a4a" stroke-width="2"/>
+<text x="265" y="513" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">workflows/</text>
+<rect x="133" y="545" width="264" height="52" rx="14" fill="#fffaf0" stroke="#4a4a4a" stroke-width="2"/>
+<text x="265" y="578" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">skills/</text>
+<rect x="133" y="610" width="264" height="52" rx="14" fill="#fffaf0" stroke="#4a4a4a" stroke-width="2"/>
+<text x="265" y="643" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">agents/</text>
+<rect x="133" y="675" width="264" height="52" rx="14" fill="#fffaf0" stroke="#4a4a4a" stroke-width="2"/>
+<text x="265" y="708" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">AI_WORKFLOW.md</text>
+<line x1="640" y1="205" x2="660" y2="262" stroke="#5a5a5a" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="500" y="290" width="320" height="90" rx="22" fill="#a8c5e6" stroke="#4a4a4a" stroke-width="2.5"/>
+<text x="660" y="332" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a1a">openspec/</text>
+<text x="660" y="360" text-anchor="middle" font-size="14" font-weight="400" fill="#6a6a6a">Project specs</text>
+<rect x="528" y="415" width="264" height="52" rx="14" fill="#fffaf0" stroke="#4a4a4a" stroke-width="2"/>
+<text x="660" y="448" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">README.md</text>
+<rect x="528" y="480" width="264" height="52" rx="14" fill="#fffaf0" stroke="#4a4a4a" stroke-width="2"/>
+<text x="660" y="513" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">changes/</text>
+<line x1="640" y1="205" x2="1015" y2="262" stroke="#5a5a5a" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="855" y="290" width="320" height="90" rx="22" fill="#e8e6e3" stroke="#4a4a4a" stroke-width="2.5"/>
+<text x="1015" y="332" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a1a">knowledge/</text>
+<text x="1015" y="360" text-anchor="middle" font-size="14" font-weight="400" fill="#6a6a6a">Requirement archive</text>
+<rect x="883" y="415" width="264" height="52" rx="14" fill="#fffaf0" stroke="#4a4a4a" stroke-width="2"/>
+<text x="1015" y="448" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">archive/</text>
+</svg>

@@ -11,14 +11,7 @@ It does not implement OpenSpec or Superpowers. Instead, it defines the project-l
 
 This template helps teams move from direct prompt-to-code work into a traceable engineering loop:
 
-```text
-Requirement
--> Specification
--> Plan
--> Implementation
--> Verification
--> Knowledge Archive
-```
+![Traceable engineering loop](docs/assets/readme/workflow-loop.png)
 
 The goal is to validate a practical AI coding workflow before investing in heavier platforms, marketplaces, gateways, or CI automation.
 
@@ -34,20 +27,7 @@ The recommended local setup is:
 
 Responsibility split:
 
-```text
-User level
--> Superpowers
--> General AI agent execution discipline
--> Reusable personal workflow habits
-
-Project level
--> OpenSpec
--> .ai workflow, rules, and skill mapping
--> openspec/changes
--> knowledge/archive
--> .qoder/repowiki
--> .codegraph
-```
+![Runtime responsibility contract](docs/assets/readme/runtime-contract.png)
 
 Superpowers answers how the agent should execute the work.
 
@@ -55,34 +35,7 @@ OpenSpec answers why the project should change, what should change, and how it w
 
 ## Project Structure
 
-```text
-.
-|-- .ai/
-|   |-- AI_WORKFLOW.md
-|   |-- agents/
-|   |   |-- developer-agent.yaml
-|   |   `-- test-agent.yaml
-|   |-- rules/
-|   |   |-- code-review-rule.md
-|   |   |-- development-rule.md
-|   |   `-- testing-rule.md
-|   |-- skills/
-|   |   |-- implementation-plan/
-|   |   |   `-- SKILL.md
-|   |   |-- knowledge-archive/
-|   |   |   `-- SKILL.md
-|   |   |-- openspec-create/
-|   |   |   `-- SKILL.md
-|   |   `-- test-generation/
-|   |       `-- SKILL.md
-|   `-- workflows/
-|       `-- feature-development.yaml
-|-- knowledge/
-|   `-- archive/
-`-- openspec/
-    |-- README.md
-    `-- changes/
-```
+![Project template structure](docs/assets/readme/project-structure.png)
 
 ## Workflow
 
@@ -184,12 +137,7 @@ knowledge/archive/{feature}/requirement.md
 
 Create a dedicated OpenSpec change for the requirement:
 
-```text
-openspec/changes/{feature}/
-|-- proposal.md
-|-- spec.md
-`-- design.md
-```
+![OpenSpec change package](docs/assets/readme/openspec-change.png)
 
 Use `.ai/skills/openspec-create/SKILL.md` as the mapping guide.
 
@@ -266,15 +214,7 @@ Use `.ai/rules/code-review-rule.md` for review priorities.
 
 Archive the completed requirement as a reusable knowledge unit:
 
-```text
-knowledge/archive/{feature}/
-|-- requirement.md
-|-- spec.md
-|-- design.md
-|-- implementation.md
-|-- test-report.md
-`-- review-report.md
-```
+![Knowledge archive unit](docs/assets/readme/knowledge-archive.png)
 
 The archive should explain why the change exists, what changed, how it was verified, and which follow-ups remain.
 

@@ -11,14 +11,7 @@ OSD Workflow 是一个轻量级项目初始化模板，用于在真实软件项�
 
 该模板用于帮助团队从直接 Prompt 到代码的方式，转向可追溯的软件工程闭环：
 
-```text
-需求
--> 规格
--> 计划
--> 实现
--> 验证
--> 知识归档
-```
+![可追溯研发闭环](docs/assets/readme/workflow-loop.png)
 
 目标是在建设更重的平台、市场、网关或 CI 自动化体系之前，先验证一套可复制、可落地的 AI 研发工作流。
 
@@ -34,20 +27,7 @@ OSD Workflow 是一个轻量级项目初始化模板，用于在真实软件项�
 
 职责分层：
 
-```text
-用户级
--> Superpowers
--> 通用 AI Agent 执行纪律
--> 可复用的个人工作流习惯
-
-项目级
--> OpenSpec
--> .ai 工作流、规则和 Skill 映射
--> openspec/changes
--> knowledge/archive
--> .qoder/repowiki
--> .codegraph
-```
+![运行时职责分层](docs/assets/readme/runtime-contract.png)
 
 Superpowers 回答“Agent 应该如何执行工作”。
 
@@ -55,34 +35,7 @@ OpenSpec 回答“项目为什么改、改什么、如何验收”。
 
 ## 目录结构
 
-```text
-.
-|-- .ai/
-|   |-- AI_WORKFLOW.md
-|   |-- agents/
-|   |   |-- developer-agent.yaml
-|   |   `-- test-agent.yaml
-|   |-- rules/
-|   |   |-- code-review-rule.md
-|   |   |-- development-rule.md
-|   |   `-- testing-rule.md
-|   |-- skills/
-|   |   |-- implementation-plan/
-|   |   |   `-- SKILL.md
-|   |   |-- knowledge-archive/
-|   |   |   `-- SKILL.md
-|   |   |-- openspec-create/
-|   |   |   `-- SKILL.md
-|   |   `-- test-generation/
-|   |       `-- SKILL.md
-|   `-- workflows/
-|       `-- feature-development.yaml
-|-- knowledge/
-|   `-- archive/
-`-- openspec/
-    |-- README.md
-    `-- changes/
-```
+![项目模板目录结构](docs/assets/readme/project-structure.png)
 
 ## 工作流
 
@@ -184,12 +137,7 @@ knowledge/archive/{feature}/requirement.md
 
 为该需求创建独立 OpenSpec 变更：
 
-```text
-openspec/changes/{feature}/
-|-- proposal.md
-|-- spec.md
-`-- design.md
-```
+![OpenSpec 变更包](docs/assets/readme/openspec-change.png)
 
 使用 `.ai/skills/openspec-create/SKILL.md` 作为映射指南。
 
@@ -266,15 +214,7 @@ knowledge/archive/{feature}/test-report.md
 
 需求完成后归档为可复用研发知识单元：
 
-```text
-knowledge/archive/{feature}/
-|-- requirement.md
-|-- spec.md
-|-- design.md
-|-- implementation.md
-|-- test-report.md
-`-- review-report.md
-```
+![知识归档单元](docs/assets/readme/knowledge-archive.png)
 
 归档内容应说明为什么改、改了什么、如何验证，以及还有哪些后续事项。
 
