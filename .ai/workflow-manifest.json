@@ -1,0 +1,168 @@
+{
+  "schema": "osd-workflow-manifest/v1",
+  "default_mode": "standard",
+  "workflow": ".ai/workflows/feature-development.yaml",
+  "execution_rule": ".ai/rules/workflow-execution-rule.md",
+  "templates": {
+    "stage_report_full": ".ai/templates/stage-report.md",
+    "stage_report_compact": ".ai/templates/stage-report-compact.md",
+    "handoff_brief": ".ai/templates/handoff-brief.md",
+    "feishu_project_requirement": ".ai/templates/feishu-project-requirement.md"
+  },
+  "token_optimization": {
+    "strict": {
+      "reread_referenced_files": "each-stage",
+      "stage_report_format": "full",
+      "handoff_brief": "recommended"
+    },
+    "standard": {
+      "reread_referenced_files": "if-not-read-or-hash-changed",
+      "stage_report_format": "compact",
+      "handoff_brief": "required-before-agent-handoff"
+    },
+    "lite": {
+      "reread_referenced_files": "if-not-read-or-hash-changed",
+      "stage_report_format": "compact",
+      "openspec_required": "only-when-user-or-risk-requires",
+      "handoff_brief": "required-before-agent-handoff"
+    }
+  },
+  "stages": [
+    {
+      "id": "requirement-analysis",
+      "read": [
+        ".ai/rules/workflow-execution-rule.md",
+        ".ai/templates/feishu-project-requirement.md"
+      ],
+      "write": [
+        "knowledge/archive/{feature}/requirement.md",
+        "knowledge/archive/{feature}/stage-report.md"
+      ]
+    },
+    {
+      "id": "openspec-create",
+      "read": [
+        ".ai/skills/openspec-create/SKILL.md",
+        ".ai/rules/workflow-execution-rule.md",
+        "knowledge/archive/{feature}/requirement.md"
+      ],
+      "write": [
+        "openspec/changes/{feature}/proposal.md",
+        "openspec/changes/{feature}/spec.md",
+        "openspec/changes/{feature}/design.md",
+        "knowledge/archive/{feature}/stage-report.md"
+      ]
+    },
+    {
+      "id": "spec-review",
+      "read": [
+        ".ai/rules/workflow-execution-rule.md",
+        "openspec/changes/{feature}/proposal.md",
+        "openspec/changes/{feature}/spec.md",
+        "openspec/changes/{feature}/design.md"
+      ],
+      "write": [
+        "knowledge/archive/{feature}/spec-review.md",
+        "knowledge/archive/{feature}/stage-report.md"
+      ]
+    },
+    {
+      "id": "implementation-plan",
+      "read": [
+        ".ai/skills/implementation-plan/SKILL.md",
+        ".ai/rules/workflow-execution-rule.md",
+        "openspec/changes/{feature}/spec.md",
+        "openspec/changes/{feature}/design.md"
+      ],
+      "write": [
+        "knowledge/archive/{feature}/implementation.md",
+        "knowledge/archive/{feature}/stage-report.md"
+      ]
+    },
+    {
+      "id": "coding",
+      "read": [
+        ".ai/rules/workflow-execution-rule.md",
+        ".ai/rules/development-rule.md",
+        "knowledge/archive/{feature}/implementation.md"
+      ],
+      "write": [
+        "knowledge/archive/{feature}/stage-report.md"
+      ]
+    },
+    {
+      "id": "codegraph-analysis",
+      "optional": true,
+      "read": [
+        ".ai/rules/workflow-execution-rule.md",
+        ".codegraph"
+      ],
+      "write": [
+        "knowledge/archive/{feature}/codegraph-impact.md",
+        "knowledge/archive/{feature}/stage-report.md"
+      ]
+    },
+    {
+      "id": "test-generation",
+      "read": [
+        ".ai/skills/test-generation/SKILL.md",
+        ".ai/rules/workflow-execution-rule.md",
+        ".ai/rules/testing-rule.md",
+        "openspec/changes/{feature}/spec.md",
+        "knowledge/archive/{feature}/implementation.md"
+      ],
+      "write": [
+        "knowledge/archive/{feature}/test-plan.md",
+        "knowledge/archive/{feature}/stage-report.md"
+      ]
+    },
+    {
+      "id": "verification",
+      "read": [
+        ".ai/rules/workflow-execution-rule.md",
+        ".ai/rules/testing-rule.md",
+        "knowledge/archive/{feature}/test-plan.md"
+      ],
+      "write": [
+        "knowledge/archive/{feature}/test-report.md",
+        "knowledge/archive/{feature}/stage-report.md"
+      ]
+    },
+    {
+      "id": "code-review",
+      "read": [
+        ".ai/rules/workflow-execution-rule.md",
+        ".ai/rules/code-review-rule.md",
+        "openspec/changes/{feature}/spec.md",
+        "knowledge/archive/{feature}/implementation.md",
+        "knowledge/archive/{feature}/test-report.md"
+      ],
+      "write": [
+        "knowledge/archive/{feature}/review-report.md",
+        "knowledge/archive/{feature}/stage-report.md"
+      ]
+    },
+    {
+      "id": "archive",
+      "read": [
+        ".ai/skills/knowledge-archive/SKILL.md",
+        ".ai/rules/workflow-execution-rule.md",
+        "openspec/changes/{feature}/spec.md",
+        "openspec/changes/{feature}/design.md",
+        "knowledge/archive/{feature}/implementation.md",
+        "knowledge/archive/{feature}/test-report.md",
+        "knowledge/archive/{feature}/review-report.md"
+      ],
+      "write": [
+        "knowledge/archive/{feature}/requirement.md",
+        "knowledge/archive/{feature}/spec.md",
+        "knowledge/archive/{feature}/design.md",
+        "knowledge/archive/{feature}/implementation.md",
+        "knowledge/archive/{feature}/test-report.md",
+        "knowledge/archive/{feature}/review-report.md",
+        "knowledge/archive/{feature}/stage-report.md",
+        "knowledge/archive/{feature}/handoff-brief.md"
+      ]
+    }
+  ]
+}

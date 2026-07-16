@@ -127,6 +127,55 @@ The gate checks:
 - per-stage `required_outputs`
 - `knowledge/archive/{feature}/stage-report.md`
 
+## Token-Efficient Modes
+
+Use `standard` mode by default. It keeps production artifacts and gates, but reduces repeated context by using `.ai/workflow-manifest.json`, compact stage reports, and handoff briefs.
+
+Modes:
+
+```text
+strict
+-> Highest assurance
+-> Reread referenced files at every stage
+-> Use full stage report
+
+standard
+-> Default daily production mode
+-> Reuse previously-read files when hashes are unchanged
+-> Use compact stage report
+-> Use handoff brief when another agent continues the work
+
+lite
+-> Low-risk user-approved shortcut
+-> May skip full OpenSpec only when explicitly allowed
+-> Still requires verification evidence and final artifact gate
+```
+
+Recommended low-token prompt:
+
+```text
+Use FeishuProjectMcp to pull {link}.
+Run OSD Workflow standard mode for {feature}.
+Stop after OpenSpec creation and spec review.
+Use .ai/workflow-manifest.json and write required_outputs to disk.
+```
+
+Continuation:
+
+```text
+Spec approved. Continue OSD Workflow standard mode for {feature}.
+Use handoff-brief.md instead of chat history when context is already summarized.
+Run verification, review, archive, and final artifact gate.
+```
+
+Token rules:
+
+- Do not paste full files into the prompt when a path and hash are enough.
+- Reuse previously-read workflow, skill, and rule files if their hash is unchanged.
+- Store cross-agent context in `knowledge/archive/{feature}/handoff-brief.md`.
+- Use `.ai/templates/stage-report-compact.md` unless strict mode or a blocker requires full detail.
+- Pull Feishu Project MCP fields first; fetch comments, attachments, and history only when needed.
+
 ## Prompt Templates
 
 ### Strict Workflow Execution Prefix

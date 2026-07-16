@@ -42,7 +42,39 @@ workflow:
       - "Archive is complete only when the files required by .ai/skills/knowledge-archive/SKILL.md exist."
     templates:
       stage_report: ".ai/templates/stage-report.md"
+      compact_stage_report: ".ai/templates/stage-report-compact.md"
       feishu_project_requirement: ".ai/templates/feishu-project-requirement.md"
+      handoff_brief: ".ai/templates/handoff-brief.md"
+
+  token_optimization:
+    default_mode: "standard"
+    manifest: ".ai/workflow-manifest.json"
+    modes:
+      strict:
+        purpose: "Highest assurance. Use for high-risk, ambiguous, regulated, or release-critical work."
+        reread_referenced_files: "each-stage"
+        stage_report_format: "full"
+        handoff_brief: "recommended"
+        final_gate_required: true
+      standard:
+        purpose: "Default daily production mode. Keeps required outputs and gates while reducing repeated context."
+        reread_referenced_files: "if-not-read-or-hash-changed"
+        stage_report_format: "compact"
+        handoff_brief: "required-before-agent-handoff"
+        final_gate_required: true
+      lite:
+        purpose: "Low-risk user-approved shortcut. Still requires verification evidence and final artifact gate."
+        reread_referenced_files: "if-not-read-or-hash-changed"
+        stage_report_format: "compact"
+        openspec_required: "only-when-user-or-risk-requires"
+        handoff_brief: "required-before-agent-handoff"
+        final_gate_required: true
+    rules:
+      - "Use standard mode unless the user explicitly asks for strict or lite mode."
+      - "Do not paste full previously-read files back into context when a stable path, hash, and summary are enough."
+      - "When reusing a previously-read skill or rule file, record its path and hash in the stage report."
+      - "Use handoff brief instead of full chat history when another agent continues the work."
+      - "Use compact stage report unless strict mode is selected or a blocker/risk requires full detail."
 
   inputs:
     - requirement_title

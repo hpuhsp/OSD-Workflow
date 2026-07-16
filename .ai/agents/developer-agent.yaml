@@ -12,8 +12,10 @@ agent:
     - "../rules/development-rule.md"
 
   default_workflow: "../workflows/feature-development.yaml"
+  workflow_manifest: "../workflow-manifest.json"
 
   required_context:
+    - "knowledge/archive/{feature}/handoff-brief.md"
     - "openspec/changes/{feature}/proposal.md"
     - "openspec/changes/{feature}/spec.md"
     - "openspec/changes/{feature}/design.md"
@@ -26,3 +28,4 @@ agent:
     - "Code changes"
     - "knowledge/archive/{feature}/implementation.md"
     - "knowledge/archive/{feature}/stage-report.md"
+    - "knowledge/archive/{feature}/handoff-brief.md"

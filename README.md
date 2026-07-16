@@ -62,8 +62,11 @@ Stages:
 
 - `.ai/AI_WORKFLOW.md`: workflow overview and environment contract.
 - `.ai/workflows/feature-development.yaml`: stage definition and runtime responsibility mapping.
+- `.ai/workflow-manifest.json`: compact stage index for lower-token execution.
 - `.ai/rules/workflow-execution-rule.md`: mandatory stage execution, file-reading, and artifact rules.
 - `.ai/templates/stage-report.md`: required stage report template.
+- `.ai/templates/stage-report-compact.md`: compact stage report template for standard/lite execution modes.
+- `.ai/templates/handoff-brief.md`: cross-agent handoff summary template.
 - `.ai/templates/feishu-project-requirement.md`: FeishuProjectMcp intake template.
 - `.ai/rules/development-rule.md`: implementation discipline.
 - `.ai/rules/testing-rule.md`: test generation and verification rules.
@@ -131,6 +134,16 @@ node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}
 ```
 
 This checks the workflow references, templates, OpenSpec change files, archive files, and per-stage `required_outputs` declared in `.ai/workflows/feature-development.yaml`.
+
+## Token-Efficient Execution
+
+The workflow supports three execution modes:
+
+- `strict`: highest assurance, rereads referenced files at every stage, uses full stage reports.
+- `standard`: default daily production mode, reuses previously-read files when hashes are unchanged, uses compact stage reports, and writes handoff briefs for agent transitions.
+- `lite`: low-risk user-approved shortcut, still requires verification evidence and final artifact gate.
+
+For daily work, ask agents to use `standard` mode and `.ai/workflow-manifest.json` before loading full workflow context.
 
 ## Development Guide: Feishu Project Requirement To Code
 

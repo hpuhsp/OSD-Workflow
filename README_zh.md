@@ -62,8 +62,11 @@ OpenSpec CLI 提供工具链；项目内初始化后的 OpenSpec 工作区回答
 
 - `.ai/AI_WORKFLOW.md`：工作流总览和本地环境约定。
 - `.ai/workflows/feature-development.yaml`：阶段定义和运行时职责映射。
+- `.ai/workflow-manifest.json`：用于低 token 执行的紧凑阶段索引。
 - `.ai/rules/workflow-execution-rule.md`：强制阶段执行、文件读取和产物落盘规则。
 - `.ai/templates/stage-report.md`：阶段报告模板。
+- `.ai/templates/stage-report-compact.md`：standard/lite 模式使用的紧凑阶段报告模板。
+- `.ai/templates/handoff-brief.md`：跨 Agent 交接摘要模板。
 - `.ai/templates/feishu-project-requirement.md`：FeishuProjectMcp 需求输入模板。
 - `.ai/rules/development-rule.md`：开发实施规则。
 - `.ai/rules/testing-rule.md`：测试生成与验证规则。
@@ -131,6 +134,16 @@ node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}
 ```
 
 该命令会检查 workflow 引用文件、模板文件、OpenSpec 变更文件、归档文件，以及 `.ai/workflows/feature-development.yaml` 中声明的每阶段 `required_outputs`。
+
+## 省 Token 执行
+
+Workflow 支持三种执行模式：
+
+- `strict`：最高确定性，每阶段重新读取引用文件，使用完整 stage report。
+- `standard`：默认日常生产模式，引用文件 hash 未变化时复用已读上下文，使用 compact stage report，并在跨 Agent 交接时写 handoff brief。
+- `lite`：低风险且用户明确允许的快捷模式，仍要求验证证据和最终 artifact gate。
+
+日常开发建议让 Agent 使用 `standard` 模式，并先读取 `.ai/workflow-manifest.json`，再按需读取完整 workflow 上下文。
 
 ## 开发使用说明：从飞书项目需求到代码
 

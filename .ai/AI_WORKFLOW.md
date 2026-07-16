@@ -102,13 +102,24 @@ Use Agent/Harness-level Superpowers to orchestrate `.ai/workflows/feature-develo
 The workflow is a binding execution contract.
 
 - Read `.ai/workflows/feature-development.yaml` before starting or continuing feature work.
-- Before each stage, read every `skill` and `rules` file referenced by that stage.
+- Read `.ai/workflow-manifest.json` as the compact stage index when present.
+- Before each stage, read every `skill` and `rules` file referenced by that stage unless the same file was already read in this run and its hash is unchanged.
 - If a referenced file cannot be read, stop and report it as a blocker.
 - Do not treat internal task lists, TodoWrite entries, chat summaries, or unstored reasoning as workflow artifacts.
 - Do not skip non-optional stages unless the user explicitly asks to skip them.
 - Verification must run relevant commands or document why they could not be run.
 - Archive is incomplete until `.ai/skills/knowledge-archive/SKILL.md` required files exist.
 - Production handoff requires `scripts/verify-workflow-artifacts.mjs --target . --feature {feature}` to pass when Node.js is available.
+
+## Token Optimization Modes
+
+Use `standard` mode by default:
+
+- `strict`: highest assurance, rereads referenced files at every stage, uses full stage reports.
+- `standard`: daily production mode, reuses previously-read files when hashes are unchanged, uses compact stage reports, and writes handoff briefs for agent transitions.
+- `lite`: low-risk user-approved shortcut, still requires verification evidence and final artifact gate.
+
+Use `.ai/templates/stage-report-compact.md` for standard/lite mode and `.ai/templates/handoff-brief.md` when another agent continues the work.
 
 ## Expected Outputs
 
@@ -124,6 +135,7 @@ For each real requirement, the workflow should produce:
 - `knowledge/archive/{feature}/test-report.md`
 - `knowledge/archive/{feature}/review-report.md`
 - `knowledge/archive/{feature}/stage-report.md`
+- `knowledge/archive/{feature}/handoff-brief.md` when work is handed to another agent
 
 ## Operating Rules
 

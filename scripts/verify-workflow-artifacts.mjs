@@ -66,6 +66,10 @@ function parseWorkflow(workflowText) {
   let inRequiredOutputs = false;
 
   for (const line of lines) {
+    for (const match of line.matchAll(/"(\.ai\/[^"]+)"/g)) {
+      references.add(match[1]);
+    }
+
     const ruleOrSkill = line.match(/(?:skill|rule): "([^"]+)"/);
     if (ruleOrSkill) {
       references.add(ruleOrSkill[1]);

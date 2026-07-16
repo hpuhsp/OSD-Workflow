@@ -11,7 +11,10 @@ agent:
     - "../rules/workflow-execution-rule.md"
     - "../rules/testing-rule.md"
 
+  workflow_manifest: "../workflow-manifest.json"
+
   context_priority:
+    - "knowledge/archive/{feature}/handoff-brief.md"
     - "openspec/changes/{feature}/spec.md"
     - "Current code changes"
     - ".codegraph"
@@ -20,5 +23,7 @@ agent:
 
   outputs:
     - "Tests or verification steps"
+    - "knowledge/archive/{feature}/test-plan.md"
     - "knowledge/archive/{feature}/test-report.md"
     - "knowledge/archive/{feature}/stage-report.md"
+    - "knowledge/archive/{feature}/handoff-brief.md"

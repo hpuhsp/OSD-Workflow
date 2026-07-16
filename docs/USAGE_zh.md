@@ -127,6 +127,55 @@ node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}
 - 每阶段 `required_outputs`
 - `knowledge/archive/{feature}/stage-report.md`
 
+## 省 Token 执行模式
+
+默认使用 `standard` 模式。它保留生产产物和门禁，但通过 `.ai/workflow-manifest.json`、compact stage report 和 handoff brief 减少重复上下文。
+
+模式：
+
+```text
+strict
+-> 最高确定性
+-> 每阶段重新读取引用文件
+-> 使用完整 stage report
+
+standard
+-> 默认日常生产模式
+-> 引用文件 hash 未变化时复用已读上下文
+-> 使用 compact stage report
+-> 跨 Agent 交接时使用 handoff brief
+
+lite
+-> 低风险且用户明确允许的快捷模式
+-> 仅在明确允许时跳过完整 OpenSpec
+-> 仍要求验证证据和最终 artifact gate
+```
+
+推荐低 token 提示词：
+
+```text
+Use FeishuProjectMcp to pull {link}.
+Run OSD Workflow standard mode for {feature}.
+Stop after OpenSpec creation and spec review.
+Use .ai/workflow-manifest.json and write required_outputs to disk.
+```
+
+继续开发：
+
+```text
+Spec approved. Continue OSD Workflow standard mode for {feature}.
+Use handoff-brief.md instead of chat history when context is already summarized.
+Run verification, review, archive, and final artifact gate.
+```
+
+省 token 规则：
+
+- 不要在提示词里粘贴完整文件，路径和 hash 足够时只引用路径和 hash。
+- workflow、skill、rule 文件 hash 未变化时，复用已读上下文。
+- 跨 Agent 上下文写入 `knowledge/archive/{feature}/handoff-brief.md`。
+- 除 strict 模式或 blocker 外，使用 `.ai/templates/stage-report-compact.md`。
+- 飞书项目 MCP 先拉字段摘要，评论、附件、历史按需读取。
+
 ## 提示词模板
 
 ### 严格执行 Workflow 前缀
