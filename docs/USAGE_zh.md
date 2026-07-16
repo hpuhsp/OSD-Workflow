@@ -357,6 +357,53 @@ OpenSpec 变更准备好后停止，等待评审。
 - Superpowers 按 AI Agent 或 Harness 安装。
 - OpenSpec CLI 全局安装，然后在每个项目内初始化并维护 OpenSpec 资产。
 
+## Qoder CLI 验证说明
+
+推荐的两段式提示词已在 2026-07-16 使用 Qoder CLI 和 `Qwen3.7-Plus` 模型验证，模拟功能为 `loyalty-points`。
+
+已验证链路：
+
+```text
+FeishuProjectMcp 拉取或 fallback
+-> requirement-analysis
+-> openspec-create
+-> spec-review
+-> 用户确认
+-> implementation-plan
+-> coding
+-> test-generation
+-> verification
+-> code-review
+-> archive
+-> production artifact gate
+```
+
+验证结果：
+
+```text
+node --test
+15 tests passed, 0 failed
+
+node scripts/verify-workflow-artifacts.mjs --target . --feature loyalty-points
+Result: PASS
+```
+
+实用结论：
+
+- 新 Agent 或首次接入项目时，优先使用两段式长提示词。
+- 明确写 `FeishuProjectMcp`，不要只写“飞书 MCP”。
+- 保留“每阶段开始前读取引用的 skill/rule 文件”。
+- 保留“TodoWrite 和对话总结不是 workflow artifact”。
+- 每个 `required_output` 必须真实写入磁盘后，阶段才算完成。
+- 只有确认 Agent 已加载项目级指令后，才使用最小提示词。
+- full artifact gate 只用于最终交付；如果故意停在 spec review，提前运行 full gate 失败是预期行为。
+
+详细验证报告：
+
+```text
+docs/QODER_CLI_PROMPT_VALIDATION_zh.md
+```
+
 ## 最小提示词
 
 配置好项目自定义指令后，日常使用可以简化为：

@@ -33,21 +33,21 @@ Use context in this order:
 4. Update affected existing tests when the accepted spec changes prior expected behavior.
 5. Keep tests focused on changed behavior and impacted contracts.
 6. Run or define the minimum required verification commands.
-7. Record results and gaps in the test report.
+7. Record the planned tests, acceptance-criteria mapping, and any known gaps in the test plan.
 
 ## Output
 
 Create or update:
 
 ```text
-knowledge/archive/{feature}/test-report.md
+knowledge/archive/{feature}/test-plan.md
 knowledge/archive/{feature}/stage-report.md
 ```
 
 Recommended structure:
 
 ```markdown
-# Test Report: {Feature Name}
+# Test Plan: {Feature Name}
 
 ## Scope
 
@@ -55,7 +55,7 @@ Recommended structure:
 
 ## Commands
 
-## Results
+## Expected Results
 
 ## Coverage Notes
 
@@ -67,6 +67,7 @@ Recommended structure:
 - Acceptance criteria have verification coverage.
 - Test commands or manual verification steps are documented.
 - Residual risk is explicit.
-- Results are written to `knowledge/archive/{feature}/test-report.md`; an internal todo list or chat summary does not satisfy this skill.
-- If verification commands cannot be run, the reason and residual risk are documented in the test report.
+- The test plan is written to `knowledge/archive/{feature}/test-plan.md`; an internal todo list or chat summary does not satisfy this skill.
+- Actual command results are written later by the `verification` stage to `knowledge/archive/{feature}/test-report.md`.
+- If verification commands cannot be run later, the reason and residual risk must be documented in the verification-stage test report.
 - Stage report records files read, tests generated or updated, and verification command status.

@@ -357,6 +357,53 @@ Use these rules in prompts or custom instructions:
 - Keep Superpowers installed per AI agent or harness.
 - Keep OpenSpec CLI globally installed, then initialize and maintain OpenSpec assets per project.
 
+## Qoder CLI Validation Notes
+
+The recommended two-step prompts were validated with Qoder CLI on 2026-07-16 using `Qwen3.7-Plus` against a simulated `loyalty-points` feature.
+
+Validated path:
+
+```text
+FeishuProjectMcp pull/fallback
+-> requirement-analysis
+-> openspec-create
+-> spec-review
+-> user approval
+-> implementation-plan
+-> coding
+-> test-generation
+-> verification
+-> code-review
+-> archive
+-> production artifact gate
+```
+
+Observed result:
+
+```text
+node --test
+15 tests passed, 0 failed
+
+node scripts/verify-workflow-artifacts.mjs --target . --feature loyalty-points
+Result: PASS
+```
+
+Practical findings:
+
+- Use the long two-step prompt for new agents or first-time project adoption.
+- Write `FeishuProjectMcp` explicitly; do not only say "Feishu MCP".
+- Keep the instruction "read every referenced skill/rule file before each stage".
+- Keep the instruction "TodoWrite and chat summaries are not workflow artifacts".
+- Require every `required_output` to exist on disk before a stage is considered complete.
+- Use the minimal prompt only after the agent has confirmed it loaded project-level instructions.
+- Full artifact gate is for final handoff; it is expected to fail if you intentionally stop after spec review.
+
+Detailed validation report:
+
+```text
+docs/QODER_CLI_PROMPT_VALIDATION_zh.md
+```
+
 ## Minimal Prompt
 
 Once project custom instructions are configured, this should be enough for daily use:
