@@ -1,6 +1,6 @@
 # OSD Workflow
 
-OSD Workflow 是一个轻量级项目初始化模板，用于在真实软件项目中验证 OpenSpec + Superpowers 的 AI Coding Workflow。
+OSD Workflow 是一个轻量级项目初始化模板，用于在真实软件项目中运行 OpenSpec + Superpowers 的 AI Coding Workflow。
 
 它不实现 OpenSpec，也不实现 Superpowers。它提供的是项目级工作流契约、规则、Skill 映射和知识归档结构，用来连接：
 
@@ -14,7 +14,7 @@ OSD Workflow 是一个轻量级项目初始化模板，用于在真实软件项�
 
 ![可追溯研发闭环](docs/assets/readme/workflow-loop.png)
 
-目标是在建设更重的平台、市场、网关或 CI 自动化体系之前，先验证一套可复制、可落地的 AI 研发工作流。
+目标是在建设更重的平台、市场、网关或 CI 自动化体系之前，先提供一套面向生产交付的、可复制的需求到交付闭环。
 
 ## 本地环境约定
 
@@ -63,6 +63,8 @@ OpenSpec CLI 提供工具链；项目内初始化后的 OpenSpec 工作区回答
 - `.ai/AI_WORKFLOW.md`：工作流总览和本地环境约定。
 - `.ai/workflows/feature-development.yaml`：阶段定义和运行时职责映射。
 - `.ai/rules/workflow-execution-rule.md`：强制阶段执行、文件读取和产物落盘规则。
+- `.ai/templates/stage-report.md`：阶段报告模板。
+- `.ai/templates/feishu-project-requirement.md`：FeishuProjectMcp 需求输入模板。
 - `.ai/rules/development-rule.md`：开发实施规则。
 - `.ai/rules/testing-rule.md`：测试生成与验证规则。
 - `.ai/rules/code-review-rule.md`：代码评审优先级和输出要求。
@@ -72,18 +74,20 @@ OpenSpec CLI 提供工具链；项目内初始化后的 OpenSpec 工作区回答
 - `.ai/skills/knowledge-archive/SKILL.md`：知识归档结构和完成标准。
 - `.ai/agents/developer-agent.yaml`：开发 Agent 上下文契约。
 - `.ai/agents/test-agent.yaml`：测试 Agent 上下文契约。
+- `scripts/verify-workflow-artifacts.mjs`：生产交付前的 workflow 产物门禁。
 - `bin/osd-workflow-init.mjs`：Node.js CLI 安装器。
 - `scripts/install.ps1`：PowerShell CLI 安装器。
 
 ## 使用方式
 
-1. 将 `.ai/`、`openspec/` 和 `knowledge/` 复制到真实项目。
+1. 将 `.ai/`、`openspec/`、`knowledge/` 和 `scripts/verify-workflow-artifacts.mjs` 复制到真实项目。
 2. 如有需要，先全局安装 OpenSpec CLI：`npm install -g @fission-ai/openspec@latest`。
 3. 在目标项目中执行 `openspec init`。
 4. 确保团队成员已为自己使用的 AI Agent 或 Harness 安装 Superpowers。
 5. 每个需求在 `openspec/changes/{feature}/` 下创建 OpenSpec 变更。
 6. 使用 `.ai/workflows/feature-development.yaml` 作为工作流契约。
 7. 需求完成后归档到 `knowledge/archive/{feature}/`。
+8. 交付前执行 `node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}`。
 
 提示词模板、项目自定义指令、多 Agent 使用方式和飞书项目 MCP（`FeishuProjectMcp`）集成说明见 `docs/USAGE.md` 和 `docs/USAGE_zh.md`。
 
@@ -117,6 +121,16 @@ npx --yes github:hpuhsp/OSD-Workflow --target . --with-docs
 - `--force` / `-Force`：覆盖已有 Workflow 文件。
 
 安装器默认不会覆盖已有文件。
+
+## 生产交付门禁
+
+功能交付前执行：
+
+```bash
+node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}
+```
+
+该命令会检查 workflow 引用文件、模板文件、OpenSpec 变更文件、归档文件，以及 `.ai/workflows/feature-development.yaml` 中声明的每阶段 `required_outputs`。
 
 ## 开发使用说明：从飞书项目需求到代码
 
@@ -236,9 +250,14 @@ knowledge/archive/{feature}/test-report.md
 - `openspec/changes/{feature}/spec.md`
 - `openspec/changes/{feature}/design.md`
 - `knowledge/archive/{feature}/requirement.md`
+- `knowledge/archive/{feature}/spec.md`
+- `knowledge/archive/{feature}/design.md`
 - `knowledge/archive/{feature}/implementation.md`
 - `knowledge/archive/{feature}/test-report.md`
 - `knowledge/archive/{feature}/review-report.md`
+- `knowledge/archive/{feature}/stage-report.md`
+
+执行 `node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}` 可检查这些生产交付产物是否齐全。
 
 ## 非目标
 

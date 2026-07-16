@@ -30,9 +30,10 @@ Use context in this order:
 1. Map each acceptance criterion to a verification method.
 2. Reuse the existing project test framework and conventions.
 3. Add regression coverage for bug fixes when practical.
-4. Keep tests focused on changed behavior and impacted contracts.
-5. Run or define the minimum required verification commands.
-6. Record results and gaps in the test report.
+4. Update affected existing tests when the accepted spec changes prior expected behavior.
+5. Keep tests focused on changed behavior and impacted contracts.
+6. Run or define the minimum required verification commands.
+7. Record results and gaps in the test report.
 
 ## Output
 
@@ -40,6 +41,7 @@ Create or update:
 
 ```text
 knowledge/archive/{feature}/test-report.md
+knowledge/archive/{feature}/stage-report.md
 ```
 
 Recommended structure:
@@ -67,3 +69,4 @@ Recommended structure:
 - Residual risk is explicit.
 - Results are written to `knowledge/archive/{feature}/test-report.md`; an internal todo list or chat summary does not satisfy this skill.
 - If verification commands cannot be run, the reason and residual risk are documented in the test report.
+- Stage report records files read, tests generated or updated, and verification command status.

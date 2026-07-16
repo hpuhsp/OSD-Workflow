@@ -1,6 +1,6 @@
 workflow:
   name: feature-development
-  description: "Pilot workflow for OpenSpec + Superpowers AI coding work."
+  description: "Production workflow for OpenSpec + Superpowers AI coding work."
 
   runtime_contract:
     superpowers:
@@ -40,6 +40,9 @@ workflow:
       - "Non-optional stages must not be skipped unless the user explicitly says to skip them."
       - "Verification must run relevant commands or document why they could not be run."
       - "Archive is complete only when the files required by .ai/skills/knowledge-archive/SKILL.md exist."
+    templates:
+      stage_report: ".ai/templates/stage-report.md"
+      feishu_project_requirement: ".ai/templates/feishu-project-requirement.md"
 
   inputs:
     - requirement_title
@@ -70,6 +73,9 @@ workflow:
       rules:
         - ".ai/rules/workflow-execution-rule.md"
       output: "Normalized requirement context and acceptance criteria."
+      required_outputs:
+        - "knowledge/archive/{feature}/requirement.md"
+        - "knowledge/archive/{feature}/stage-report.md"
 
     - id: openspec-create
       name: OpenSpec Create
@@ -78,12 +84,20 @@ workflow:
       rules:
         - ".ai/rules/workflow-execution-rule.md"
       output: "openspec/changes/{feature}/"
+      required_outputs:
+        - "openspec/changes/{feature}/proposal.md"
+        - "openspec/changes/{feature}/spec.md"
+        - "openspec/changes/{feature}/design.md"
+        - "knowledge/archive/{feature}/stage-report.md"
 
     - id: spec-review
       name: Spec Review
       rules:
         - ".ai/rules/workflow-execution-rule.md"
       output: "Reviewed proposal, spec, and design."
+      required_outputs:
+        - "knowledge/archive/{feature}/spec-review.md"
+        - "knowledge/archive/{feature}/stage-report.md"
 
     - id: implementation-plan
       name: Implementation Plan
@@ -92,6 +106,9 @@ workflow:
       rules:
         - ".ai/rules/workflow-execution-rule.md"
       output: "Implementation steps and affected modules."
+      required_outputs:
+        - "knowledge/archive/{feature}/implementation.md"
+        - "knowledge/archive/{feature}/stage-report.md"
 
     - id: coding
       name: AI Coding
@@ -100,11 +117,16 @@ workflow:
         - ".ai/rules/workflow-execution-rule.md"
         - ".ai/rules/development-rule.md"
       output: "Code changes aligned to the approved spec."
+      required_outputs:
+        - "knowledge/archive/{feature}/stage-report.md"
 
     - id: codegraph-analysis
       name: CodeGraph Impact Analysis
       optional: true
       output: "Affected call paths, modules, and regression risk."
+      required_outputs:
+        - "knowledge/archive/{feature}/codegraph-impact.md"
+        - "knowledge/archive/{feature}/stage-report.md"
 
     - id: test-generation
       name: AI Test Generation
@@ -114,13 +136,19 @@ workflow:
         - ".ai/rules/workflow-execution-rule.md"
         - ".ai/rules/testing-rule.md"
       output: "Focused tests and verification steps."
+      required_outputs:
+        - "knowledge/archive/{feature}/test-plan.md"
+        - "knowledge/archive/{feature}/stage-report.md"
 
     - id: verification
       name: Verification
       rules:
         - ".ai/rules/workflow-execution-rule.md"
         - ".ai/rules/testing-rule.md"
-      output: "Test and validation evidence."
+      output: "Test and verification evidence."
+      required_outputs:
+        - "knowledge/archive/{feature}/test-report.md"
+        - "knowledge/archive/{feature}/stage-report.md"
 
     - id: code-review
       name: Code Review
@@ -128,6 +156,9 @@ workflow:
         - ".ai/rules/workflow-execution-rule.md"
         - ".ai/rules/code-review-rule.md"
       output: "Review findings and final result."
+      required_outputs:
+        - "knowledge/archive/{feature}/review-report.md"
+        - "knowledge/archive/{feature}/stage-report.md"
 
     - id: archive
       name: Knowledge Archive
@@ -136,3 +167,11 @@ workflow:
       rules:
         - ".ai/rules/workflow-execution-rule.md"
       output: "knowledge/archive/{feature}/"
+      required_outputs:
+        - "knowledge/archive/{feature}/requirement.md"
+        - "knowledge/archive/{feature}/spec.md"
+        - "knowledge/archive/{feature}/design.md"
+        - "knowledge/archive/{feature}/implementation.md"
+        - "knowledge/archive/{feature}/test-report.md"
+        - "knowledge/archive/{feature}/review-report.md"
+        - "knowledge/archive/{feature}/stage-report.md"

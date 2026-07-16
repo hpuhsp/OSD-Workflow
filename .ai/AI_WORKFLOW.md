@@ -1,6 +1,6 @@
 # AI Coding Workflow
 
-This template defines a lightweight pilot workflow for validating an OpenSpec + Superpowers AI coding process in a real project.
+This template defines a lightweight production-oriented workflow for running an OpenSpec + Superpowers AI coding process in a real project.
 
 It is an integration template, not a replacement implementation for OpenSpec or Superpowers.
 
@@ -84,7 +84,7 @@ These knowledge systems stay independent and should not be merged.
 
 ## Workflow
 
-Use Agent/Harness-level Superpowers to orchestrate `.ai/workflows/feature-development.yaml` as the default pilot workflow:
+Use Agent/Harness-level Superpowers to orchestrate `.ai/workflows/feature-development.yaml` as the default production workflow:
 
 1. Requirement analysis
 2. OpenSpec creation through the project OpenSpec workspace
@@ -108,6 +108,7 @@ The workflow is a binding execution contract.
 - Do not skip non-optional stages unless the user explicitly asks to skip them.
 - Verification must run relevant commands or document why they could not be run.
 - Archive is incomplete until `.ai/skills/knowledge-archive/SKILL.md` required files exist.
+- Production handoff requires `scripts/verify-workflow-artifacts.mjs --target . --feature {feature}` to pass when Node.js is available.
 
 ## Expected Outputs
 
@@ -117,9 +118,12 @@ For each real requirement, the workflow should produce:
 - `openspec/changes/{feature}/spec.md`
 - `openspec/changes/{feature}/design.md`
 - `knowledge/archive/{feature}/requirement.md`
+- `knowledge/archive/{feature}/spec.md`
+- `knowledge/archive/{feature}/design.md`
 - `knowledge/archive/{feature}/implementation.md`
 - `knowledge/archive/{feature}/test-report.md`
 - `knowledge/archive/{feature}/review-report.md`
+- `knowledge/archive/{feature}/stage-report.md`
 
 ## Operating Rules
 

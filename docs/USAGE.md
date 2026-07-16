@@ -109,7 +109,23 @@ Preview before writing:
 powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs -DryRun
 ```
 
-The installer copies `.ai/`, `openspec/`, and `knowledge/` by default. It copies `docs/` only when `--with-docs` or `-WithDocs` is set. Existing files are skipped unless `--force` or `-Force` is provided.
+The installer copies `.ai/`, `openspec/`, `knowledge/`, and `scripts/verify-workflow-artifacts.mjs` by default. It copies `docs/` only when `--with-docs` or `-WithDocs` is set. Existing files are skipped unless `--force` or `-Force` is provided.
+
+## Production Handoff Gate
+
+Before handoff, run the production artifact gate:
+
+```bash
+node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}
+```
+
+The gate checks:
+
+- workflow-referenced skill, rule, and template files
+- OpenSpec change files
+- archive files
+- per-stage `required_outputs`
+- `knowledge/archive/{feature}/stage-report.md`
 
 ## Prompt Templates
 
@@ -127,11 +143,13 @@ Before starting, read:
 Before each stage:
 - read every skill file referenced by that stage
 - read every rules file referenced by that stage
-- report current stage id, files read, and files created or updated
+- update knowledge/archive/{feature}/stage-report.md using .ai/templates/stage-report.md
+- report current stage id, files read, files created or updated, and required_outputs status
 
 Do not skip non-optional stages unless I explicitly say to skip them.
 Do not treat TodoWrite, internal task lists, chat summaries, or unstored reasoning as workflow artifacts.
 The stage is complete only when the required file or verification evidence exists on disk.
+Before handoff, run node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}.
 ```
 
 ### Create OpenSpec From Feishu Project Requirement
@@ -182,6 +200,8 @@ Continue the workflow:
 
 Keep implementation scoped to the approved OpenSpec change.
 Do not treat TodoWrite or chat summaries as implementation plan, test report, review report, or archive.
+Update knowledge/archive/{feature}/stage-report.md at every stage.
+Before handoff, run node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}.
 ```
 
 ### Handle A Bug Fix
@@ -229,6 +249,8 @@ When the user provides a Feishu project requirement, task link, bug report, feat
 7. Use Superpowers from the active AI agent or harness, when available and allowed, as the execution discipline for planning, coding, verification, review, and archive.
 8. Do not treat TodoWrite, internal task lists, chat summaries, or unstored reasoning as workflow artifacts.
 9. Archive completed work under knowledge/archive/{feature}/ with the required files from .ai/skills/knowledge-archive/SKILL.md.
+10. Update knowledge/archive/{feature}/stage-report.md using .ai/templates/stage-report.md at every stage.
+11. Before handoff, run node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}.
 ```
 
 This instruction lets the user write shorter daily prompts, such as:
@@ -277,6 +299,7 @@ Complete:
 - verification
 - review report
 - knowledge archive
+- production handoff gate
 ```
 
 ## Multi-Agent Usage
@@ -328,6 +351,8 @@ Use these rules in prompts or custom instructions:
 - Read each stage's referenced skill and rule files before executing that stage.
 - Do not treat TodoWrite, internal task lists, or chat summaries as workflow artifacts.
 - Do not skip non-optional stages without explicit user instruction.
+- Update `knowledge/archive/{feature}/stage-report.md` at every stage.
+- Run `node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}` before handoff.
 - Archive requirement, spec, design, implementation, test, and review outputs.
 - Keep Superpowers installed per AI agent or harness.
 - Keep OpenSpec CLI globally installed, then initialize and maintain OpenSpec assets per project.

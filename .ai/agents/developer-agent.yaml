@@ -25,3 +25,4 @@ agent:
   outputs:
     - "Code changes"
     - "knowledge/archive/{feature}/implementation.md"
+    - "knowledge/archive/{feature}/stage-report.md"

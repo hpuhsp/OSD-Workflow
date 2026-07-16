@@ -26,7 +26,8 @@ knowledge/archive/{feature}/
 ├── design.md
 ├── implementation.md
 ├── test-report.md
-└── review-report.md
+├── review-report.md
+└── stage-report.md
 ```
 
 ## Steps
@@ -37,6 +38,7 @@ knowledge/archive/{feature}/
 4. Record verification evidence and test gaps.
 5. Record code review findings and final result.
 6. Link related commits, issues, documents, or task IDs when available.
+7. Preserve stage execution evidence in `stage-report.md`.
 
 ## Done Criteria
 
@@ -44,3 +46,4 @@ knowledge/archive/{feature}/
 - Requirement, spec, design, implementation, test report, and review report are present.
 - The archive explains why the change exists, what changed, and how it was verified.
 - Internal todo lists, chat summaries, or unstored reasoning do not count as archive files.
+- Stage report is present and records stage-level execution evidence.

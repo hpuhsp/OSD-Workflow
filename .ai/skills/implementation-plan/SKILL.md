@@ -31,6 +31,12 @@ Append or create an implementation section in:
 knowledge/archive/{feature}/implementation.md
 ```
 
+Also update:
+
+```text
+knowledge/archive/{feature}/stage-report.md
+```
+
 Recommended structure:
 
 ```markdown
@@ -53,3 +59,4 @@ Recommended structure:
 - Affected areas are explicit.
 - Verification scope is defined before implementation.
 - The plan is written to `knowledge/archive/{feature}/implementation.md`; an internal todo list or chat summary does not satisfy this skill.
+- Stage report records files read and files created for this stage.

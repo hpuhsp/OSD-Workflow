@@ -22,6 +22,7 @@ Choose test depth according to risk:
 - Shared modules or contracts: unit tests plus integration or contract tests.
 - User-facing workflows: scenario tests covering acceptance criteria.
 - Bug fixes: regression test that fails before the fix when practical.
+- Multi-round or cumulative requirements: update affected existing tests when the accepted spec changes prior expected behavior.
 
 ## Required Coverage
 
@@ -45,6 +46,7 @@ Write test evidence to `knowledge/archive/{feature}/test-report.md` and include:
 ## Done Criteria
 
 - Tests cover the changed behavior.
+- Affected existing tests are updated when the accepted spec changes previous behavior.
 - Impacted critical paths are verified.
 - Unverified items are explicitly documented.
 - Test evidence exists in `knowledge/archive/{feature}/test-report.md`; an internal todo list or chat summary is not enough.

@@ -13,6 +13,7 @@ This skill mapping assumes OpenSpec CLI is installed globally and the target pro
 - Acceptance criteria
 - Comments or discussion context
 - Attachments or references
+- FeishuProjectMcp intake, when the requirement comes from Feishu Project
 - RepoWiki context, when available
 - CodeGraph context, when available
 
@@ -30,13 +31,15 @@ openspec/changes/{feature}/
 ## Steps
 
 0. Confirm OpenSpec CLI is available and the target repository has run `openspec init`.
-1. Normalize the requirement into a concise problem statement.
-2. Extract explicit acceptance criteria.
-3. Identify affected users, systems, modules, and constraints.
-4. Draft `proposal.md` with motivation, scope, and expected value.
-5. Draft `spec.md` with behavior, acceptance criteria, and non-goals.
-6. Draft `design.md` with implementation approach, tradeoffs, and risks.
-7. Mark unresolved questions clearly instead of hiding assumptions.
+1. If the requirement comes from Feishu Project, normalize the MCP payload with `.ai/templates/feishu-project-requirement.md`.
+2. Normalize the requirement into a concise problem statement.
+3. Extract explicit acceptance criteria.
+4. Identify affected users, systems, modules, and constraints.
+5. Draft `proposal.md` with motivation, scope, and expected value.
+6. Draft `spec.md` with behavior, acceptance criteria, and non-goals.
+7. Draft `design.md` with implementation approach, tradeoffs, and risks.
+8. Mark unresolved questions clearly instead of hiding assumptions.
+9. Update `knowledge/archive/{feature}/stage-report.md`.
 
 ## Proposal Template
 
@@ -93,3 +96,4 @@ openspec/changes/{feature}/
 - Proposal, spec, and design are present.
 - Acceptance criteria are testable.
 - Open questions are explicit.
+- Stage report records files read and files created for this stage.

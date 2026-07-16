@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const templateRoot = path.resolve(__dirname, "..");
 
-const REQUIRED_ENTRIES = [".ai", "openspec", "knowledge"];
+const REQUIRED_ENTRIES = [".ai", "openspec", "knowledge", "scripts/verify-workflow-artifacts.mjs"];
 const DOC_ENTRIES = ["docs"];
 
 function printHelp() {
@@ -158,6 +158,7 @@ function printSummary(target, summary, dryRun) {
   console.log("  2. Run openspec init in the target project if it has not been initialized.");
   console.log("  3. Ensure Superpowers is available in each developer's AI agent or harness.");
   console.log("  4. Start from .ai/workflows/feature-development.yaml for feature work.");
+  console.log("  5. Before handoff, run: node scripts/verify-workflow-artifacts.mjs --target . --feature <feature>.");
 }
 
 function run() {

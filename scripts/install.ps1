@@ -121,7 +121,7 @@ if ((Test-Path -LiteralPath $targetRoot) -and -not (Get-Item -LiteralPath $targe
     throw "Target exists but is not a directory: $targetRoot"
 }
 
-$entries = @(".ai", "openspec", "knowledge")
+$entries = @(".ai", "openspec", "knowledge", "scripts/verify-workflow-artifacts.mjs")
 if ($WithDocs) {
     $entries += "docs"
 }
@@ -174,3 +174,4 @@ Write-Host "  1. Install or confirm the global OpenSpec CLI: npm install -g @fis
 Write-Host "  2. Run openspec init in the target project if it has not been initialized."
 Write-Host "  3. Ensure Superpowers is available in each developer's AI agent or harness."
 Write-Host "  4. Start from .ai/workflows/feature-development.yaml for feature work."
+Write-Host "  5. Before handoff, run: node scripts/verify-workflow-artifacts.mjs --target . --feature <feature>."

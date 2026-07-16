@@ -21,3 +21,4 @@ agent:
   outputs:
     - "Tests or verification steps"
     - "knowledge/archive/{feature}/test-report.md"
+    - "knowledge/archive/{feature}/stage-report.md"

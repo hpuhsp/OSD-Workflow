@@ -109,7 +109,23 @@ npx --yes github:hpuhsp/OSD-Workflow --target . --with-docs
 powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs -DryRun
 ```
 
-安装器默认复制 `.ai/`、`openspec/` 和 `knowledge/`。只有指定 `--with-docs` 或 `-WithDocs` 时才复制 `docs/`。已有文件默认跳过，只有指定 `--force` 或 `-Force` 时才覆盖。
+安装器默认复制 `.ai/`、`openspec/`、`knowledge/` 和 `scripts/verify-workflow-artifacts.mjs`。只有指定 `--with-docs` 或 `-WithDocs` 时才复制 `docs/`。已有文件默认跳过，只有指定 `--force` 或 `-Force` 时才覆盖。
+
+## 生产交付门禁
+
+交付前执行生产产物门禁：
+
+```bash
+node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}
+```
+
+该门禁检查：
+
+- workflow 引用的 skill、rule 和 template 文件
+- OpenSpec 变更文件
+- 归档文件
+- 每阶段 `required_outputs`
+- `knowledge/archive/{feature}/stage-report.md`
 
 ## 提示词模板
 
@@ -127,11 +143,13 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPl
 每个阶段开始前：
 - 读取该阶段引用的所有 skill 文件
 - 读取该阶段引用的所有 rules 文件
-- 汇报当前阶段 id、已读取文件、已创建或更新文件
+- 使用 .ai/templates/stage-report.md 更新 knowledge/archive/{feature}/stage-report.md
+- 汇报当前阶段 id、已读取文件、已创建或更新文件，以及 required_outputs 状态
 
 除非我明确要求跳过，否则不要跳过非 optional 阶段。
 不要把 TodoWrite、内部任务列表、对话总结或未落盘推理当作工作流产物。
 只有必需文件或验证证据真实存在于磁盘上，阶段才算完成。
+交付前执行 node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}。
 ```
 
 ### 从飞书项目需求创建 OpenSpec
@@ -182,6 +200,8 @@ openspec/changes/{feature}/ 下的 OpenSpec 变更已确认。
 
 实现范围必须严格对齐已确认的 OpenSpec 变更。
 不要把 TodoWrite 或对话总结当成实施计划、测试报告、评审报告或归档。
+每个阶段都更新 knowledge/archive/{feature}/stage-report.md。
+交付前执行 node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}。
 ```
 
 ### 处理 Bug 修复
@@ -229,6 +249,8 @@ OpenSpec 变更准备好后停止，等待评审。
 7. 如果当前 AI Agent 或 Harness 中的 Superpowers 可用且被允许，则用它作为计划、编码、验证、评审和归档的执行纪律。
 8. 不要把 TodoWrite、内部任务列表、对话总结或未落盘推理当作工作流产物。
 9. 已完成工作按 .ai/skills/knowledge-archive/SKILL.md 要求归档到 knowledge/archive/{feature}/。
+10. 每个阶段使用 .ai/templates/stage-report.md 更新 knowledge/archive/{feature}/stage-report.md。
+11. 交付前执行 node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}。
 ```
 
 有了这条项目指令后，日常提示词可以缩短为：
@@ -277,6 +299,7 @@ OpenSpec 变更准备好后停止，等待评审。
 - 验证
 - 评审报告
 - 知识归档
+- 生产交付门禁
 ```
 
 ## 多 Agent 使用方式
@@ -328,6 +351,8 @@ OpenSpec 变更准备好后停止，等待评审。
 - 执行每个阶段前，读取该阶段引用的 skill 和 rule 文件。
 - 不要把 TodoWrite、内部任务列表或对话总结当成工作流产物。
 - 未经用户明确要求，不要跳过非 optional 阶段。
+- 每个阶段更新 `knowledge/archive/{feature}/stage-report.md`。
+- 交付前执行 `node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}`。
 - 归档需求、规格、设计、实现、测试和评审产物。
 - Superpowers 按 AI Agent 或 Harness 安装。
 - OpenSpec CLI 全局安装，然后在每个项目内初始化并维护 OpenSpec 资产。

@@ -34,9 +34,12 @@ Write review evidence to `knowledge/archive/{feature}/review-report.md` and incl
 - Required follow-up actions
 - Final review result
 
+Also update `knowledge/archive/{feature}/stage-report.md` for the code-review stage.
+
 ## Done Criteria
 
 - Critical and high severity issues are fixed or explicitly accepted.
 - Test gaps are documented.
 - Review result is archived with the requirement.
 - Review evidence exists in `knowledge/archive/{feature}/review-report.md`; a chat-only review does not satisfy this rule.
+- Stage report records files read and review output for this stage.

@@ -1,6 +1,6 @@
 # OSD Workflow
 
-OSD Workflow is a lightweight project template for piloting an OpenSpec + Superpowers AI coding workflow in a real software project.
+OSD Workflow is a lightweight project template for running an OpenSpec + Superpowers AI coding workflow in a real software project.
 
 It does not implement OpenSpec or Superpowers. Instead, it defines the project-level workflow contract, rules, skill mappings, and archive structure that connect:
 
@@ -14,7 +14,7 @@ This template helps teams move from direct prompt-to-code work into a traceable 
 
 ![Traceable engineering loop](docs/assets/readme/workflow-loop.png)
 
-The goal is to validate a practical AI coding workflow before investing in heavier platforms, marketplaces, gateways, or CI automation.
+The goal is to provide a production-oriented, repeatable requirement-to-delivery loop before teams invest in heavier platforms, marketplaces, gateways, or CI automation.
 
 ## Runtime Contract
 
@@ -63,6 +63,8 @@ Stages:
 - `.ai/AI_WORKFLOW.md`: workflow overview and environment contract.
 - `.ai/workflows/feature-development.yaml`: stage definition and runtime responsibility mapping.
 - `.ai/rules/workflow-execution-rule.md`: mandatory stage execution, file-reading, and artifact rules.
+- `.ai/templates/stage-report.md`: required stage report template.
+- `.ai/templates/feishu-project-requirement.md`: FeishuProjectMcp intake template.
 - `.ai/rules/development-rule.md`: implementation discipline.
 - `.ai/rules/testing-rule.md`: test generation and verification rules.
 - `.ai/rules/code-review-rule.md`: review priorities and output expectations.
@@ -72,18 +74,20 @@ Stages:
 - `.ai/skills/knowledge-archive/SKILL.md`: archive structure and completion criteria.
 - `.ai/agents/developer-agent.yaml`: developer agent context contract.
 - `.ai/agents/test-agent.yaml`: test agent context contract.
+- `scripts/verify-workflow-artifacts.mjs`: production handoff gate for required workflow artifacts.
 - `bin/osd-workflow-init.mjs`: Node.js CLI installer.
 - `scripts/install.ps1`: PowerShell CLI installer.
 
 ## How To Use
 
-1. Copy `.ai/`, `openspec/`, and `knowledge/` into a real project.
+1. Copy `.ai/`, `openspec/`, `knowledge/`, and `scripts/verify-workflow-artifacts.mjs` into a real project.
 2. Install OpenSpec CLI globally if needed: `npm install -g @fission-ai/openspec@latest`.
 3. Run `openspec init` in the target project.
 4. Ensure each team member has Superpowers installed for the AI agent or harness they use.
 5. For each feature, create an OpenSpec change under `openspec/changes/{feature}/`.
 6. Use `.ai/workflows/feature-development.yaml` as the workflow contract.
 7. Archive completed work under `knowledge/archive/{feature}/`.
+8. Before handoff, run `node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}`.
 
 For prompt templates, project custom instructions, multi-agent usage, and Feishu Project MCP (`FeishuProjectMcp`) integration, see `docs/USAGE.md` and `docs/USAGE_zh.md`.
 
@@ -117,6 +121,16 @@ Useful options:
 - `--force` / `-Force`: overwrite existing workflow files.
 
 The installer does not overwrite existing files by default.
+
+## Production Handoff Gate
+
+Before a feature is handed off, run:
+
+```bash
+node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}
+```
+
+This checks the workflow references, templates, OpenSpec change files, archive files, and per-stage `required_outputs` declared in `.ai/workflows/feature-development.yaml`.
 
 ## Development Guide: Feishu Project Requirement To Code
 
@@ -236,9 +250,14 @@ For each real requirement, the workflow should produce:
 - `openspec/changes/{feature}/spec.md`
 - `openspec/changes/{feature}/design.md`
 - `knowledge/archive/{feature}/requirement.md`
+- `knowledge/archive/{feature}/spec.md`
+- `knowledge/archive/{feature}/design.md`
 - `knowledge/archive/{feature}/implementation.md`
 - `knowledge/archive/{feature}/test-report.md`
 - `knowledge/archive/{feature}/review-report.md`
+- `knowledge/archive/{feature}/stage-report.md`
+
+Run `node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}` to verify these production handoff artifacts.
 
 ## Non-Goals
 

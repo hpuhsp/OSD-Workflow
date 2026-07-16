@@ -20,7 +20,8 @@
     "README_zh.md"
   ],
   "scripts": {
-    "init": "node ./bin/osd-workflow-init.mjs"
+    "init": "node ./bin/osd-workflow-init.mjs",
+    "verify": "node ./scripts/verify-workflow-artifacts.mjs"
   },
   "engines": {
     "node": ">=18"
