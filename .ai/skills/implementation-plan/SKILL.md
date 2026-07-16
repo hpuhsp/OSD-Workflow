@@ -52,3 +52,4 @@ Recommended structure:
 - The plan maps to the accepted spec.
 - Affected areas are explicit.
 - Verification scope is defined before implementation.
+- The plan is written to `knowledge/archive/{feature}/implementation.md`; an internal todo list or chat summary does not satisfy this skill.

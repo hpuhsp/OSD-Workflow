@@ -26,6 +26,21 @@ workflow:
       role: "Team workflow contract, rules, and project skill mapping."
       path: ".ai/"
 
+  execution_contract:
+    required: true
+    rule: ".ai/rules/workflow-execution-rule.md"
+    preflight:
+      - "Read this workflow file before starting or continuing feature work."
+      - "For each stage, read every referenced skill file before executing that stage."
+      - "For each stage, read every referenced rule file before executing that stage."
+      - "If any referenced skill or rule file is missing or unreadable, stop and report a blocker."
+    artifact_rules:
+      - "Internal task lists, TodoWrite entries, chat summaries, and unstored reasoning are not workflow artifacts."
+      - "A stage output is complete only when the required file or concrete verification evidence exists."
+      - "Non-optional stages must not be skipped unless the user explicitly says to skip them."
+      - "Verification must run relevant commands or document why they could not be run."
+      - "Archive is complete only when the files required by .ai/skills/knowledge-archive/SKILL.md exist."
+
   inputs:
     - requirement_title
     - requirement_description
@@ -52,28 +67,37 @@ workflow:
   stages:
     - id: requirement-analysis
       name: Requirement Analysis
+      rules:
+        - ".ai/rules/workflow-execution-rule.md"
       output: "Normalized requirement context and acceptance criteria."
 
     - id: openspec-create
       name: OpenSpec Create
       executor: "global OpenSpec CLI against project-level OpenSpec workspace"
       skill: ".ai/skills/openspec-create/SKILL.md"
+      rules:
+        - ".ai/rules/workflow-execution-rule.md"
       output: "openspec/changes/{feature}/"
 
     - id: spec-review
       name: Spec Review
+      rules:
+        - ".ai/rules/workflow-execution-rule.md"
       output: "Reviewed proposal, spec, and design."
 
     - id: implementation-plan
       name: Implementation Plan
       executor: "agent/harness-level Superpowers with project-level OpenSpec workspace context"
       skill: ".ai/skills/implementation-plan/SKILL.md"
+      rules:
+        - ".ai/rules/workflow-execution-rule.md"
       output: "Implementation steps and affected modules."
 
     - id: coding
       name: AI Coding
       executor: "agent/harness-level Superpowers"
       rules:
+        - ".ai/rules/workflow-execution-rule.md"
         - ".ai/rules/development-rule.md"
       output: "Code changes aligned to the approved spec."
 
@@ -87,16 +111,21 @@ workflow:
       executor: "agent/harness-level Superpowers"
       skill: ".ai/skills/test-generation/SKILL.md"
       rules:
+        - ".ai/rules/workflow-execution-rule.md"
         - ".ai/rules/testing-rule.md"
       output: "Focused tests and verification steps."
 
     - id: verification
       name: Verification
+      rules:
+        - ".ai/rules/workflow-execution-rule.md"
+        - ".ai/rules/testing-rule.md"
       output: "Test and validation evidence."
 
     - id: code-review
       name: Code Review
       rules:
+        - ".ai/rules/workflow-execution-rule.md"
         - ".ai/rules/code-review-rule.md"
       output: "Review findings and final result."
 
@@ -104,4 +133,6 @@ workflow:
       name: Knowledge Archive
       executor: "project-level OpenSpec workspace archive triggered by agent/harness-level Superpowers"
       skill: ".ai/skills/knowledge-archive/SKILL.md"
+      rules:
+        - ".ai/rules/workflow-execution-rule.md"
       output: "knowledge/archive/{feature}/"

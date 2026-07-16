@@ -43,6 +43,8 @@ OpenSpec CLI 提供工具链；项目内初始化后的 OpenSpec 工作区回答
 
 默认工作流定义在 `.ai/workflows/feature-development.yaml`。
 
+该工作流必须被当作执行契约，而不是参考建议。每个阶段开始前，Agent 必须读取该阶段引用的 `skill` 和 `rules` 文件。内部 Todo、对话总结和未落盘推理都不算工作流产物。
+
 阶段包括：
 
 1. 需求分析
@@ -60,6 +62,7 @@ OpenSpec CLI 提供工具链；项目内初始化后的 OpenSpec 工作区回答
 
 - `.ai/AI_WORKFLOW.md`：工作流总览和本地环境约定。
 - `.ai/workflows/feature-development.yaml`：阶段定义和运行时职责映射。
+- `.ai/rules/workflow-execution-rule.md`：强制阶段执行、文件读取和产物落盘规则。
 - `.ai/rules/development-rule.md`：开发实施规则。
 - `.ai/rules/testing-rule.md`：测试生成与验证规则。
 - `.ai/rules/code-review-rule.md`：代码评审优先级和输出要求。
@@ -180,6 +183,8 @@ OpenSpec 创建后，不再只把飞书原始描述作为唯一事实来源。�
 knowledge/archive/{feature}/implementation.md
 ```
 
+内部任务列表或对话总结不算完成；实施计划必须写入上述归档文件。
+
 ### 5. 通过 Agent/Harness 级 Superpowers 执行实现
 
 使用当前 AI Agent 或 Harness 中的 Superpowers 编排本地执行流程。
@@ -210,6 +215,8 @@ knowledge/archive/{feature}/implementation.md
 ```text
 knowledge/archive/{feature}/test-report.md
 ```
+
+验证必须执行相关命令，或在测试报告中说明无法执行的原因和剩余风险。
 
 ### 7. 评审并归档
 

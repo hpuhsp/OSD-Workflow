@@ -8,6 +8,7 @@ agent:
     openspec_workspace_scope: "project-level"
 
   rules:
+    - "../rules/workflow-execution-rule.md"
     - "../rules/development-rule.md"
 
   default_workflow: "../workflows/feature-development.yaml"

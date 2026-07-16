@@ -97,6 +97,18 @@ Use Agent/Harness-level Superpowers to orchestrate `.ai/workflows/feature-develo
 9. Code review
 10. Knowledge archive
 
+## Execution Contract
+
+The workflow is a binding execution contract.
+
+- Read `.ai/workflows/feature-development.yaml` before starting or continuing feature work.
+- Before each stage, read every `skill` and `rules` file referenced by that stage.
+- If a referenced file cannot be read, stop and report it as a blocker.
+- Do not treat internal task lists, TodoWrite entries, chat summaries, or unstored reasoning as workflow artifacts.
+- Do not skip non-optional stages unless the user explicitly asks to skip them.
+- Verification must run relevant commands or document why they could not be run.
+- Archive is incomplete until `.ai/skills/knowledge-archive/SKILL.md` required files exist.
+
 ## Expected Outputs
 
 For each real requirement, the workflow should produce:

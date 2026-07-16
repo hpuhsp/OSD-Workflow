@@ -47,3 +47,4 @@ Write test evidence to `knowledge/archive/{feature}/test-report.md` and include:
 - Tests cover the changed behavior.
 - Impacted critical paths are verified.
 - Unverified items are explicitly documented.
+- Test evidence exists in `knowledge/archive/{feature}/test-report.md`; an internal todo list or chat summary is not enough.

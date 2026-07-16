@@ -49,7 +49,8 @@ Agent/Harness 级 Superpowers
 ```text
 使用飞书 MCP 读取这个需求：{飞书需求链接或任务 ID}
 
-按当前项目 .ai/workflows/feature-development.yaml 执行。
+严格按当前项目 .ai/workflows/feature-development.yaml 执行。
+每个阶段开始前，读取该阶段引用的所有 skill 和 rule 文件。
 
 只执行到需求分析、OpenSpec 创建和规格评审阶段。
 创建：
@@ -72,6 +73,10 @@ openspec/changes/{feature}/ 下的 OpenSpec 变更已确认。
 4. 执行验证。
 5. 完成代码评审。
 6. 归档到 knowledge/archive/{feature}/。
+
+每个阶段开始前，读取该阶段引用的所有 skill 和 rule 文件。
+不要把 TodoWrite、内部任务列表或对话总结当成工作流产物。
+每个必需产物都必须写入磁盘。
 ```
 
 这种方式能把“需求到规格”的边界显式化，避免 Agent 直接从粗糙需求描述跳到编码。
@@ -108,10 +113,34 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPl
 
 ## 提示词模板
 
+### 严格执行 Workflow 前缀
+
+当 Agent 容易跳过阶段，或把 workflow 当成参考建议时，先加这段前缀。
+
+```text
+严格执行 .ai/workflows/feature-development.yaml，把它作为强制工作流契约。
+
+开始前先读取：
+- .ai/workflows/feature-development.yaml
+- .ai/rules/workflow-execution-rule.md
+
+每个阶段开始前：
+- 读取该阶段引用的所有 skill 文件
+- 读取该阶段引用的所有 rules 文件
+- 汇报当前阶段 id、已读取文件、已创建或更新文件
+
+除非我明确要求跳过，否则不要跳过非 optional 阶段。
+不要把 TodoWrite、内部任务列表、对话总结或未落盘推理当作工作流产物。
+只有必需文件或验证证据真实存在于磁盘上，阶段才算完成。
+```
+
 ### 从飞书需求创建 OpenSpec
 
 ```text
 使用飞书 MCP 读取需求 {飞书链接或任务 ID}。
+
+严格执行 .ai/workflows/feature-development.yaml，把它作为强制工作流契约。
+每个阶段开始前，读取该阶段引用的所有 skill 和 rule 文件。
 
 提取：
 - 标题
@@ -131,6 +160,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPl
 
 遵循：
 - .ai/workflows/feature-development.yaml
+- .ai/rules/workflow-execution-rule.md
 - .ai/skills/openspec-create/SKILL.md
 
 创建 OpenSpec 变更后停止，等待评审。
@@ -142,6 +172,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPl
 openspec/changes/{feature}/ 下的 OpenSpec 变更已确认。
 
 继续执行工作流：
+- 遵循 .ai/rules/workflow-execution-rule.md
 - 使用 .ai/skills/implementation-plan/SKILL.md
 - 遵循 .ai/rules/development-rule.md
 - 使用 .ai/skills/test-generation/SKILL.md 生成验证
@@ -150,6 +181,7 @@ openspec/changes/{feature}/ 下的 OpenSpec 变更已确认。
 - 使用 .ai/skills/knowledge-archive/SKILL.md 完成归档
 
 实现范围必须严格对齐已确认的 OpenSpec 变更。
+不要把 TodoWrite 或对话总结当成实施计划、测试报告、评审报告或归档。
 ```
 
 ### 处理 Bug 修复
@@ -188,12 +220,15 @@ OpenSpec 变更准备好后停止，等待评审。
 本项目使用 .ai/workflows/feature-development.yaml 作为默认 AI Coding Workflow。
 
 当用户提供飞书需求、任务链接、Bug 报告、功能请求或重构请求时：
-1. 先进入需求分析和项目级 OpenSpec 创建。
-2. 除非用户明确要求跳过规格流程，否则不要直接编码。
-3. OpenSpec 资产存放在 openspec/changes/{feature}/。
-4. OpenSpec 是项目级事实来源，负责需求、规格、设计和验收标准。
-5. 如果当前 AI Agent 或 Harness 中的 Superpowers 可用且被允许，则用它作为计划、编码、验证、评审和归档的执行纪律。
-6. 已完成工作归档到 knowledge/archive/{feature}/。
+1. 行动前先读取 .ai/workflows/feature-development.yaml 和 .ai/rules/workflow-execution-rule.md。
+2. 每个 workflow 阶段开始前，读取该阶段引用的所有 skill 和 rule 文件。
+3. 先进入需求分析和项目级 OpenSpec 创建。
+4. 除非用户明确要求跳过规格流程，否则不要直接编码。
+5. OpenSpec 资产存放在 openspec/changes/{feature}/。
+6. OpenSpec 是项目级事实来源，负责需求、规格、设计和验收标准。
+7. 如果当前 AI Agent 或 Harness 中的 Superpowers 可用且被允许，则用它作为计划、编码、验证、评审和归档的执行纪律。
+8. 不要把 TodoWrite、内部任务列表、对话总结或未落盘推理当作工作流产物。
+9. 已完成工作按 .ai/skills/knowledge-archive/SKILL.md 要求归档到 knowledge/archive/{feature}/。
 ```
 
 有了这条项目指令后，日常提示词可以缩短为：
@@ -280,6 +315,7 @@ OpenSpec 变更准备好后停止，等待评审。
 ```
 
 交接规则很简单：每个 Agent 在行动前都应读取当前 OpenSpec 变更。
+每个 Agent 还必须在行动前读取当前 workflow 阶段引用的 skill 和 rule 文件。
 
 ## Agent 约束
 
@@ -289,6 +325,9 @@ OpenSpec 变更准备好后停止，等待评审。
 - OpenSpec 创建后，不要再把飞书原始文本作为唯一事实来源。
 - 代码变更范围必须对齐已确认规格。
 - 每条验收标准都要映射到验证证据。
+- 执行每个阶段前，读取该阶段引用的 skill 和 rule 文件。
+- 不要把 TodoWrite、内部任务列表或对话总结当成工作流产物。
+- 未经用户明确要求，不要跳过非 optional 阶段。
 - 归档需求、规格、设计、实现、测试和评审产物。
 - Superpowers 按 AI Agent 或 Harness 安装。
 - OpenSpec CLI 全局安装，然后在每个项目内初始化并维护 OpenSpec 资产。

@@ -49,7 +49,8 @@ Step 1: create and review the spec before coding.
 ```text
 Use Lark MCP to read this requirement: {Lark requirement link or task ID}
 
-Follow the current project workflow at .ai/workflows/feature-development.yaml.
+Strictly execute the current project workflow at .ai/workflows/feature-development.yaml.
+Before each stage, read every skill and rule file referenced by that stage.
 
 Only execute through requirement analysis, OpenSpec creation, and spec review.
 Create:
@@ -72,6 +73,10 @@ Continue with .ai/workflows/feature-development.yaml:
 4. Run verification.
 5. Perform code review.
 6. Archive the result under knowledge/archive/{feature}/.
+
+Before each stage, read every skill and rule file referenced by that stage.
+Do not treat TodoWrite, internal task lists, or chat summaries as workflow artifacts.
+Every required artifact must be written to disk.
 ```
 
 This keeps the requirement-to-spec boundary explicit and prevents agents from jumping directly from a rough description into code.
@@ -108,10 +113,34 @@ The installer copies `.ai/`, `openspec/`, and `knowledge/` by default. It copies
 
 ## Prompt Templates
 
+### Strict Workflow Execution Prefix
+
+Use this prefix when the agent tends to skip stages or treat the workflow as advisory.
+
+```text
+Strictly execute .ai/workflows/feature-development.yaml as a binding workflow contract.
+
+Before starting, read:
+- .ai/workflows/feature-development.yaml
+- .ai/rules/workflow-execution-rule.md
+
+Before each stage:
+- read every skill file referenced by that stage
+- read every rules file referenced by that stage
+- report current stage id, files read, and files created or updated
+
+Do not skip non-optional stages unless I explicitly say to skip them.
+Do not treat TodoWrite, internal task lists, chat summaries, or unstored reasoning as workflow artifacts.
+The stage is complete only when the required file or verification evidence exists on disk.
+```
+
 ### Create OpenSpec From Lark Requirement
 
 ```text
 Use Lark MCP to read requirement {Lark link or task ID}.
+
+Strictly execute .ai/workflows/feature-development.yaml as a binding workflow contract.
+Before each stage, read every skill and rule file referenced by that stage.
 
 Extract:
 - title
@@ -131,6 +160,7 @@ Required files:
 
 Follow:
 - .ai/workflows/feature-development.yaml
+- .ai/rules/workflow-execution-rule.md
 - .ai/skills/openspec-create/SKILL.md
 
 Stop after creating the OpenSpec change and wait for review.
@@ -142,6 +172,7 @@ Stop after creating the OpenSpec change and wait for review.
 The OpenSpec change openspec/changes/{feature}/ is approved.
 
 Continue the workflow:
+- follow .ai/rules/workflow-execution-rule.md
 - use .ai/skills/implementation-plan/SKILL.md
 - follow .ai/rules/development-rule.md
 - generate verification with .ai/skills/test-generation/SKILL.md
@@ -150,6 +181,7 @@ Continue the workflow:
 - archive with .ai/skills/knowledge-archive/SKILL.md
 
 Keep implementation scoped to the approved OpenSpec change.
+Do not treat TodoWrite or chat summaries as implementation plan, test report, review report, or archive.
 ```
 
 ### Handle A Bug Fix
@@ -188,12 +220,15 @@ Add a short instruction like this to the project-level agent rules, such as `.ag
 This project uses .ai/workflows/feature-development.yaml as the default AI Coding Workflow.
 
 When the user provides a Lark requirement, task link, bug report, feature request, or refactoring request:
-1. Start with requirement analysis and project-level OpenSpec creation.
-2. Do not jump directly into coding unless the user explicitly asks to skip the spec workflow.
-3. Store OpenSpec assets under openspec/changes/{feature}/.
-4. Treat OpenSpec as the project-level source of truth for requirement, spec, design, and acceptance criteria.
-5. Use Superpowers from the active AI agent or harness, when available and allowed, as the execution discipline for planning, coding, verification, review, and archive.
-6. Archive completed work under knowledge/archive/{feature}/.
+1. Read .ai/workflows/feature-development.yaml and .ai/rules/workflow-execution-rule.md before action.
+2. Before each workflow stage, read every skill and rule file referenced by that stage.
+3. Start with requirement analysis and project-level OpenSpec creation.
+4. Do not jump directly into coding unless the user explicitly asks to skip the spec workflow.
+5. Store OpenSpec assets under openspec/changes/{feature}/.
+6. Treat OpenSpec as the project-level source of truth for requirement, spec, design, and acceptance criteria.
+7. Use Superpowers from the active AI agent or harness, when available and allowed, as the execution discipline for planning, coding, verification, review, and archive.
+8. Do not treat TodoWrite, internal task lists, chat summaries, or unstored reasoning as workflow artifacts.
+9. Archive completed work under knowledge/archive/{feature}/ with the required files from .ai/skills/knowledge-archive/SKILL.md.
 ```
 
 This instruction lets the user write shorter daily prompts, such as:
@@ -280,6 +315,7 @@ Archive agent
 ```
 
 The handoff rule is simple: each agent should read the current OpenSpec change before acting.
+Each agent must also read the workflow stage's referenced skill and rule files before acting.
 
 ## Agent Guardrails
 
@@ -289,6 +325,9 @@ Use these rules in prompts or custom instructions:
 - Do not treat the original Lark text as the only source of truth after OpenSpec is created.
 - Keep code changes scoped to the accepted spec.
 - Map each acceptance criterion to verification evidence.
+- Read each stage's referenced skill and rule files before executing that stage.
+- Do not treat TodoWrite, internal task lists, or chat summaries as workflow artifacts.
+- Do not skip non-optional stages without explicit user instruction.
 - Archive requirement, spec, design, implementation, test, and review outputs.
 - Keep Superpowers installed per AI agent or harness.
 - Keep OpenSpec CLI globally installed, then initialize and maintain OpenSpec assets per project.

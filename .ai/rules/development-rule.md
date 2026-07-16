@@ -23,6 +23,7 @@ Ensure implementation work follows the accepted OpenSpec and remains traceable f
 
 ## Implementation Checklist
 
+- Read `.ai/workflows/feature-development.yaml` and `.ai/rules/workflow-execution-rule.md` before implementation.
 - Confirm the feature or fix maps to an OpenSpec change.
 - Identify affected modules and integration points.
 - Review related RepoWiki and CodeGraph context when available.
@@ -34,6 +35,7 @@ Ensure implementation work follows the accepted OpenSpec and remains traceable f
 ## Done Criteria
 
 - Implementation satisfies acceptance criteria.
+- Implementation plan exists in `knowledge/archive/{feature}/implementation.md`.
 - Relevant tests pass or a documented reason explains why they could not run.
 - Code review findings are resolved or documented.
 - Knowledge archive is updated for the completed requirement.

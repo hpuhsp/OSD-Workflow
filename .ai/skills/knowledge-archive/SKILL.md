@@ -43,3 +43,4 @@ knowledge/archive/{feature}/
 - The archive directory exists for the completed feature.
 - Requirement, spec, design, implementation, test report, and review report are present.
 - The archive explains why the change exists, what changed, and how it was verified.
+- Internal todo lists, chat summaries, or unstored reasoning do not count as archive files.

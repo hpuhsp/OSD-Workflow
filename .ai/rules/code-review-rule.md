@@ -39,3 +39,4 @@ Write review evidence to `knowledge/archive/{feature}/review-report.md` and incl
 - Critical and high severity issues are fixed or explicitly accepted.
 - Test gaps are documented.
 - Review result is archived with the requirement.
+- Review evidence exists in `knowledge/archive/{feature}/review-report.md`; a chat-only review does not satisfy this rule.

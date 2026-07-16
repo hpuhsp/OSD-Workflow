@@ -65,3 +65,5 @@ Recommended structure:
 - Acceptance criteria have verification coverage.
 - Test commands or manual verification steps are documented.
 - Residual risk is explicit.
+- Results are written to `knowledge/archive/{feature}/test-report.md`; an internal todo list or chat summary does not satisfy this skill.
+- If verification commands cannot be run, the reason and residual risk are documented in the test report.

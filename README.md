@@ -43,6 +43,8 @@ OpenSpec CLI provides the toolchain; the initialized project OpenSpec workspace 
 
 The default workflow is defined in `.ai/workflows/feature-development.yaml`.
 
+Treat the workflow as an execution contract, not loose guidance. Before each stage, the agent must read the stage's referenced `skill` and `rules` files. Internal todo lists, chat summaries, and unstored reasoning do not count as workflow artifacts.
+
 Stages:
 
 1. Requirement analysis
@@ -60,6 +62,7 @@ Stages:
 
 - `.ai/AI_WORKFLOW.md`: workflow overview and environment contract.
 - `.ai/workflows/feature-development.yaml`: stage definition and runtime responsibility mapping.
+- `.ai/rules/workflow-execution-rule.md`: mandatory stage execution, file-reading, and artifact rules.
 - `.ai/rules/development-rule.md`: implementation discipline.
 - `.ai/rules/testing-rule.md`: test generation and verification rules.
 - `.ai/rules/code-review-rule.md`: review priorities and output expectations.
@@ -180,6 +183,8 @@ Recommended archive target:
 knowledge/archive/{feature}/implementation.md
 ```
 
+An internal task list or conversation summary is not enough; the implementation plan must be written to the archive file.
+
 ### 5. Implement With Agent/Harness-Level Superpowers
 
 Use Superpowers from the active AI agent or harness to orchestrate the local execution flow.
@@ -210,6 +215,8 @@ Recommended archive target:
 ```text
 knowledge/archive/{feature}/test-report.md
 ```
+
+Verification must run relevant commands or document why they could not be run, with residual risk recorded in the test report.
 
 ### 7. Review And Archive
 
