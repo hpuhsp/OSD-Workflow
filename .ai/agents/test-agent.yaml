@@ -1,10 +1,11 @@
 agent:
   name: test-agent
-  purpose: "Generate and run verification for accepted project-level OpenSpec changes through user-level Superpowers execution."
+  purpose: "Generate and run verification for accepted project-level OpenSpec changes through agent/harness-level Superpowers execution."
 
   runtime:
-    superpowers_scope: "user-level"
-    openspec_scope: "project-level"
+    superpowers_scope: "agent-harness-level"
+    openspec_cli_scope: "global-tool-level"
+    openspec_workspace_scope: "project-level"
 
   rules:
     - "../rules/testing-rule.md"

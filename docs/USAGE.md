@@ -7,11 +7,15 @@ This guide explains how to use this workflow in daily multi-agent development, i
 Use this template as a project-level workflow contract.
 
 ```text
-User-level Superpowers
+Agent/Harness-level Superpowers
 -> How the AI agent should execute work
 -> Planning, sequencing, verification, review discipline
 
-Project-level OpenSpec
+Global OpenSpec CLI
+-> Installed once with npm install -g @fission-ai/openspec@latest
+-> Provides OpenSpec commands
+
+Project-level OpenSpec workspace
 -> Why the project should change
 -> What should change
 -> How the change will be accepted
@@ -118,7 +122,7 @@ Extract:
 - attachments or screenshots
 - priority and expected release constraints
 
-Then create a project-level OpenSpec change under openspec/changes/{feature}/.
+Then create a project-level OpenSpec change under openspec/changes/{feature}/ after the project has run openspec init.
 
 Required files:
 - proposal.md
@@ -188,7 +192,7 @@ When the user provides a Lark requirement, task link, bug report, feature reques
 2. Do not jump directly into coding unless the user explicitly asks to skip the spec workflow.
 3. Store OpenSpec assets under openspec/changes/{feature}/.
 4. Treat OpenSpec as the project-level source of truth for requirement, spec, design, and acceptance criteria.
-5. Use user-level Superpowers, when available and allowed, as the execution discipline for planning, coding, verification, review, and archive.
+5. Use Superpowers from the active AI agent or harness, when available and allowed, as the execution discipline for planning, coding, verification, review, and archive.
 6. Archive completed work under knowledge/archive/{feature}/.
 ```
 
@@ -286,7 +290,8 @@ Use these rules in prompts or custom instructions:
 - Keep code changes scoped to the accepted spec.
 - Map each acceptance criterion to verification evidence.
 - Archive requirement, spec, design, implementation, test, and review outputs.
-- Keep Superpowers user-level and OpenSpec project-level.
+- Keep Superpowers installed per AI agent or harness.
+- Keep OpenSpec CLI globally installed, then initialize and maintain OpenSpec assets per project.
 
 ## Minimal Prompt
 

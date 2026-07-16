@@ -4,7 +4,7 @@
 
 Generate focused verification for the accepted OpenSpec change using the strongest available context.
 
-This step is expected to be orchestrated by user-level Superpowers. OpenSpec remains the project-level source for acceptance criteria.
+This step is expected to be orchestrated by Agent/Harness-level Superpowers. The project-level OpenSpec workspace remains the source for acceptance criteria.
 
 ## Context Priority
 

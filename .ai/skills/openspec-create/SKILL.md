@@ -4,7 +4,7 @@
 
 Convert a project requirement into an OpenSpec change package that can guide design, implementation, testing, and archive.
 
-This skill mapping assumes OpenSpec is installed and configured at the project level. It describes how the project should use OpenSpec; it does not implement OpenSpec itself.
+This skill mapping assumes OpenSpec CLI is installed globally and the target project has been initialized with `openspec init`. It describes how the project should use OpenSpec; it does not implement OpenSpec itself.
 
 ## Inputs
 
@@ -29,7 +29,7 @@ openspec/changes/{feature}/
 
 ## Steps
 
-0. Confirm project-level OpenSpec is available for the target repository.
+0. Confirm OpenSpec CLI is available and the target repository has run `openspec init`.
 1. Normalize the requirement into a concise problem statement.
 2. Extract explicit acceptance criteria.
 3. Identify affected users, systems, modules, and constraints.
@@ -88,7 +88,7 @@ openspec/changes/{feature}/
 
 ## Done Criteria
 
-- Project-level OpenSpec is the source of truth for the change package.
+- The project-level OpenSpec workspace is the source of truth for the change package.
 - The change has a dedicated `openspec/changes/{feature}/` directory.
 - Proposal, spec, and design are present.
 - Acceptance criteria are testable.

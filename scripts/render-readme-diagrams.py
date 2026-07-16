@@ -183,13 +183,14 @@ def workflow():
 
 
 def runtime_contract():
-    name, size = "runtime-contract", (1280, 720)
+    name, size = "runtime-contract", (1440, 760)
 
     def render(draw):
-        title(draw, "Runtime Responsibility Contract", "用户级 Superpowers 与项目级 OpenSpec 的职责分层", size[0])
+        title(draw, "Runtime Responsibility Contract", "Superpowers 按 Agent/Harness 安装；OpenSpec CLI 全局安装；OpenSpec 资产项目级沉淀", size[0])
         columns = [
-            (110, 150, 560, 630, "User Level", "用户级", TEAL, ["Superpowers", "Execution discipline", "Planning / coding / verification", "Reusable personal workflow"]),
-            (720, 150, 1170, 630, "Project Level", "项目级", BLUE, ["OpenSpec", ".ai workflow contract", "openspec/changes", "knowledge/archive"]),
+            (70, 150, 450, 650, "Agent / Harness", "执行能力层", TEAL, ["Superpowers", "Plugin / extension", "Planning discipline", "Verification gates"]),
+            (530, 150, 910, 650, "Global Tool", "全局工具层", BEIGE, ["OpenSpec CLI", "npm install -g", "openspec commands", "Not project-owned"]),
+            (990, 150, 1370, 650, "Project Workspace", "项目资产层", BLUE, ["openspec init", ".ai workflow contract", "openspec/changes", "knowledge/archive"]),
         ]
         for x1, y1, x2, y2, en, zh, fill, items in columns:
             rounded_box(draw, (x1, y1, x2, y2), CREAM, radius=28, width=3)
@@ -201,16 +202,19 @@ def runtime_contract():
                 rounded_box(draw, (x1 + 55, yy, x2 - 55, yy + 62), color, radius=16, width=2)
                 centered_text(draw, ((x1 + x2) / 2, yy + 31), item, F_SMALL, INK)
                 yy += 82
-        arrow(draw, (560, 390), (720, 390), 4)
-        centered_text(draw, (640, 350), "project context", F_TINY, MUTED)
+        arrow(draw, (450, 390), (530, 390), 4)
+        arrow(draw, (910, 390), (990, 390), 4)
+        centered_text(draw, (490, 350), "uses", F_TINY, MUTED)
+        centered_text(draw, (950, 350), "initializes", F_TINY, MUTED)
 
     save_png(name, size, render)
     svg = Svg(*size)
     svg.text(size[0] / 2, 58, "Runtime Responsibility Contract", 34, 700)
-    svg.text(size[0] / 2, 92, "用户级 Superpowers 与项目级 OpenSpec 的职责分层", 18, 400, MUTED)
+    svg.text(size[0] / 2, 92, "Superpowers 按 Agent/Harness 安装；OpenSpec CLI 全局安装；OpenSpec 资产项目级沉淀", 18, 400, MUTED)
     for x1, y1, x2, y2, en, zh, fill, items in [
-        (110, 150, 560, 630, "User Level", "用户级", TEAL, ["Superpowers", "Execution discipline", "Planning / coding / verification", "Reusable personal workflow"]),
-        (720, 150, 1170, 630, "Project Level", "项目级", BLUE, ["OpenSpec", ".ai workflow contract", "openspec/changes", "knowledge/archive"]),
+        (70, 150, 450, 650, "Agent / Harness", "执行能力层", TEAL, ["Superpowers", "Plugin / extension", "Planning discipline", "Verification gates"]),
+        (530, 150, 910, 650, "Global Tool", "全局工具层", BEIGE, ["OpenSpec CLI", "npm install -g", "openspec commands", "Not project-owned"]),
+        (990, 150, 1370, 650, "Project Workspace", "项目资产层", BLUE, ["openspec init", ".ai workflow contract", "openspec/changes", "knowledge/archive"]),
     ]:
         svg.box(x1, y1, x2 - x1, y2 - y1, CREAM, 28)
         svg.box(x1 + 30, y1 + 35, x2 - x1 - 60, 85, fill, 22)
@@ -222,8 +226,10 @@ def runtime_contract():
             svg.box(x1 + 55, yy, x2 - x1 - 110, 62, color, 16, STROKE, 2)
             svg.text((x1 + x2) / 2, yy + 38, item, 16, 600)
             yy += 82
-    svg.line_arrow(560, 390, 720, 390, 4)
-    svg.text(640, 350, "project context", 14, 400, MUTED)
+    svg.line_arrow(450, 390, 530, 390, 4)
+    svg.line_arrow(910, 390, 990, 390, 4)
+    svg.text(490, 350, "uses", 14, 400, MUTED)
+    svg.text(950, 350, "initializes", 14, 400, MUTED)
     svg.save(name)
 
 

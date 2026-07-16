@@ -7,11 +7,15 @@
 这套模板应作为项目级工作流契约使用。
 
 ```text
-用户级 Superpowers
+Agent/Harness 级 Superpowers
 -> AI Agent 应该如何执行工作
 -> 计划、编排、验证、评审纪律
 
-项目级 OpenSpec
+全局 OpenSpec CLI
+-> 通过 npm install -g @fission-ai/openspec@latest 安装
+-> 提供 OpenSpec 命令能力
+
+项目级 OpenSpec 工作区
 -> 项目为什么要改
 -> 需要改什么
 -> 如何验收
@@ -118,7 +122,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPl
 - 附件或截图
 - 优先级和期望发布约束
 
-然后在 openspec/changes/{feature}/ 下创建项目级 OpenSpec 变更。
+目标项目执行 openspec init 后，在 openspec/changes/{feature}/ 下创建项目级 OpenSpec 变更。
 
 必须生成：
 - proposal.md
@@ -188,7 +192,7 @@ OpenSpec 变更准备好后停止，等待评审。
 2. 除非用户明确要求跳过规格流程，否则不要直接编码。
 3. OpenSpec 资产存放在 openspec/changes/{feature}/。
 4. OpenSpec 是项目级事实来源，负责需求、规格、设计和验收标准。
-5. 如果用户级 Superpowers 可用且被允许，则用它作为计划、编码、验证、评审和归档的执行纪律。
+5. 如果当前 AI Agent 或 Harness 中的 Superpowers 可用且被允许，则用它作为计划、编码、验证、评审和归档的执行纪律。
 6. 已完成工作归档到 knowledge/archive/{feature}/。
 ```
 
@@ -286,7 +290,8 @@ OpenSpec 变更准备好后停止，等待评审。
 - 代码变更范围必须对齐已确认规格。
 - 每条验收标准都要映射到验证证据。
 - 归档需求、规格、设计、实现、测试和评审产物。
-- 保持 Superpowers 用户级、OpenSpec 项目级。
+- Superpowers 按 AI Agent 或 Harness 安装。
+- OpenSpec CLI 全局安装，然后在每个项目内初始化并维护 OpenSpec 资产。
 
 ## 最小提示词
 

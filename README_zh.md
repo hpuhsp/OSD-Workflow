@@ -4,8 +4,9 @@ OSD Workflow 是一个轻量级项目初始化模板，用于在真实软件项�
 
 它不实现 OpenSpec，也不实现 Superpowers。它提供的是项目级工作流契约、规则、Skill 映射和知识归档结构，用来连接：
 
-- 用户级 Superpowers：负责 AI Agent 执行编排、流程纪律和验证门禁。
-- 项目级 OpenSpec：负责需求规格、设计决策、验收标准、变更历史和知识归档。
+- Agent/Harness 级 Superpowers：负责 AI Agent 执行编排、流程纪律和验证门禁。
+- 全局安装的 OpenSpec CLI：负责规格操作工具链。
+- 项目级 OpenSpec 工作区资产：负责需求规格、设计决策、验收标准、变更历史和知识归档。
 
 ## 项目定位
 
@@ -19,8 +20,9 @@ OSD Workflow 是一个轻量级项目初始化模板，用于在真实软件项�
 
 推荐配置方式：
 
-- Superpowers 安装并配置在用户级。
-- OpenSpec 安装并配置在项目级。
+- Superpowers 按 AI Agent 或 Harness 安装，通常作为用户级插件或扩展存在，不作为项目依赖提交到仓库。
+- OpenSpec CLI 全局安装，例如 `npm install -g @fission-ai/openspec@latest`。
+- 每个目标项目单独执行 `openspec init`，并维护自己的项目级 OpenSpec 工作区。
 - 本仓库提供项目级 `.ai` 工作流资产。
 - OpenSpec 变更资产存放在 `openspec/changes/{feature}/`。
 - 已完成需求的知识归档存放在 `knowledge/archive/{feature}/`。
@@ -29,9 +31,9 @@ OSD Workflow 是一个轻量级项目初始化模板，用于在真实软件项�
 
 ![运行时职责分层](docs/assets/readme/runtime-contract.png)
 
-Superpowers 回答“Agent 应该如何执行工作”。
+Superpowers 回答“特定 AI Agent 或 Harness 应该如何执行工作”。
 
-OpenSpec 回答“项目为什么改、改什么、如何验收”。
+OpenSpec CLI 提供工具链；项目内初始化后的 OpenSpec 工作区回答“项目为什么改、改什么、如何验收”。
 
 ## 目录结构
 
@@ -73,11 +75,12 @@ OpenSpec 回答“项目为什么改、改什么、如何验收”。
 ## 使用方式
 
 1. 将 `.ai/`、`openspec/` 和 `knowledge/` 复制到真实项目。
-2. 在目标项目中配置 OpenSpec。
-3. 确保团队成员本地用户级环境已安装并配置 Superpowers。
-4. 每个需求在 `openspec/changes/{feature}/` 下创建 OpenSpec 变更。
-5. 使用 `.ai/workflows/feature-development.yaml` 作为工作流契约。
-6. 需求完成后归档到 `knowledge/archive/{feature}/`。
+2. 如有需要，先全局安装 OpenSpec CLI：`npm install -g @fission-ai/openspec@latest`。
+3. 在目标项目中执行 `openspec init`。
+4. 确保团队成员已为自己使用的 AI Agent 或 Harness 安装 Superpowers。
+5. 每个需求在 `openspec/changes/{feature}/` 下创建 OpenSpec 变更。
+6. 使用 `.ai/workflows/feature-development.yaml` 作为工作流契约。
+7. 需求完成后归档到 `knowledge/archive/{feature}/`。
 
 提示词模板、项目自定义指令、多 Agent 使用方式和飞书 MCP 集成说明见 `docs/USAGE.md` 和 `docs/USAGE_zh.md`。
 
@@ -135,7 +138,7 @@ knowledge/archive/{feature}/requirement.md
 
 ### 2. 创建项目级 OpenSpec 变更
 
-为该需求创建独立 OpenSpec 变更：
+目标项目执行 `openspec init` 后，为该需求创建独立 OpenSpec 变更：
 
 ![OpenSpec 变更包](docs/assets/readme/openspec-change.png)
 
@@ -177,9 +180,9 @@ OpenSpec 创建后，不再只把飞书原始描述作为唯一事实来源。�
 knowledge/archive/{feature}/implementation.md
 ```
 
-### 5. 通过用户级 Superpowers 执行实现
+### 5. 通过 Agent/Harness 级 Superpowers 执行实现
 
-使用用户级 Superpowers 编排本地 AI Agent 执行流程。
+使用当前 AI Agent 或 Harness 中的 Superpowers 编排本地执行流程。
 
 项目级资产提供上下文和约束：
 

@@ -4,7 +4,7 @@
 
 Archive each completed requirement as a reusable engineering knowledge unit.
 
-The archive belongs to the project-level OpenSpec knowledge system. User-level Superpowers may trigger the archive step, but the archived knowledge must stay with the project.
+The archive belongs to the project-level OpenSpec workspace. Agent/Harness-level Superpowers may trigger the archive step, but the archived knowledge must stay with the project.
 
 ## Inputs
 

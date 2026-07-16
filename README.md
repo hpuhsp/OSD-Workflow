@@ -4,8 +4,9 @@ OSD Workflow is a lightweight project template for piloting an OpenSpec + Superp
 
 It does not implement OpenSpec or Superpowers. Instead, it defines the project-level workflow contract, rules, skill mappings, and archive structure that connect:
 
-- User-level Superpowers for AI agent execution and workflow discipline.
-- Project-level OpenSpec for requirements, specs, design decisions, acceptance criteria, and knowledge archive.
+- Agent/Harness-level Superpowers for AI agent execution and workflow discipline.
+- Globally installed OpenSpec CLI for specification operations.
+- Project-level OpenSpec workspace assets for requirements, specs, design decisions, acceptance criteria, and knowledge archive.
 
 ## Purpose
 
@@ -19,8 +20,9 @@ The goal is to validate a practical AI coding workflow before investing in heavi
 
 The recommended local setup is:
 
-- Superpowers is installed and configured at the user level.
-- OpenSpec is installed and configured at the project level.
+- Superpowers is installed per AI agent or harness, usually as a user-level plugin or extension rather than a project dependency.
+- OpenSpec CLI is installed globally, for example with `npm install -g @fission-ai/openspec@latest`.
+- Each target project runs `openspec init` and maintains its own project-level OpenSpec workspace.
 - This repository provides reusable project-level workflow assets.
 - OpenSpec change assets are stored in `openspec/changes/{feature}/`.
 - Completed requirement archives are stored in `knowledge/archive/{feature}/`.
@@ -29,9 +31,9 @@ Responsibility split:
 
 ![Runtime responsibility contract](docs/assets/readme/runtime-contract.png)
 
-Superpowers answers how the agent should execute the work.
+Superpowers answers how the agent should execute the work inside a specific AI agent or harness.
 
-OpenSpec answers why the project should change, what should change, and how it will be accepted.
+OpenSpec CLI provides the toolchain; the initialized project OpenSpec workspace answers why the project should change, what should change, and how it will be accepted.
 
 ## Project Structure
 
@@ -73,11 +75,12 @@ Stages:
 ## How To Use
 
 1. Copy `.ai/`, `openspec/`, and `knowledge/` into a real project.
-2. Configure OpenSpec for that project.
-3. Ensure each team member has Superpowers installed and configured at the user level.
-4. For each feature, create an OpenSpec change under `openspec/changes/{feature}/`.
-5. Use `.ai/workflows/feature-development.yaml` as the workflow contract.
-6. Archive completed work under `knowledge/archive/{feature}/`.
+2. Install OpenSpec CLI globally if needed: `npm install -g @fission-ai/openspec@latest`.
+3. Run `openspec init` in the target project.
+4. Ensure each team member has Superpowers installed for the AI agent or harness they use.
+5. For each feature, create an OpenSpec change under `openspec/changes/{feature}/`.
+6. Use `.ai/workflows/feature-development.yaml` as the workflow contract.
+7. Archive completed work under `knowledge/archive/{feature}/`.
 
 For prompt templates, project custom instructions, multi-agent usage, and Lark MCP integration, see `docs/USAGE.md` and `docs/USAGE_zh.md`.
 
@@ -135,7 +138,7 @@ knowledge/archive/{feature}/requirement.md
 
 ### 2. Create Project-Level OpenSpec Change
 
-Create a dedicated OpenSpec change for the requirement:
+After `openspec init` has been run in the project, create a dedicated OpenSpec change for the requirement:
 
 ![OpenSpec change package](docs/assets/readme/openspec-change.png)
 
@@ -177,9 +180,9 @@ Recommended archive target:
 knowledge/archive/{feature}/implementation.md
 ```
 
-### 5. Implement With User-Level Superpowers
+### 5. Implement With Agent/Harness-Level Superpowers
 
-Use user-level Superpowers to orchestrate the local AI agent execution flow.
+Use Superpowers from the active AI agent or harness to orchestrate the local execution flow.
 
 Project-level assets provide the context and constraints:
 

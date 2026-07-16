@@ -4,7 +4,7 @@
 
 Translate an accepted OpenSpec change into a concrete implementation plan before editing code.
 
-This step is expected to be orchestrated by user-level Superpowers using project-level OpenSpec context.
+This step is expected to be orchestrated by Agent/Harness-level Superpowers using project-level OpenSpec workspace context.
 
 ## Inputs
 

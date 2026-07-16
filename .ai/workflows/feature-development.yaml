@@ -4,13 +4,18 @@ workflow:
 
   runtime_contract:
     superpowers:
-      scope: "user-level"
-      role: "Workflow orchestration, execution discipline, skill sequencing, and verification gates."
+      scope: "agent-harness-level"
+      role: "Workflow orchestration, execution discipline, skill sequencing, and verification gates for a specific AI agent or harness."
       required: true
       stored_in_project: false
-    openspec:
+    openspec_cli:
+      scope: "global-tool-level"
+      role: "OpenSpec command-line toolchain installed globally, for example with npm install -g @fission-ai/openspec@latest."
+      required: true
+      stored_in_project: false
+    openspec_workspace:
       scope: "project-level"
-      role: "Requirement specification, design decisions, change history, and knowledge archive."
+      role: "Project workspace initialized with openspec init; stores requirement specification, design decisions, change history, and knowledge archive."
       required: true
       stored_in_project: true
       paths:
@@ -51,7 +56,7 @@ workflow:
 
     - id: openspec-create
       name: OpenSpec Create
-      executor: "project-level OpenSpec"
+      executor: "global OpenSpec CLI against project-level OpenSpec workspace"
       skill: ".ai/skills/openspec-create/SKILL.md"
       output: "openspec/changes/{feature}/"
 
@@ -61,13 +66,13 @@ workflow:
 
     - id: implementation-plan
       name: Implementation Plan
-      executor: "user-level Superpowers with project-level OpenSpec context"
+      executor: "agent/harness-level Superpowers with project-level OpenSpec workspace context"
       skill: ".ai/skills/implementation-plan/SKILL.md"
       output: "Implementation steps and affected modules."
 
     - id: coding
       name: AI Coding
-      executor: "user-level Superpowers"
+      executor: "agent/harness-level Superpowers"
       rules:
         - ".ai/rules/development-rule.md"
       output: "Code changes aligned to the approved spec."
@@ -79,7 +84,7 @@ workflow:
 
     - id: test-generation
       name: AI Test Generation
-      executor: "user-level Superpowers"
+      executor: "agent/harness-level Superpowers"
       skill: ".ai/skills/test-generation/SKILL.md"
       rules:
         - ".ai/rules/testing-rule.md"
@@ -97,6 +102,6 @@ workflow:
 
     - id: archive
       name: Knowledge Archive
-      executor: "project-level OpenSpec archive triggered by user-level Superpowers"
+      executor: "project-level OpenSpec workspace archive triggered by agent/harness-level Superpowers"
       skill: ".ai/skills/knowledge-archive/SKILL.md"
       output: "knowledge/archive/{feature}/"
