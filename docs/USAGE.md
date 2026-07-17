@@ -99,6 +99,20 @@ Use Superpowers to classify task type, complexity, risk, and impact.
 Select an OSD Workflow mode and create the corresponding OpenSpec specification before implementation.
 ```
 
+## Updating The Workflow
+
+```bash
+osd-workflow update .
+```
+
+To fetch and apply the latest GitHub version in one command:
+
+```bash
+npx --yes github:hpuhsp/OSD-Workflow update .
+```
+
+Add `--with-docs` to refresh usage guides and `--dry-run` to preview. Update overwrites template-managed files but preserves project-owned OpenSpec changes and knowledge archives.
+
 ## Verification
 
 Verify a delivery:

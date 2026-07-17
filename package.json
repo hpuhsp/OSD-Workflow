@@ -1,6 +1,6 @@
 {
   "name": "osd-workflow",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Lightweight adaptive SDD workflow with dynamic TDD strategies using OpenSpec and Superpowers.",
   "license": "MIT",
   "type": "module",

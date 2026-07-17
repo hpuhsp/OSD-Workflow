@@ -2,6 +2,7 @@ param(
     [string]$Target = ".",
     [switch]$WithDocs,
     [switch]$Force,
+    [switch]$Update,
     [switch]$DryRun,
     [string]$SourceArchiveUrl = "https://github.com/hpuhsp/OSD-Workflow/archive/refs/heads/main.zip"
 )
@@ -70,8 +71,13 @@ function Copy-TemplateEntry {
         return
     }
 
+    if ([System.IO.Path]::GetFullPath($Source) -eq [System.IO.Path]::GetFullPath($Destination)) {
+        Add-Result $Summary "Skipped" $Destination
+        return
+    }
+
     if (Test-Path -LiteralPath $Destination) {
-        if (-not $Force) {
+        if (-not ($Force -or $Update)) {
             Add-Result $Summary "Skipped" $Destination
             return
         }
@@ -121,6 +127,10 @@ if ((Test-Path -LiteralPath $targetRoot) -and -not (Get-Item -LiteralPath $targe
     throw "Target exists but is not a directory: $targetRoot"
 }
 
+if ($Update -and -not (Test-Path -LiteralPath (Join-Path $targetRoot ".ai\workflow-manifest.json"))) {
+    throw "No existing OSD Workflow installation found at: $targetRoot"
+}
+
 $entries = @(".ai", "openspec", "knowledge", "scripts/verify-workflow-artifacts.mjs")
 if ($WithDocs) {
     $entries += "docs"
@@ -144,7 +154,8 @@ foreach ($entry in $entries) {
     Copy-TemplateEntry -Source $source -Destination $destination -TargetRoot $targetRoot -Summary $summary
 }
 
-$prefix = if ($DryRun) { "Dry run complete" } else { "Initialization complete" }
+$action = if ($Update) { "Update" } else { "Initialization" }
+$prefix = if ($DryRun) { "$action dry run complete" } else { "$action complete" }
 Write-Host "$prefix`: $targetRoot"
 
 $groups = @(

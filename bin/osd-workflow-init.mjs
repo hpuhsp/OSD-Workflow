@@ -13,22 +13,25 @@ const REQUIRED_ENTRIES = [".ai", "openspec", "knowledge", "scripts/verify-workfl
 const DOC_ENTRIES = ["docs"];
 
 function printHelp() {
-  console.log(`OSD Workflow initializer
+  console.log(`OSD Workflow initializer and updater
 
 Usage:
   osd-workflow [init] [target] [options]
+  osd-workflow update [target] [options]
   osd-workflow --target <path> [options]
 
 Options:
   --target <path>   Target project directory. Defaults to current directory.
   --with-docs       Also copy docs/ usage guides into the target project.
-  --force           Overwrite existing files.
+  --force           Overwrite existing files during init. Update enables this automatically.
   --dry-run         Show planned changes without writing files.
   -h, --help        Show this help message.
 
 Examples:
   osd-workflow --target .
   osd-workflow init ./my-project --with-docs
+  osd-workflow update .
+  osd-workflow update D:\\WorkPlace\\demo --with-docs
   osd-workflow --target D:\\WorkPlace\\demo --dry-run
 `);
 }
@@ -36,6 +39,7 @@ Examples:
 export function parseArgs(argv) {
   const args = [...argv];
   const options = {
+    command: "init",
     target: process.cwd(),
     withDocs: false,
     force: false,
@@ -44,7 +48,8 @@ export function parseArgs(argv) {
   };
   let targetSource = "default";
 
-  if (args[0] === "init") {
+  if (args[0] === "init" || args[0] === "update") {
+    options.command = args[0];
     args.shift();
   }
 
@@ -81,6 +86,9 @@ export function parseArgs(argv) {
     }
   }
 
+  if (options.command === "update") {
+    options.force = true;
+  }
   options.target = path.resolve(process.cwd(), options.target);
   return options;
 }
@@ -96,6 +104,17 @@ function ensureTargetDirectory(target, dryRun) {
 
   if (!dryRun) {
     fs.mkdirSync(target, { recursive: true });
+  }
+}
+
+function ensureUpdateTarget(options) {
+  if (options.command !== "update") {
+    return;
+  }
+
+  const manifest = path.join(options.target, ".ai", "workflow-manifest.json");
+  if (!fs.existsSync(manifest) || !fs.statSync(manifest).isFile()) {
+    throw new Error(`No existing OSD Workflow installation found at: ${options.target}`);
   }
 }
 
@@ -121,6 +140,11 @@ function copyEntry(source, destination, options, summary) {
     return;
   }
 
+  if (path.resolve(source) === path.resolve(destination)) {
+    summary.skipped.push(destination);
+    return;
+  }
+
   if (fs.existsSync(destination)) {
     if (!options.force) {
       summary.skipped.push(destination);
@@ -141,8 +165,9 @@ function relativeList(target, items) {
   return items.map((item) => path.relative(target, item).replaceAll(path.sep, "/"));
 }
 
-function printSummary(target, summary, dryRun) {
-  const prefix = dryRun ? "Dry run complete" : "Initialization complete";
+function printSummary(target, summary, options) {
+  const action = options.command === "update" ? "Update" : "Initialization";
+  const prefix = options.dryRun ? `${action} dry run complete` : `${action} complete`;
   console.log(`${prefix}: ${target}`);
 
   const groups = [
@@ -172,8 +197,8 @@ function printSummary(target, summary, dryRun) {
   console.log("  7. Before handoff, run: node scripts/verify-workflow-artifacts.mjs --target . --feature <feature> --mode <mode>.");
 }
 
-export function run() {
-  const options = parseArgs(process.argv.slice(2));
+export function run(argv = process.argv.slice(2)) {
+  const options = parseArgs(argv);
 
   if (options.help) {
     printHelp();
@@ -188,6 +213,7 @@ export function run() {
     skipped: []
   };
 
+  ensureUpdateTarget(options);
   ensureTargetDirectory(options.target, options.dryRun);
 
   for (const entry of entries) {
@@ -201,7 +227,7 @@ export function run() {
     copyEntry(source, destination, options, summary);
   }
 
-  printSummary(options.target, summary, options.dryRun);
+  printSummary(options.target, summary, options);
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === __filename;

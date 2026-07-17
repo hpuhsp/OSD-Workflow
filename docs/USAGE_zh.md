@@ -10,7 +10,7 @@ OSD Workflow 要求 OpenSpec 和 Superpowers 在所有任务中参与：
 
 团队只需要统一三条 SDD 底线：先规格、按规格实现、用证据验证。
 
-## 2. 五步动态编排
+## 2. 六步动态编排
 
 ### 第一步：判断任务类型
 
@@ -161,7 +161,21 @@ OpenSpec 必须明确当前行为、目标差异、不变行为和验收标准�
 
 只读取当前决策需要的评论、附件和历史，避免无差别加载全部上下文。
 
-## 5. 交付记录
+## 5. 一键更新 Workflow
+
+```bash
+osd-workflow update .
+```
+
+直接获取并应用 GitHub 最新版本：
+
+```bash
+npx --yes github:hpuhsp/OSD-Workflow update .
+```
+
+增加 `--with-docs` 可同步更新使用指南，增加 `--dry-run` 可先预览。更新只覆盖模板管理文件，不删除项目自己的 OpenSpec 变更和知识归档。
+
+## 6. 交付记录
 
 standard/lite 使用 `.ai/templates/stage-report-compact.md`，只记录：
 
@@ -174,7 +188,7 @@ standard/lite 使用 `.ai/templates/stage-report-compact.md`，只记录：
 
 strict 才使用完整模板。`handoff-brief.md` 仅在另一个 Agent 继续任务时生成。
 
-## 6. 项目自定义指令
+## 7. 项目自定义指令
 
 推荐写入项目级 Agent 指令：
 

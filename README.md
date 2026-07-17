@@ -88,6 +88,34 @@ openspec init
 
 Existing files are skipped unless `--force` or `-Force` is supplied. Use `--dry-run` or `-DryRun` to preview changes.
 
+## One-Click Update
+
+Update an existing installation with the currently installed CLI:
+
+```bash
+osd-workflow update .
+```
+
+Fetch the latest repository version and update in one command:
+
+```bash
+npx --yes github:hpuhsp/OSD-Workflow update .
+```
+
+Update usage guides too:
+
+```bash
+osd-workflow update . --with-docs
+```
+
+PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target . -Update -WithDocs
+```
+
+`update` overwrites only files managed by the template. It does not delete project-owned OpenSpec changes or knowledge archives. Use `--dry-run` to preview and review the Git diff after updating.
+
 ## Daily Use
 
 Start a task:

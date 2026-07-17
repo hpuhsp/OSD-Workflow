@@ -88,6 +88,34 @@ openspec init
 
 默认跳过已有文件。使用 `--force` / `-Force` 覆盖，使用 `--dry-run` / `-DryRun` 预览。
 
+## 一键更新
+
+使用当前已安装 CLI 更新现有项目：
+
+```bash
+osd-workflow update .
+```
+
+直接获取仓库最新版并一键更新：
+
+```bash
+npx --yes github:hpuhsp/OSD-Workflow update .
+```
+
+同时更新使用文档：
+
+```bash
+osd-workflow update . --with-docs
+```
+
+PowerShell：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target . -Update -WithDocs
+```
+
+`update` 只覆盖模板管理的文件，不删除项目自己的 OpenSpec 变更和知识归档。可以先使用 `--dry-run` 预览，更新后建议检查 Git diff。
+
 ## 日常使用
 
 启动任务：
