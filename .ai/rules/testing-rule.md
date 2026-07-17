@@ -1,52 +1,37 @@
-# Testing Rule
+# Testing And Verification Rule
 
-## Purpose
+## Verification Principle
 
-Use tests to verify the OpenSpec acceptance criteria and protect affected behavior.
+Verification depth scales with risk, but every task needs concrete evidence against its acceptance criteria.
 
-## Context Priority
+## Development Strategy Evidence
 
-Test generation should use context in this order:
+- `tdd`: preserve concise Red, Green, and Refactor evidence. Red must fail for the expected behavior gap, not because of a broken test environment.
+- `test_first`: preserve concise failing-before and passing-after evidence.
+- `verification_only`: record why test-first is not appropriate and provide focused verification.
 
-1. OpenSpec spec
-2. Current code changes
-3. CodeGraph impact analysis
-4. RepoWiki architecture context
-5. Source code
+Evidence belongs in the existing delivery record and test report. Do not create a separate TDD report.
 
-## Test Selection
+## By Mode
 
-Choose test depth according to risk:
+- `lite`: run the smallest focused command or manual check that proves the requested behavior.
+- `standard`: cover acceptance criteria, relevant regression paths, and affected interfaces.
+- `strict`: include full acceptance mapping, regression scope, failure cases, and any required non-functional checks.
 
-- Low-risk localized changes: focused unit tests or existing regression tests.
-- Shared modules or contracts: unit tests plus integration or contract tests.
-- User-facing workflows: scenario tests covering acceptance criteria.
-- Bug fixes: regression test that fails before the fix when practical.
-- Multi-round or cumulative requirements: update affected existing tests when the accepted spec changes prior expected behavior.
+## Bug Fixes
 
-## Required Coverage
+- Capture reproduction or observed behavior before the fix when practical.
+- Add or identify regression evidence that fails before and passes after the fix.
+- If a regression test is not practical, record the reason and residual risk.
 
-Each acceptance criterion should map to at least one verification method:
+## Evidence
 
-- Automated test
-- Manual verification step
-- Static check
-- Review evidence
+Write `knowledge/archive/{feature}/test-report.md` with:
 
-## Test Report
+- What was verified.
+- Command or manual procedure.
+- Exit code or observed result.
+- Acceptance criteria covered.
+- Gaps and residual risk.
 
-Write test evidence to `knowledge/archive/{feature}/test-report.md` and include:
-
-- Test scope
-- Commands or verification steps
-- Pass/fail result
-- Coverage notes, when available
-- Known gaps and residual risks
-
-## Done Criteria
-
-- Tests cover the changed behavior.
-- Affected existing tests are updated when the accepted spec changes previous behavior.
-- Impacted critical paths are verified.
-- Unverified items are explicitly documented.
-- Test evidence exists in `knowledge/archive/{feature}/test-report.md`; an internal todo list or chat summary is not enough.
+Keep logs summarized unless full output is required for diagnosis.

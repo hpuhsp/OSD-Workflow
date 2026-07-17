@@ -1,49 +1,36 @@
 # Knowledge Archive
 
-## Purpose
+## Principle
 
-Archive each completed requirement as a reusable engineering knowledge unit.
+Archive only the context worth reusing. Required files are defined per mode in `.ai/workflow-manifest.json`.
 
-The archive belongs to the project-level OpenSpec workspace. Agent/Harness-level Superpowers may trigger the archive step, but the archived knowledge must stay with the project.
+## Lite
 
-## Inputs
+Keep only:
 
-- Original requirement context
-- OpenSpec proposal, spec, and design
-- Implementation notes
-- Test report
-- Code review report
-- Related decisions, risks, and unresolved follow-ups
+- `openspec/changes/{feature}/spec.md`
+- `test-report.md`
+- `stage-report.md`
 
-## Output Path
+## Standard
 
-Create or update:
+Keep:
 
-```text
-knowledge/archive/{feature}/
-├── requirement.md
-├── spec.md
-├── design.md
-├── implementation.md
-├── test-report.md
-├── review-report.md
-└── stage-report.md
-```
+- `openspec/changes/{feature}/proposal.md`
+- `openspec/changes/{feature}/spec.md`
+- `implementation.md`
+- `test-report.md`
+- `review-report.md`
+- `stage-report.md`
 
-## Steps
+Add `requirement.md` or OpenSpec files only when they add useful context.
 
-1. Copy or summarize the original requirement into `requirement.md`.
-2. Archive the accepted OpenSpec spec and design.
-3. Record implementation decisions and affected modules.
-4. Record verification evidence and test gaps.
-5. Record code review findings and final result.
-6. Link related commits, issues, documents, or task IDs when available.
-7. Preserve stage execution evidence in `stage-report.md`.
+## Strict
 
-## Done Criteria
+Keep the complete requirement, accepted spec/design, implementation decisions, verification, review, and delivery record required by the manifest.
 
-- The archive directory exists for the completed feature.
-- Requirement, spec, design, implementation, test report, and review report are present.
-- The archive explains why the change exists, what changed, and how it was verified.
-- Internal todo lists, chat summaries, or unstored reasoning do not count as archive files.
-- Stage report is present and records stage-level execution evidence.
+## Handoff
+
+Create `handoff-brief.md` only when another agent will continue the task. It is conditional, not a universal archive requirement.
+
+Avoid copying the same text into multiple files. Link to the source when a short reference is sufficient.

@@ -1,99 +1,33 @@
 # OpenSpec Create
 
-## Purpose
+## When To Use
 
-Convert a project requirement into an OpenSpec change package that can guide design, implementation, testing, and archive.
+Use OpenSpec for every task. The selected mode controls how much of the change package is required.
 
-This skill mapping assumes OpenSpec CLI is installed globally and the target project has been initialized with `openspec init`. It describes how the project should use OpenSpec; it does not implement OpenSpec itself.
+- `lite`: require only a concise `spec.md` with expected behavior, boundaries, and acceptance criteria.
+- `standard`: require `proposal.md` and `spec.md`; add `design.md` when design choices or compatibility need explanation.
+- `strict`: require the full proposal, spec, and design package.
 
 ## Inputs
 
-- Requirement title
-- Requirement description
+- Normalized requirement context
+- Task type and selected mode
 - Acceptance criteria
-- Comments or discussion context
-- Attachments or references
-- FeishuProjectMcp intake, when the requirement comes from Feishu Project
-- RepoWiki context, when available
-- CodeGraph context, when available
+- Relevant comments, attachments, constraints, and existing behavior
 
-## Output Path
+## Outputs
 
-Create or update:
+Create only the files required by the selected mode under `openspec/changes/{feature}/`:
 
-```text
-openspec/changes/{feature}/
-├── proposal.md
-├── spec.md
-└── design.md
-```
+- `proposal.md`: motivation, scope, non-goals, value
+- `spec.md`: behavior and testable acceptance criteria
+- `design.md`: approach, alternatives, compatibility, risks
 
-## Steps
-
-0. Confirm OpenSpec CLI is available and the target repository has run `openspec init`.
-1. If the requirement comes from Feishu Project, normalize the MCP payload with `.ai/templates/feishu-project-requirement.md`.
-2. Normalize the requirement into a concise problem statement.
-3. Extract explicit acceptance criteria.
-4. Identify affected users, systems, modules, and constraints.
-5. Draft `proposal.md` with motivation, scope, and expected value.
-6. Draft `spec.md` with behavior, acceptance criteria, and non-goals.
-7. Draft `design.md` with implementation approach, tradeoffs, and risks.
-8. Mark unresolved questions clearly instead of hiding assumptions.
-9. Update `knowledge/archive/{feature}/stage-report.md`.
-
-## Proposal Template
-
-```markdown
-# Proposal: {Feature Name}
-
-## Motivation
-
-## Scope
-
-## Non-Goals
-
-## Acceptance Criteria
-
-## Risks
-```
-
-## Spec Template
-
-```markdown
-# Spec: {Feature Name}
-
-## Behavior
-
-## Requirements
-
-## Acceptance Criteria
-
-## Compatibility
-
-## Open Questions
-```
-
-## Design Template
-
-```markdown
-# Design: {Feature Name}
-
-## Context
-
-## Proposed Approach
-
-## Affected Modules
-
-## Alternatives Considered
-
-## Risks and Mitigations
-```
+Keep each file as short as the task allows. Explicit unknowns are better than speculative detail.
 
 ## Done Criteria
 
-- The project-level OpenSpec workspace is the source of truth for the change package.
-- The change has a dedicated `openspec/changes/{feature}/` directory.
-- Proposal, spec, and design are present.
+- Expected behavior and boundaries are unambiguous.
 - Acceptance criteria are testable.
-- Open questions are explicit.
-- Stage report records files read and files created for this stage.
+- Design depth is proportionate to risk.
+- The project-level archive links or summarizes the accepted specification.

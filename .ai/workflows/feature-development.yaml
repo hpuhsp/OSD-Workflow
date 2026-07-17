@@ -1,209 +1,108 @@
 workflow:
-  name: feature-development
-  description: "Production workflow for OpenSpec + Superpowers AI coding work."
+  name: adaptive-sdd-development
+  description: "Lightweight, adaptive SDD workflow for AI-assisted software delivery."
+  machine_contract: ".ai/workflow-manifest.json"
+  execution_rule: ".ai/rules/workflow-execution-rule.md"
+
+  principles:
+    - "Superpowers participates in routing, execution, and verification for every task."
+    - "OpenSpec is the specification source for every task, at a depth proportional to risk."
+    - "Specification precedes implementation for every task."
+    - "Implementation stays within the accepted specification."
+    - "Verification provides concrete evidence that the specification was met."
+    - "Process depth and artifacts scale with complexity and risk."
+    - "Do not create an artifact unless it improves delivery, handoff, or risk control."
+
+  routing:
+    default_mode: standard
+    dimensions:
+      - task_type
+      - complexity
+      - risk
+      - impact_scope
+      - uncertainty
+      - development_strategy
+    modes:
+      lite:
+        use_when: "Simple, localized, low-risk work with clear expected behavior."
+        flow: "Superpowers routing -> compact OpenSpec -> implementation -> verification"
+      standard:
+        use_when: "Normal feature, bug fix, or existing behavior change with moderate scope."
+        flow: "Superpowers routing -> OpenSpec -> plan -> implementation -> verification -> review"
+      strict:
+        use_when: "Complex, cross-module, ambiguous, high-risk, regulated, or release-critical work."
+        flow: "Superpowers routing -> full OpenSpec -> spec review -> plan -> implementation -> verification -> review -> archive"
+
+  task_types:
+    new_feature:
+      focus: "User value, scope, non-goals, acceptance criteria, compatibility."
+      default_mode: standard
+    bug_fix:
+      focus: "Reproduction, observed versus expected behavior, root cause, regression evidence."
+      default_mode: lite
+    existing_change:
+      focus: "Current behavior, desired delta, compatibility, affected consumers."
+      default_mode: standard
+    refactor:
+      focus: "Invariant behavior, impact boundary, rollback, regression coverage."
+      default_mode: standard
+    maintenance:
+      focus: "Exact change, operational impact, focused verification."
+      default_mode: lite
+
+  development_strategies:
+    tdd:
+      flow: "red -> green -> refactor"
+      use_when: "Core business logic, algorithms, state machines, permissions, billing, public APIs, or other behavior where executable examples can drive design."
+      evidence: "Record concise red, green, and refactor evidence in the delivery record."
+    test_first:
+      flow: "failing reproduction or characterization -> implementation -> passing regression"
+      use_when: "Bug fixes, existing behavior changes, and refactors where the behavior can be captured before editing."
+      evidence: "Record concise red and green evidence in the delivery record."
+    verification_only:
+      flow: "implementation -> focused verification"
+      use_when: "Docs, configuration, pure styling, exploratory work, or changes where test-first is not practical."
+      evidence: "Record why test-first is not appropriate and provide focused verification."
+
+  escalation:
+    - "Escalate lite to standard when scope crosses modules, acceptance is unclear, or regression impact is material."
+    - "Escalate standard to strict for high risk, broad architecture impact, data migration, security, compliance, or release-critical work."
+    - "A user may request a lighter or stricter mode; record the decision and residual risk in the delivery record."
+    - "Escalate verification_only to test_first or tdd when the task changes executable business behavior and a stable test boundary exists."
 
   runtime_contract:
     superpowers:
       scope: "agent-harness-level"
-      role: "Workflow orchestration, execution discipline, skill sequencing, and verification gates for a specific AI agent or harness."
       required: true
-      stored_in_project: false
+      role: "Required execution discipline for task routing, implementation, verification, and review."
     openspec_cli:
       scope: "global-tool-level"
-      role: "OpenSpec command-line toolchain installed globally, for example with npm install -g @fission-ai/openspec@latest."
       required: true
-      stored_in_project: false
-    openspec_workspace:
+      role: "Required specification toolchain; artifact depth varies by mode."
+    project_assets:
       scope: "project-level"
-      role: "Project workspace initialized with openspec init; stores requirement specification, design decisions, change history, and knowledge archive."
       required: true
-      stored_in_project: true
       paths:
-        - "openspec/changes/{feature}/"
+        - ".ai/"
         - "knowledge/archive/{feature}/"
-    template:
-      scope: "project-level"
-      role: "Team workflow contract, rules, and project skill mapping."
-      path: ".ai/"
+        - "openspec/changes/{feature}/"
 
-  execution_contract:
-    required: true
-    rule: ".ai/rules/workflow-execution-rule.md"
-    preflight:
-      - "Read this workflow file before starting or continuing feature work."
-      - "For each stage, read every referenced skill file before executing that stage."
-      - "For each stage, read every referenced rule file before executing that stage."
-      - "If any referenced skill or rule file is missing or unreadable, stop and report a blocker."
-    artifact_rules:
-      - "Internal task lists, TodoWrite entries, chat summaries, and unstored reasoning are not workflow artifacts."
-      - "A stage output is complete only when the required file or concrete verification evidence exists."
-      - "Non-optional stages must not be skipped unless the user explicitly says to skip them."
-      - "Verification must run relevant commands or document why they could not be run."
-      - "Archive is complete only when the files required by .ai/skills/knowledge-archive/SKILL.md exist."
-    templates:
-      stage_report: ".ai/templates/stage-report.md"
-      compact_stage_report: ".ai/templates/stage-report-compact.md"
-      feishu_project_requirement: ".ai/templates/feishu-project-requirement.md"
-      handoff_brief: ".ai/templates/handoff-brief.md"
-
-  token_optimization:
-    default_mode: "standard"
-    manifest: ".ai/workflow-manifest.json"
-    modes:
-      strict:
-        purpose: "Highest assurance. Use for high-risk, ambiguous, regulated, or release-critical work."
-        reread_referenced_files: "each-stage"
-        stage_report_format: "full"
-        handoff_brief: "recommended"
-        final_gate_required: true
-      standard:
-        purpose: "Default daily production mode. Keeps required outputs and gates while reducing repeated context."
-        reread_referenced_files: "if-not-read-or-hash-changed"
-        stage_report_format: "compact"
-        handoff_brief: "required-before-agent-handoff"
-        final_gate_required: true
-      lite:
-        purpose: "Low-risk user-approved shortcut. Still requires verification evidence and final artifact gate."
-        reread_referenced_files: "if-not-read-or-hash-changed"
-        stage_report_format: "compact"
-        openspec_required: "only-when-user-or-risk-requires"
-        handoff_brief: "required-before-agent-handoff"
-        final_gate_required: true
-    rules:
-      - "Use standard mode unless the user explicitly asks for strict or lite mode."
-      - "Do not paste full previously-read files back into context when a stable path, hash, and summary are enough."
-      - "When reusing a previously-read skill or rule file, record its path and hash in the stage report."
-      - "Use handoff brief instead of full chat history when another agent continues the work."
-      - "Use compact stage report unless strict mode is selected or a blocker/risk requires full detail."
-
-  inputs:
-    - requirement_title
-    - requirement_description
-    - acceptance_criteria
-    - comments
-    - attachments
-
-  knowledge_sources:
-    openspec:
-      purpose: "Requirement, specification, design decisions, and archive."
-      paths:
-        - "openspec/changes/{feature}/proposal.md"
-        - "openspec/changes/{feature}/spec.md"
-        - "openspec/changes/{feature}/design.md"
-    repowiki:
-      purpose: "Project structure, architecture, and module understanding."
-      path: ".qoder/repowiki"
-      optional: true
-    codegraph:
-      purpose: "Call relationships, impact analysis, and test generation support."
-      path: ".codegraph"
-      optional: true
-
-  stages:
-    - id: requirement-analysis
-      name: Requirement Analysis
-      rules:
-        - ".ai/rules/workflow-execution-rule.md"
-      output: "Normalized requirement context and acceptance criteria."
-      required_outputs:
-        - "knowledge/archive/{feature}/requirement.md"
-        - "knowledge/archive/{feature}/stage-report.md"
-
-    - id: openspec-create
-      name: OpenSpec Create
-      executor: "global OpenSpec CLI against project-level OpenSpec workspace"
-      skill: ".ai/skills/openspec-create/SKILL.md"
-      rules:
-        - ".ai/rules/workflow-execution-rule.md"
-      output: "openspec/changes/{feature}/"
-      required_outputs:
-        - "openspec/changes/{feature}/proposal.md"
-        - "openspec/changes/{feature}/spec.md"
-        - "openspec/changes/{feature}/design.md"
-        - "knowledge/archive/{feature}/stage-report.md"
-
-    - id: spec-review
-      name: Spec Review
-      rules:
-        - ".ai/rules/workflow-execution-rule.md"
-      output: "Reviewed proposal, spec, and design."
-      required_outputs:
-        - "knowledge/archive/{feature}/spec-review.md"
-        - "knowledge/archive/{feature}/stage-report.md"
-
-    - id: implementation-plan
-      name: Implementation Plan
-      executor: "agent/harness-level Superpowers with project-level OpenSpec workspace context"
-      skill: ".ai/skills/implementation-plan/SKILL.md"
-      rules:
-        - ".ai/rules/workflow-execution-rule.md"
-      output: "Implementation steps and affected modules."
-      required_outputs:
-        - "knowledge/archive/{feature}/implementation.md"
-        - "knowledge/archive/{feature}/stage-report.md"
-
-    - id: coding
-      name: AI Coding
-      executor: "agent/harness-level Superpowers"
-      rules:
-        - ".ai/rules/workflow-execution-rule.md"
-        - ".ai/rules/development-rule.md"
-      output: "Code changes aligned to the approved spec."
-      required_outputs:
-        - "knowledge/archive/{feature}/stage-report.md"
-
-    - id: codegraph-analysis
-      name: CodeGraph Impact Analysis
-      optional: true
-      output: "Affected call paths, modules, and regression risk."
-      required_outputs:
-        - "knowledge/archive/{feature}/codegraph-impact.md"
-        - "knowledge/archive/{feature}/stage-report.md"
-
-    - id: test-generation
-      name: AI Test Generation
-      executor: "agent/harness-level Superpowers"
-      skill: ".ai/skills/test-generation/SKILL.md"
-      rules:
-        - ".ai/rules/workflow-execution-rule.md"
-        - ".ai/rules/testing-rule.md"
-      output: "Focused tests and verification steps."
-      required_outputs:
-        - "knowledge/archive/{feature}/test-plan.md"
-        - "knowledge/archive/{feature}/stage-report.md"
-
+  stage_catalog:
+    - id: intake
+      purpose: "Normalize task context only when the original request is not already clear."
+    - id: specification
+      purpose: "Use OpenSpec to define expected behavior and acceptance criteria at the minimum useful depth."
+    - id: planning
+      purpose: "Plan affected areas and verification when the change is not trivial."
+    - id: implementation
+      purpose: "Implement only the accepted specification using the selected TDD, test-first, or verification-only strategy."
     - id: verification
-      name: Verification
-      rules:
-        - ".ai/rules/workflow-execution-rule.md"
-        - ".ai/rules/testing-rule.md"
-      output: "Test and verification evidence."
-      required_outputs:
-        - "knowledge/archive/{feature}/test-report.md"
-        - "knowledge/archive/{feature}/stage-report.md"
-
-    - id: code-review
-      name: Code Review
-      rules:
-        - ".ai/rules/workflow-execution-rule.md"
-        - ".ai/rules/code-review-rule.md"
-      output: "Review findings and final result."
-      required_outputs:
-        - "knowledge/archive/{feature}/review-report.md"
-        - "knowledge/archive/{feature}/stage-report.md"
-
+      purpose: "Run focused checks and record concrete results."
+    - id: review
+      purpose: "Review correctness, regressions, and residual risk at a depth proportional to risk."
     - id: archive
-      name: Knowledge Archive
-      executor: "project-level OpenSpec workspace archive triggered by agent/harness-level Superpowers"
-      skill: ".ai/skills/knowledge-archive/SKILL.md"
-      rules:
-        - ".ai/rules/workflow-execution-rule.md"
-      output: "knowledge/archive/{feature}/"
-      required_outputs:
-        - "knowledge/archive/{feature}/requirement.md"
-        - "knowledge/archive/{feature}/spec.md"
-        - "knowledge/archive/{feature}/design.md"
-        - "knowledge/archive/{feature}/implementation.md"
-        - "knowledge/archive/{feature}/test-report.md"
-        - "knowledge/archive/{feature}/review-report.md"
-        - "knowledge/archive/{feature}/stage-report.md"
+      purpose: "Preserve reusable context for strict work or cross-agent handoff."
+
+  handoff:
+    rule: "Create handoff-brief.md only when another agent will continue the task."
+    template: ".ai/templates/handoff-brief.md"

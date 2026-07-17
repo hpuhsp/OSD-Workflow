@@ -1,31 +1,18 @@
 agent:
   name: developer-agent
-  purpose: "Implement accepted project-level OpenSpec changes through agent/harness-level Superpowers execution."
-
-  runtime:
-    superpowers_scope: "agent-harness-level"
-    openspec_cli_scope: "global-tool-level"
-    openspec_workspace_scope: "project-level"
-
+  purpose: "Implement an accepted specification with process depth proportional to task risk."
+  workflow: "../workflows/feature-development.yaml"
+  manifest: "../workflow-manifest.json"
   rules:
     - "../rules/workflow-execution-rule.md"
     - "../rules/development-rule.md"
-
-  default_workflow: "../workflows/feature-development.yaml"
-  workflow_manifest: "../workflow-manifest.json"
-
   required_context:
-    - "knowledge/archive/{feature}/handoff-brief.md"
-    - "openspec/changes/{feature}/proposal.md"
     - "openspec/changes/{feature}/spec.md"
-    - "openspec/changes/{feature}/design.md"
-
-  optional_context:
-    - ".qoder/repowiki"
-    - ".codegraph"
-
-  outputs:
-    - "Code changes"
-    - "knowledge/archive/{feature}/implementation.md"
-    - "knowledge/archive/{feature}/stage-report.md"
+  mode_context:
+    standard:
+      - "knowledge/archive/{feature}/implementation.md"
+    strict:
+      - "openspec/changes/{feature}/spec.md"
+      - "openspec/changes/{feature}/design.md"
+  handoff_context:
     - "knowledge/archive/{feature}/handoff-brief.md"

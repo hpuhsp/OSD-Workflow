@@ -1,12 +1,18 @@
-# Stage Report: {Feature Name}
+# Delivery Record: {Feature Name}
 
-| stage | status | mode | read refs | read hashes | outputs | command | result | notes |
-|---|---|---|---|---|---|---|---|---|
-| {stage-id} | completed/skipped/blocked | standard | paths only | sha256/path hash | paths only | command or N/A | pass/fail/N/A | short note |
+- Task type: new_feature | bug_fix | existing_change | refactor | maintenance
+- Mode: lite | standard
+- Development strategy: tdd | test_first | verification_only
+- Result: pass | blocked | partial
+- Specification: `openspec/changes/{feature}/spec.md`
+- Changed files: paths only
+- Verification: command + exit code + short result
+- Red evidence: failing test/reproduction, or N/A
+- Green evidence: passing command/result, or N/A
+- Refactor evidence: result after cleanup, or N/A
+- Strategy reason: required only for verification_only
+- Review: result or N/A for lite
+- Residual risk: none or short note
+- Handoff: N/A or `knowledge/archive/{feature}/handoff-brief.md`
 
-## Rules
-
-- Use one row per stage.
-- Keep paths instead of pasted file content.
-- Use hashes for previously-read workflow, skill, and rule files when reusing prior context.
-- Expand into the full stage report format only for blockers, skipped non-optional stages, failed verification, or strict mode.
+Keep this record short. Do not create one row per stage and do not paste logs or full file contents.

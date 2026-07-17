@@ -1,288 +1,128 @@
 # OSD Workflow
 
-OSD Workflow is a lightweight project template for running an OpenSpec + Superpowers AI coding workflow in a real software project.
+OSD Workflow is a lightweight team standard for adaptive, specification-driven AI development.
 
-It does not implement OpenSpec or Superpowers. Instead, it defines the project-level workflow contract, rules, skill mappings, and archive structure that connect:
+It connects two required runtime capabilities:
 
-- Agent/Harness-level Superpowers for AI agent execution and workflow discipline.
-- Globally installed OpenSpec CLI for specification operations.
-- Project-level OpenSpec workspace assets for requirements, specs, design decisions, acceptance criteria, and knowledge archive.
+- **Superpowers** at the Agent/Harness level for routing, execution discipline, verification, and review.
+- **OpenSpec** as the specification source for every task.
 
-## Purpose
+The project template supplies the shared contract under `.ai/`, OpenSpec assets under `openspec/changes/`, and concise delivery evidence under `knowledge/archive/`.
 
-This template helps teams move from direct prompt-to-code work into a traceable engineering loop:
+## Design Goal
 
-![Traceable engineering loop](docs/assets/readme/workflow-loop.png)
+Standardize the SDD outcome without forcing every task through the same amount of ceremony.
 
-The goal is to provide a production-oriented, repeatable requirement-to-delivery loop before teams invest in heavier platforms, marketplaces, gateways, or CI automation.
+Every task must:
 
-## Runtime Contract
+1. Define expected behavior and acceptance criteria in OpenSpec before coding.
+2. Implement within the accepted specification through Superpowers-guided execution.
+3. Produce focused verification evidence.
 
-The recommended local setup is:
+## Adaptive Modes
 
-- Superpowers is installed per AI agent or harness, usually as a user-level plugin or extension rather than a project dependency.
-- OpenSpec CLI is installed globally, for example with `npm install -g @fission-ai/openspec@latest`.
-- Each target project runs `openspec init` and maintains its own project-level OpenSpec workspace.
-- This repository provides reusable project-level workflow assets.
-- OpenSpec change assets are stored in `openspec/changes/{feature}/`.
-- Completed requirement archives are stored in `knowledge/archive/{feature}/`.
+| Mode | Use for | Required flow |
+|---|---|---|
+| `lite` | Simple, localized, low-risk work | Superpowers routing → compact OpenSpec spec → implementation → verification |
+| `standard` | Normal medium-scope work; default | routing → OpenSpec proposal/spec → plan → implementation → verification → review |
+| `strict` | Complex, ambiguous, high-risk, cross-module, or release-critical work | routing → full OpenSpec → spec review → plan → implementation → full verification → review → archive |
 
-Responsibility split:
+OpenSpec and Superpowers participate in all three modes. Only process depth and artifact volume change.
 
-![Runtime responsibility contract](docs/assets/readme/runtime-contract.png)
+## Development Strategy
 
-Superpowers answers how the agent should execute the work inside a specific AI agent or harness.
+Mode and development strategy are separate decisions:
 
-OpenSpec CLI provides the toolchain; the initialized project OpenSpec workspace answers why the project should change, what should change, and how it will be accepted.
+| Strategy | Use for | Evidence |
+|---|---|---|
+| `tdd` | Core business logic, algorithms, state machines, permissions, billing, public APIs | Red, Green, Refactor |
+| `test_first` | Bug fixes, existing behavior changes, refactors | Failing-before and passing-after evidence |
+| `verification_only` | Docs, config, pure styling, exploration, impractical test boundary | Reason plus focused verification |
 
-## Project Structure
+TDD is conditional, not a fourth workflow mode. Evidence stays in the existing delivery record; no separate TDD report is required.
 
-![Project template structure](docs/assets/readme/project-structure.png)
+## Task-Aware Routing
 
-## Workflow
+| Task type | Specification focus | Start mode | Default strategy |
+|---|---|---|---|
+| New feature | Value, scope, non-goals, acceptance, compatibility | `standard` | `tdd` for executable behavior |
+| Bug fix | Reproduction, observed/expected behavior, root cause, regression | `lite` | `test_first` |
+| Existing behavior change | Current behavior, desired delta, compatibility, consumers | `standard` | `test_first` |
+| Refactor | Behavior invariants, impact, rollback, regression | `standard` | `test_first` characterization |
+| Maintenance/docs/config | Exact change, operational impact, focused verification | `lite` | `verification_only` |
 
-The default workflow is defined in `.ai/workflows/feature-development.yaml`.
+Escalate when scope, uncertainty, or risk grows. A user may explicitly choose a lighter or stricter mode if residual risk is recorded.
 
-Treat the workflow as an execution contract, not loose guidance. Before each stage, the agent must read the stage's referenced `skill` and `rules` files. Internal todo lists, chat summaries, and unstored reasoning do not count as workflow artifacts.
+## Minimal Artifacts
 
-Stages:
+`lite` requires only:
 
-1. Requirement analysis
-2. OpenSpec creation
-3. Spec review
-4. Implementation planning
-5. AI coding
-6. CodeGraph impact analysis
-7. Test generation
-8. Verification
-9. Code review
-10. Knowledge archive
+- `openspec/changes/{feature}/spec.md`
+- `knowledge/archive/{feature}/test-report.md`
+- `knowledge/archive/{feature}/stage-report.md`
 
-## Core Files
+`standard` adds a proposal, implementation summary, and review summary. `strict` adds the full OpenSpec design and complete archive.
 
-- `.ai/AI_WORKFLOW.md`: workflow overview and environment contract.
-- `.ai/workflows/feature-development.yaml`: stage definition and runtime responsibility mapping.
-- `.ai/workflow-manifest.json`: compact stage index for lower-token execution.
-- `.ai/rules/workflow-execution-rule.md`: mandatory stage execution, file-reading, and artifact rules.
-- `.ai/templates/stage-report.md`: required stage report template.
-- `.ai/templates/stage-report-compact.md`: compact stage report template for standard/lite execution modes.
-- `.ai/templates/handoff-brief.md`: cross-agent handoff summary template.
-- `.ai/templates/feishu-project-requirement.md`: FeishuProjectMcp intake template.
-- `.ai/rules/development-rule.md`: implementation discipline.
-- `.ai/rules/testing-rule.md`: test generation and verification rules.
-- `.ai/rules/code-review-rule.md`: review priorities and output expectations.
-- `.ai/skills/openspec-create/SKILL.md`: mapping for creating OpenSpec changes.
-- `.ai/skills/implementation-plan/SKILL.md`: planning before implementation.
-- `.ai/skills/test-generation/SKILL.md`: verification generation.
-- `.ai/skills/knowledge-archive/SKILL.md`: archive structure and completion criteria.
-- `.ai/agents/developer-agent.yaml`: developer agent context contract.
-- `.ai/agents/test-agent.yaml`: test agent context contract.
-- `scripts/verify-workflow-artifacts.mjs`: production handoff gate for required workflow artifacts.
-- `bin/osd-workflow-init.mjs`: Node.js CLI installer.
-- `scripts/install.ps1`: PowerShell CLI installer.
+The machine-readable output contract is `.ai/workflow-manifest.json`. Do not duplicate the same information across files. Create `handoff-brief.md` only when another agent will continue the task.
 
-## How To Use
+## Installation
 
-1. Copy `.ai/`, `openspec/`, `knowledge/`, and `scripts/verify-workflow-artifacts.mjs` into a real project.
-2. Install OpenSpec CLI globally if needed: `npm install -g @fission-ai/openspec@latest`.
-3. Run `openspec init` in the target project.
-4. Ensure each team member has Superpowers installed for the AI agent or harness they use.
-5. For each feature, create an OpenSpec change under `openspec/changes/{feature}/`.
-6. Use `.ai/workflows/feature-development.yaml` as the workflow contract.
-7. Archive completed work under `knowledge/archive/{feature}/`.
-8. Before handoff, run `node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}`.
+Prerequisites:
 
-For prompt templates, project custom instructions, multi-agent usage, and Feishu Project MCP (`FeishuProjectMcp`) integration, see `docs/USAGE.md` and `docs/USAGE_zh.md`.
+- OpenSpec CLI installed globally: `npm install -g @fission-ai/openspec@latest`
+- Superpowers available in the active AI agent or harness
 
-## One-Command Bootstrap
-
-Use the CLI installer to add this workflow to an existing development project.
-
-PowerShell, recommended for Windows:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=Join-Path $env:TEMP 'osd-workflow-install.ps1'; iwr https://raw.githubusercontent.com/hpuhsp/OSD-Workflow/main/scripts/install.ps1 -OutFile $p; & $p -Target . -WithDocs"
-```
-
-From a cloned copy of this repository:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs
-```
-
-Node.js / npx:
+Node.js:
 
 ```bash
 npx --yes github:hpuhsp/OSD-Workflow --target . --with-docs
+openspec init
 ```
 
-Useful options:
+PowerShell from a cloned repository:
 
-- `--target` / `-Target`: target project directory.
-- `--with-docs` / `-WithDocs`: also copy `docs/` usage guides.
-- `--dry-run` / `-DryRun`: preview changes without writing files.
-- `--force` / `-Force`: overwrite existing workflow files.
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs
+openspec init
+```
 
-The installer does not overwrite existing files by default.
+Existing files are skipped unless `--force` or `-Force` is supplied. Use `--dry-run` or `-DryRun` to preview changes.
 
-## Production Handoff Gate
+## Daily Use
 
-Before a feature is handed off, run:
+Start a task:
+
+```text
+Use Superpowers and OpenSpec to handle {task} with OSD Workflow.
+Classify task type, complexity, risk, and impact first.
+Select lite, standard, or strict, then select tdd, test_first, or verification_only.
+Execute only the required flow and record the strategy evidence.
+```
+
+Verify a delivery:
 
 ```bash
-node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}
+node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode}
 ```
 
-This checks the workflow references, templates, OpenSpec change files, archive files, and per-stage `required_outputs` declared in `.ai/workflows/feature-development.yaml`.
+Verify only the installed contract:
 
-## Token-Efficient Execution
-
-The workflow supports three execution modes:
-
-- `strict`: highest assurance, rereads referenced files at every stage, uses full stage reports.
-- `standard`: default daily production mode, reuses previously-read files when hashes are unchanged, uses compact stage reports, and writes handoff briefs for agent transitions.
-- `lite`: low-risk user-approved shortcut, still requires verification evidence and final artifact gate.
-
-For daily work, ask agents to use `standard` mode and `.ai/workflow-manifest.json` before loading full workflow context.
-
-## Development Guide: Feishu Project Requirement To Code
-
-This section describes the expected development flow when a requirement comes from Feishu Project.
-
-### 1. Capture Requirement Context
-
-Collect the minimum requirement context before coding:
-
-- Feishu project task or project link.
-- Requirement title.
-- Business background and user problem.
-- Acceptance criteria.
-- Comments, decisions, screenshots, or attachments.
-- Expected release or priority constraints.
-
-Recommended archive target:
-
-```text
-knowledge/archive/{feature}/requirement.md
+```bash
+node scripts/verify-workflow-artifacts.mjs --structural-only
 ```
 
-### 2. Create Project-Level OpenSpec Change
+See [docs/USAGE.md](docs/USAGE.md) for task-specific prompts and routing examples.
 
-After `openspec init` has been run in the project, create a dedicated OpenSpec change for the requirement:
+## Project Files
 
-![OpenSpec change package](docs/assets/readme/openspec-change.png)
-
-Use `.ai/skills/openspec-create/SKILL.md` as the mapping guide.
-
-The OpenSpec change should clarify:
-
-- Why the change is needed.
-- What behavior must change.
-- What is explicitly out of scope.
-- How the change will be accepted.
-- Which modules, interfaces, or data flows may be affected.
-
-### 3. Review The Spec Before Coding
-
-Before implementation, review:
-
-- `openspec/changes/{feature}/proposal.md`
-- `openspec/changes/{feature}/spec.md`
-- `openspec/changes/{feature}/design.md`
-- `.qoder/repowiki`, when available
-- `.codegraph`, when available
-
-Do not treat the original Feishu Project description as the only source of truth after OpenSpec is created. The accepted OpenSpec change becomes the project-level source of truth.
-
-### 4. Produce An Implementation Plan
-
-Use `.ai/skills/implementation-plan/SKILL.md` and `.ai/rules/development-rule.md` to produce a concrete plan:
-
-- Affected modules and files.
-- Required implementation steps.
-- Data model, API, or compatibility impact.
-- Test and verification scope.
-- Known risks and assumptions.
-
-Recommended archive target:
-
-```text
-knowledge/archive/{feature}/implementation.md
-```
-
-An internal task list or conversation summary is not enough; the implementation plan must be written to the archive file.
-
-### 5. Implement With Agent/Harness-Level Superpowers
-
-Use Superpowers from the active AI agent or harness to orchestrate the local execution flow.
-
-Project-level assets provide the context and constraints:
-
-- `.ai/workflows/feature-development.yaml`
-- `.ai/rules/development-rule.md`
-- `.ai/rules/testing-rule.md`
-- `.ai/rules/code-review-rule.md`
-- `openspec/changes/{feature}/`
-
-Implementation should stay scoped to the accepted OpenSpec change.
-
-### 6. Generate And Run Verification
-
-Use `.ai/skills/test-generation/SKILL.md` and `.ai/rules/testing-rule.md`.
-
-Verification should map each acceptance criterion to one of:
-
-- Automated test.
-- Manual verification step.
-- Static check.
-- Review evidence.
-
-Recommended archive target:
-
-```text
-knowledge/archive/{feature}/test-report.md
-```
-
-Verification must run relevant commands or document why they could not be run, with residual risk recorded in the test report.
-
-### 7. Review And Archive
-
-Use `.ai/rules/code-review-rule.md` for review priorities.
-
-Archive the completed requirement as a reusable knowledge unit:
-
-![Knowledge archive unit](docs/assets/readme/knowledge-archive.png)
-
-The archive should explain why the change exists, what changed, how it was verified, and which follow-ups remain.
-
-## Expected Outputs
-
-For each real requirement, the workflow should produce:
-
-- `openspec/changes/{feature}/proposal.md`
-- `openspec/changes/{feature}/spec.md`
-- `openspec/changes/{feature}/design.md`
-- `knowledge/archive/{feature}/requirement.md`
-- `knowledge/archive/{feature}/spec.md`
-- `knowledge/archive/{feature}/design.md`
-- `knowledge/archive/{feature}/implementation.md`
-- `knowledge/archive/{feature}/test-report.md`
-- `knowledge/archive/{feature}/review-report.md`
-- `knowledge/archive/{feature}/stage-report.md`
-
-Run `node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}` to verify these production handoff artifacts.
-
-## Non-Goals
-
-This template does not provide:
-
-- A Harness platform.
-- A SkillsHub management platform.
-- An MCP marketplace.
-- GitLab AI automation.
-- An LLM gateway.
-- A replacement implementation for OpenSpec or Superpowers.
+- `.ai/workflows/feature-development.yaml`: human-readable routing contract
+- `.ai/workflow-manifest.json`: machine-readable artifact contract
+- `.ai/rules/workflow-execution-rule.md`: adaptive SDD rules
+- `.ai/templates/`: compact delivery and handoff templates
+- `scripts/verify-workflow-artifacts.mjs`: lightweight delivery verifier
+- `bin/osd-workflow-init.mjs`: Node.js initializer
+- `scripts/install.ps1`: PowerShell initializer
 
 ## License
 
-This project is open source under the MIT License. See `LICENSE` for details.
+MIT

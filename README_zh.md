@@ -1,288 +1,128 @@
 # OSD Workflow
 
-OSD Workflow 是一个轻量级项目初始化模板，用于在真实软件项目中运行 OpenSpec + Superpowers 的 AI Coding Workflow。
+OSD Workflow 是一套面向团队的轻量级、自适应 SDD（规格驱动开发）标准。
 
-它不实现 OpenSpec，也不实现 Superpowers。它提供的是项目级工作流契约、规则、Skill 映射和知识归档结构，用来连接：
+它连接两个必须参与整个工作流的运行时能力：
 
-- Agent/Harness 级 Superpowers：负责 AI Agent 执行编排、流程纪律和验证门禁。
-- 全局安装的 OpenSpec CLI：负责规格操作工具链。
-- 项目级 OpenSpec 工作区资产：负责需求规格、设计决策、验收标准、变更历史和知识归档。
+- **Superpowers**：位于 Agent/Harness 层，负责任务路由、执行纪律、验证和评审。
+- **OpenSpec**：作为所有任务的规格来源。
 
-## 项目定位
+项目模板负责提供 `.ai/` 团队契约、`openspec/changes/` 规格资产，以及 `knowledge/archive/` 中的精简交付证据。
 
-该模板用于帮助团队从直接 Prompt 到代码的方式，转向可追溯的软件工程闭环：
+## 设计目标
 
-![可追溯研发闭环](docs/assets/readme/workflow-loop.png)
+统一 SDD 结果，不要求所有任务执行同样复杂的流程。
 
-目标是在建设更重的平台、市场、网关或 CI 自动化体系之前，先提供一套面向生产交付的、可复制的需求到交付闭环。
+所有任务都必须：
 
-## 本地环境约定
+1. 编码前通过 OpenSpec 明确期望行为和验收标准。
+2. 通过 Superpowers 编排执行，并保持实现符合已接受规格。
+3. 形成聚焦且可验证的结果证据。
 
-推荐配置方式：
+## 自适应模式
 
-- Superpowers 按 AI Agent 或 Harness 安装，通常作为用户级插件或扩展存在，不作为项目依赖提交到仓库。
-- OpenSpec CLI 全局安装，例如 `npm install -g @fission-ai/openspec@latest`。
-- 每个目标项目单独执行 `openspec init`，并维护自己的项目级 OpenSpec 工作区。
-- 本仓库提供项目级 `.ai` 工作流资产。
-- OpenSpec 变更资产存放在 `openspec/changes/{feature}/`。
-- 已完成需求的知识归档存放在 `knowledge/archive/{feature}/`。
+| 模式 | 适用任务 | 必需流程 |
+|---|---|---|
+| `lite` | 简单、局部、低风险任务 | Superpowers 路由 → 精简 OpenSpec → 实现 → 聚焦验证 |
+| `standard` | 中等规模日常任务，默认模式 | 路由 → OpenSpec proposal/spec → 计划 → 实现 → 验证 → 精简评审 |
+| `strict` | 复杂、模糊、高风险、跨模块或发布关键任务 | 路由 → 完整 OpenSpec → 规格评审 → 计划 → 实现 → 完整验证 → 评审 → 归档 |
 
-职责分层：
+OpenSpec 和 Superpowers 在三种模式中都必须参与。变化的只是过程深度和产物数量。
 
-![运行时职责分层](docs/assets/readme/runtime-contract.png)
+## 开发策略
 
-Superpowers 回答“特定 AI Agent 或 Harness 应该如何执行工作”。
+工作流模式与开发策略是两个独立决策：
 
-OpenSpec CLI 提供工具链；项目内初始化后的 OpenSpec 工作区回答“项目为什么改、改什么、如何验收”。
+| 策略 | 适用场景 | 精简证据 |
+|---|---|---|
+| `tdd` | 核心业务、算法、状态机、权限、计费、公共 API | Red、Green、Refactor |
+| `test_first` | Bug 修复、已有行为修改、重构 | 修改前失败、修改后通过 |
+| `verification_only` | 文档、配置、纯样式、探索性工作、缺少合理测试边界 | 原因和聚焦验证 |
 
-## 目录结构
+TDD 是条件化开发策略，不是第四种工作流模式。证据写入现有交付记录，不新增独立 TDD 报告。
 
-![项目模板目录结构](docs/assets/readme/project-structure.png)
+## 按任务类型路由
 
-## 工作流
+| 任务类型 | 规格关注点 | 起始模式 | 默认开发策略 |
+|---|---|---|---|
+| 新功能 | 用户价值、范围、非目标、验收、兼容性 | `standard` | 可执行行为使用 `tdd` |
+| 修 Bug | 复现、实际/预期行为、根因、回归证据 | `lite` | `test_first` |
+| 修改已有功能 | 当前行为、目标差异、兼容性、受影响方 | `standard` | `test_first` |
+| 重构 | 行为不变量、影响边界、回滚、回归覆盖 | `standard` | `test_first` 特征测试 |
+| 维护/文档/配置 | 精确变更、运行影响、聚焦验证 | `lite` | `verification_only` |
 
-默认工作流定义在 `.ai/workflows/feature-development.yaml`。
+当范围、不确定性或风险增大时升级模式。用户也可以明确指定更轻或更严格的模式，但需要记录剩余风险。
 
-该工作流必须被当作执行契约，而不是参考建议。每个阶段开始前，Agent 必须读取该阶段引用的 `skill` 和 `rules` 文件。内部 Todo、对话总结和未落盘推理都不算工作流产物。
+## 最小必要产物
 
-阶段包括：
+`lite` 只要求：
 
-1. 需求分析
-2. OpenSpec 创建
-3. 规格评审
-4. 实施计划
-5. AI 编码
-6. CodeGraph 影响分析
-7. 测试生成
-8. 验证
-9. 代码评审
-10. 知识归档
+- `openspec/changes/{feature}/spec.md`
+- `knowledge/archive/{feature}/test-report.md`
+- `knowledge/archive/{feature}/stage-report.md`
 
-## 核心文件
+`standard` 增加 proposal、实施摘要和评审摘要；`strict` 增加完整 OpenSpec 设计和完整归档。
 
-- `.ai/AI_WORKFLOW.md`：工作流总览和本地环境约定。
-- `.ai/workflows/feature-development.yaml`：阶段定义和运行时职责映射。
-- `.ai/workflow-manifest.json`：用于低 token 执行的紧凑阶段索引。
-- `.ai/rules/workflow-execution-rule.md`：强制阶段执行、文件读取和产物落盘规则。
-- `.ai/templates/stage-report.md`：阶段报告模板。
-- `.ai/templates/stage-report-compact.md`：standard/lite 模式使用的紧凑阶段报告模板。
-- `.ai/templates/handoff-brief.md`：跨 Agent 交接摘要模板。
-- `.ai/templates/feishu-project-requirement.md`：FeishuProjectMcp 需求输入模板。
-- `.ai/rules/development-rule.md`：开发实施规则。
-- `.ai/rules/testing-rule.md`：测试生成与验证规则。
-- `.ai/rules/code-review-rule.md`：代码评审优先级和输出要求。
-- `.ai/skills/openspec-create/SKILL.md`：OpenSpec 变更创建映射。
-- `.ai/skills/implementation-plan/SKILL.md`：编码前实施计划。
-- `.ai/skills/test-generation/SKILL.md`：测试与验证生成。
-- `.ai/skills/knowledge-archive/SKILL.md`：知识归档结构和完成标准。
-- `.ai/agents/developer-agent.yaml`：开发 Agent 上下文契约。
-- `.ai/agents/test-agent.yaml`：测试 Agent 上下文契约。
-- `scripts/verify-workflow-artifacts.mjs`：生产交付前的 workflow 产物门禁。
-- `bin/osd-workflow-init.mjs`：Node.js CLI 安装器。
-- `scripts/install.ps1`：PowerShell CLI 安装器。
+`.ai/workflow-manifest.json` 是唯一机器可读产物契约。不要在多个文件中重复相同内容。仅在另一个 Agent 将继续任务时创建 `handoff-brief.md`。
 
-## 使用方式
+## 安装
 
-1. 将 `.ai/`、`openspec/`、`knowledge/` 和 `scripts/verify-workflow-artifacts.mjs` 复制到真实项目。
-2. 如有需要，先全局安装 OpenSpec CLI：`npm install -g @fission-ai/openspec@latest`。
-3. 在目标项目中执行 `openspec init`。
-4. 确保团队成员已为自己使用的 AI Agent 或 Harness 安装 Superpowers。
-5. 每个需求在 `openspec/changes/{feature}/` 下创建 OpenSpec 变更。
-6. 使用 `.ai/workflows/feature-development.yaml` 作为工作流契约。
-7. 需求完成后归档到 `knowledge/archive/{feature}/`。
-8. 交付前执行 `node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}`。
+前置条件：
 
-提示词模板、项目自定义指令、多 Agent 使用方式和飞书项目 MCP（`FeishuProjectMcp`）集成说明见 `docs/USAGE.md` 和 `docs/USAGE_zh.md`。
+- 全局安装 OpenSpec CLI：`npm install -g @fission-ai/openspec@latest`
+- 当前 AI Agent 或 Harness 已提供 Superpowers
 
-## 一键接入开发项目
-
-可以使用 CLI 安装器将这套 Workflow 接入已有开发项目。
-
-PowerShell，推荐 Windows 使用：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=Join-Path $env:TEMP 'osd-workflow-install.ps1'; iwr https://raw.githubusercontent.com/hpuhsp/OSD-Workflow/main/scripts/install.ps1 -OutFile $p; & $p -Target . -WithDocs"
-```
-
-从本仓库克隆目录执行：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs
-```
-
-Node.js / npx：
+Node.js：
 
 ```bash
 npx --yes github:hpuhsp/OSD-Workflow --target . --with-docs
+openspec init
 ```
 
-常用参数：
+从克隆仓库使用 PowerShell：
 
-- `--target` / `-Target`：目标项目目录。
-- `--with-docs` / `-WithDocs`：同时复制 `docs/` 使用指南。
-- `--dry-run` / `-DryRun`：只预览变更，不写入文件。
-- `--force` / `-Force`：覆盖已有 Workflow 文件。
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs
+openspec init
+```
 
-安装器默认不会覆盖已有文件。
+默认跳过已有文件。使用 `--force` / `-Force` 覆盖，使用 `--dry-run` / `-DryRun` 预览。
 
-## 生产交付门禁
+## 日常使用
 
-功能交付前执行：
+启动任务：
+
+```text
+使用 Superpowers 和 OpenSpec，按 OSD Workflow 处理 {任务}。
+先判断任务类型、复杂度、风险和影响范围。
+选择 lite、standard 或 strict，再选择 tdd、test_first 或 verification_only。
+只执行必要流程并记录策略证据。
+```
+
+验证交付：
 
 ```bash
-node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}
+node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode}
 ```
 
-该命令会检查 workflow 引用文件、模板文件、OpenSpec 变更文件、归档文件，以及 `.ai/workflows/feature-development.yaml` 中声明的每阶段 `required_outputs`。
+只检查工作流契约：
 
-## 省 Token 执行
-
-Workflow 支持三种执行模式：
-
-- `strict`：最高确定性，每阶段重新读取引用文件，使用完整 stage report。
-- `standard`：默认日常生产模式，引用文件 hash 未变化时复用已读上下文，使用 compact stage report，并在跨 Agent 交接时写 handoff brief。
-- `lite`：低风险且用户明确允许的快捷模式，仍要求验证证据和最终 artifact gate。
-
-日常开发建议让 Agent 使用 `standard` 模式，并先读取 `.ai/workflow-manifest.json`，再按需读取完整 workflow 上下文。
-
-## 开发使用说明：从飞书项目需求到代码
-
-本节描述当需求来自飞书项目时，团队应如何按该模板完成一条研发闭环。
-
-### 1. 收集需求上下文
-
-编码前至少收集以下信息：
-
-- 飞书项目任务或项目需求链接。
-- 需求标题。
-- 业务背景和用户问题。
-- 验收标准。
-- 评论、决策、截图或附件。
-- 期望发布时间或优先级约束。
-
-建议归档位置：
-
-```text
-knowledge/archive/{feature}/requirement.md
+```bash
+node scripts/verify-workflow-artifacts.mjs --structural-only
 ```
 
-### 2. 创建项目级 OpenSpec 变更
+任务场景和提示词示例见 [docs/USAGE_zh.md](docs/USAGE_zh.md)。
 
-目标项目执行 `openspec init` 后，为该需求创建独立 OpenSpec 变更：
+## 核心文件
 
-![OpenSpec 变更包](docs/assets/readme/openspec-change.png)
-
-使用 `.ai/skills/openspec-create/SKILL.md` 作为映射指南。
-
-OpenSpec 变更应说明：
-
-- 为什么需要改。
-- 需要改变什么行为。
-- 哪些内容明确不在范围内。
-- 如何验收。
-- 可能影响哪些模块、接口或数据流。
-
-### 3. 编码前完成规格评审
-
-实施前应评审：
-
-- `openspec/changes/{feature}/proposal.md`
-- `openspec/changes/{feature}/spec.md`
-- `openspec/changes/{feature}/design.md`
-- `.qoder/repowiki`，如果项目已提供
-- `.codegraph`，如果项目已提供
-
-OpenSpec 创建后，不再只把飞书原始描述作为唯一事实来源。已确认的 OpenSpec 变更应成为项目级事实来源。
-
-### 4. 生成实施计划
-
-使用 `.ai/skills/implementation-plan/SKILL.md` 和 `.ai/rules/development-rule.md` 形成实施计划：
-
-- 影响模块和文件。
-- 必要实施步骤。
-- 数据模型、API 或兼容性影响。
-- 测试与验证范围。
-- 已知风险和假设。
-
-建议归档位置：
-
-```text
-knowledge/archive/{feature}/implementation.md
-```
-
-内部任务列表或对话总结不算完成；实施计划必须写入上述归档文件。
-
-### 5. 通过 Agent/Harness 级 Superpowers 执行实现
-
-使用当前 AI Agent 或 Harness 中的 Superpowers 编排本地执行流程。
-
-项目级资产提供上下文和约束：
-
-- `.ai/workflows/feature-development.yaml`
-- `.ai/rules/development-rule.md`
-- `.ai/rules/testing-rule.md`
-- `.ai/rules/code-review-rule.md`
-- `openspec/changes/{feature}/`
-
-实现范围应严格对齐已确认的 OpenSpec 变更。
-
-### 6. 生成并执行验证
-
-使用 `.ai/skills/test-generation/SKILL.md` 和 `.ai/rules/testing-rule.md`。
-
-每条验收标准至少应映射到一种验证方式：
-
-- 自动化测试。
-- 手工验证步骤。
-- 静态检查。
-- 评审证据。
-
-建议归档位置：
-
-```text
-knowledge/archive/{feature}/test-report.md
-```
-
-验证必须执行相关命令，或在测试报告中说明无法执行的原因和剩余风险。
-
-### 7. 评审并归档
-
-使用 `.ai/rules/code-review-rule.md` 作为代码评审优先级。
-
-需求完成后归档为可复用研发知识单元：
-
-![知识归档单元](docs/assets/readme/knowledge-archive.png)
-
-归档内容应说明为什么改、改了什么、如何验证，以及还有哪些后续事项。
-
-## 预期产物
-
-每个真实需求至少应形成：
-
-- `openspec/changes/{feature}/proposal.md`
-- `openspec/changes/{feature}/spec.md`
-- `openspec/changes/{feature}/design.md`
-- `knowledge/archive/{feature}/requirement.md`
-- `knowledge/archive/{feature}/spec.md`
-- `knowledge/archive/{feature}/design.md`
-- `knowledge/archive/{feature}/implementation.md`
-- `knowledge/archive/{feature}/test-report.md`
-- `knowledge/archive/{feature}/review-report.md`
-- `knowledge/archive/{feature}/stage-report.md`
-
-执行 `node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}` 可检查这些生产交付产物是否齐全。
-
-## 非目标
-
-该模板不提供：
-
-- Harness 平台。
-- SkillsHub 平台化管理。
-- MCP Marketplace。
-- GitLab AI 自动化体系。
-- LLM Gateway。
-- OpenSpec 或 Superpowers 的替代实现。
+- `.ai/workflows/feature-development.yaml`：面向人的动态路由契约
+- `.ai/workflow-manifest.json`：机器可读产物契约
+- `.ai/rules/workflow-execution-rule.md`：自适应 SDD 规则
+- `.ai/templates/`：精简交付与交接模板
+- `scripts/verify-workflow-artifacts.mjs`：轻量交付校验器
+- `bin/osd-workflow-init.mjs`：Node.js 初始化器
+- `scripts/install.ps1`：PowerShell 初始化器
 
 ## License
 
-本项目采用 MIT 开源许可证。详情见 `LICENSE`。
+MIT

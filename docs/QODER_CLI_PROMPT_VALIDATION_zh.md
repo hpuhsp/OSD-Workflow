@@ -1,5 +1,7 @@
 # Qoder CLI 提示词有效性验证报告
 
+> 历史说明：本报告验证的是 2026-07-16 的固定全流程版本。当前项目已升级为自适应 SDD 路由；本文件保留为历史实测证据，不作为当前 workflow 和 required outputs 的权威说明。当前规则以 `.ai/workflows/feature-development.yaml` 和 `.ai/workflow-manifest.json` 为准。
+
 ## 验证结论
 
 本次在测试项目 `C:\Users\HSP\Documents\OSD-Workflow-TestProject` 中，使用 Qoder CLI 按真实开发场景完成了 `loyalty-points` 模拟需求的完整闭环。

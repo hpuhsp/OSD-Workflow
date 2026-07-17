@@ -33,7 +33,7 @@ Examples:
 `);
 }
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const args = [...argv];
   const options = {
     target: process.cwd(),
@@ -42,6 +42,7 @@ function parseArgs(argv) {
     dryRun: false,
     help: false
   };
+  let targetSource = "default";
 
   if (args[0] === "init") {
     args.shift();
@@ -57,7 +58,11 @@ function parseArgs(argv) {
       if (!value) {
         throw new Error("--target requires a path value.");
       }
+      if (targetSource !== "default") {
+        throw new Error("Specify the target only once, using either a positional path or --target.");
+      }
       options.target = value;
+      targetSource = "option";
       i += 1;
     } else if (arg === "--with-docs") {
       options.withDocs = true;
@@ -68,7 +73,11 @@ function parseArgs(argv) {
     } else if (arg.startsWith("-")) {
       throw new Error(`Unknown option: ${arg}`);
     } else {
+      if (targetSource !== "default") {
+        throw new Error("Specify the target only once, using either a positional path or --target.");
+      }
       options.target = arg;
+      targetSource = "positional";
     }
   }
 
@@ -157,11 +166,13 @@ function printSummary(target, summary, dryRun) {
   console.log("  1. Install or confirm the global OpenSpec CLI: npm install -g @fission-ai/openspec@latest.");
   console.log("  2. Run openspec init in the target project if it has not been initialized.");
   console.log("  3. Ensure Superpowers is available in each developer's AI agent or harness.");
-  console.log("  4. Start from .ai/workflows/feature-development.yaml for feature work.");
-  console.log("  5. Before handoff, run: node scripts/verify-workflow-artifacts.mjs --target . --feature <feature>.");
+  console.log("  4. Use Superpowers to route the task to lite, standard, or strict mode.");
+  console.log("  5. Select tdd, test_first, or verification_only as the development strategy.");
+  console.log("  6. Create the mode-appropriate OpenSpec specification before implementation.");
+  console.log("  7. Before handoff, run: node scripts/verify-workflow-artifacts.mjs --target . --feature <feature> --mode <mode>.");
 }
 
-function run() {
+export function run() {
   const options = parseArgs(process.argv.slice(2));
 
   if (options.help) {
@@ -193,9 +204,12 @@ function run() {
   printSummary(options.target, summary, options.dryRun);
 }
 
-try {
-  run();
-} catch (error) {
-  console.error(`osd-workflow: ${error.message}`);
-  process.exitCode = 1;
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === __filename;
+if (isMain) {
+  try {
+    run();
+  } catch (error) {
+    console.error(`osd-workflow: ${error.message}`);
+    process.exitCode = 1;
+  }
 }

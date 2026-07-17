@@ -1,41 +1,41 @@
 # Development Rule
 
-## Purpose
+## Before Editing
 
-Ensure implementation work follows the accepted OpenSpec and remains traceable from requirement to code.
+- Read the selected specification.
+- Confirm the task type and mode recorded in the delivery record.
+- Confirm the selected development strategy: `tdd`, `test_first`, or `verification_only`.
+- Inspect only the code and context needed to understand the affected behavior.
+- Escalate the mode if scope, uncertainty, or risk is larger than expected.
 
-## Required Inputs
+## Implementation
 
-- Requirement title and description
-- Acceptance criteria
-- OpenSpec proposal and spec, when available
-- Existing RepoWiki context, when available
-- Existing CodeGraph context, when available
+- Make the smallest coherent change that satisfies the specification.
+- Preserve existing behavior outside the declared change.
+- Follow repository conventions and avoid unrelated cleanup.
+- For standard and strict work, record affected areas and key decisions in `implementation.md`.
+- For lite work, a separate implementation plan is optional.
 
-## Development Principles
+## TDD
 
-- Do not start coding until the requirement and expected behavior are clear.
-- Prefer the existing project architecture, framework, and conventions.
-- Keep changes scoped to the accepted requirement.
-- Avoid unrelated refactoring during feature or bug-fix work.
-- Record meaningful design decisions in `openspec/changes/{feature}/design.md`.
-- Update documentation only when behavior, interfaces, setup, or operational expectations change.
+When strategy is `tdd`:
 
-## Implementation Checklist
+1. Red: write the smallest test that expresses one accepted behavior and confirm it fails for the expected reason.
+2. Green: make the smallest coherent implementation that passes the test.
+3. Refactor: improve code and tests without changing accepted behavior, then rerun relevant verification.
 
-- Read `.ai/workflows/feature-development.yaml` and `.ai/rules/workflow-execution-rule.md` before implementation.
-- Confirm the feature or fix maps to an OpenSpec change.
-- Identify affected modules and integration points.
-- Review related RepoWiki and CodeGraph context when available.
-- Produce an implementation plan before code changes.
-- Implement the smallest coherent change that satisfies the spec.
-- Keep compatibility and migration impact explicit.
-- Prepare verification evidence before archiving.
+Repeat in small behavior increments. Record concise Red, Green, and Refactor evidence; do not paste full logs.
 
-## Done Criteria
+## Test-First
 
-- Implementation satisfies acceptance criteria.
-- Implementation plan exists in `knowledge/archive/{feature}/implementation.md`.
-- Relevant tests pass or a documented reason explains why they could not run.
-- Code review findings are resolved or documented.
-- Knowledge archive is updated for the completed requirement.
+When strategy is `test_first`, establish a failing regression, reproduction, or characterization before editing, then implement until it passes. Refactor when useful, but a separate refactor cycle is not mandatory.
+
+## Verification-Only
+
+When strategy is `verification_only`, record why a meaningful test-first boundary is unavailable or disproportionate. Still run focused verification against the specification.
+
+## Completion
+
+- Run focused verification appropriate to the change.
+- Record changed files, verification result, and residual risk in the delivery record.
+- Do not generate additional process documents solely to satisfy ceremony.

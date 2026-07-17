@@ -1,62 +1,18 @@
 # Implementation Plan
 
-## Purpose
+## When To Use
 
-Translate an accepted OpenSpec change into a concrete implementation plan before editing code.
-
-This step is expected to be orchestrated by Agent/Harness-level Superpowers using project-level OpenSpec workspace context.
-
-## Inputs
-
-- `openspec/changes/{feature}/proposal.md`
-- `openspec/changes/{feature}/spec.md`
-- `openspec/changes/{feature}/design.md`
-- RepoWiki context, when available
-- CodeGraph context, when available
-- Existing source code
-
-## Steps
-
-1. Identify affected modules, files, interfaces, and tests.
-2. List required code changes in execution order.
-3. Identify compatibility, migration, and rollback concerns.
-4. Decide the minimum verification scope.
-5. Record assumptions and unresolved questions.
+- Optional for lite work.
+- Required for standard and strict work.
 
 ## Output
 
-Append or create an implementation section in:
+Create `knowledge/archive/{feature}/implementation.md` with only the information needed to execute safely:
 
-```text
-knowledge/archive/{feature}/implementation.md
-```
+- Affected areas
+- Ordered implementation steps
+- Compatibility or migration concerns
+- Verification plan
+- Risks or assumptions
 
-Also update:
-
-```text
-knowledge/archive/{feature}/stage-report.md
-```
-
-Recommended structure:
-
-```markdown
-# Implementation Plan: {Feature Name}
-
-## Affected Areas
-
-## Steps
-
-## Verification Plan
-
-## Risks
-
-## Assumptions
-```
-
-## Done Criteria
-
-- The plan maps to the accepted spec.
-- Affected areas are explicit.
-- Verification scope is defined before implementation.
-- The plan is written to `knowledge/archive/{feature}/implementation.md`; an internal todo list or chat summary does not satisfy this skill.
-- Stage report records files read and files created for this stage.
+Do not repeat the specification and do not expand obvious one-step work into a multi-step plan.

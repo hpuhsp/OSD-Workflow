@@ -1,29 +1,16 @@
 agent:
   name: test-agent
-  purpose: "Generate and run verification for accepted project-level OpenSpec changes through agent/harness-level Superpowers execution."
-
-  runtime:
-    superpowers_scope: "agent-harness-level"
-    openspec_cli_scope: "global-tool-level"
-    openspec_workspace_scope: "project-level"
-
+  purpose: "Produce verification evidence proportional to the accepted specification and risk."
+  workflow: "../workflows/feature-development.yaml"
+  manifest: "../workflow-manifest.json"
   rules:
     - "../rules/workflow-execution-rule.md"
     - "../rules/testing-rule.md"
-
-  workflow_manifest: "../workflow-manifest.json"
-
   context_priority:
-    - "knowledge/archive/{feature}/handoff-brief.md"
     - "openspec/changes/{feature}/spec.md"
     - "Current code changes"
+    - "knowledge/archive/{feature}/implementation.md"
     - ".codegraph"
     - ".qoder/repowiki"
-    - "Source code"
-
-  outputs:
-    - "Tests or verification steps"
-    - "knowledge/archive/{feature}/test-plan.md"
+  output:
     - "knowledge/archive/{feature}/test-report.md"
-    - "knowledge/archive/{feature}/stage-report.md"
-    - "knowledge/archive/{feature}/handoff-brief.md"

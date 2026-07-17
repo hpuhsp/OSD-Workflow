@@ -1,13 +1,11 @@
-# OpenSpec Project Workspace
+# Project OpenSpec Workspace
 
-This directory is reserved for project-level OpenSpec workspace assets.
+Run `openspec init` in each target project. OpenSpec is the specification source for every OSD Workflow task.
 
-The recommended local setup is:
+Artifact depth scales by mode:
 
-- Install OpenSpec CLI globally, for example `npm install -g @fission-ai/openspec@latest`.
-- Run `openspec init` in each target project.
-- Store active changes under `openspec/changes/{feature}/`.
-- Keep proposal, spec, and design files versioned with the project.
-- Treat OpenSpec as the source of truth for requirement intent, design decisions, and acceptance criteria.
+- `lite`: concise `openspec/changes/{feature}/spec.md`
+- `standard`: `proposal.md` and `spec.md`; `design.md` when useful
+- `strict`: full `proposal.md`, `spec.md`, and `design.md`
 
-Agent/Harness-level Superpowers may orchestrate the workflow, but OpenSpec knowledge belongs to the project workspace.
+Every spec must define expected behavior, boundaries, and testable acceptance criteria before implementation begins.

@@ -1,49 +1,38 @@
-# Stage Report: {Feature Name}
+# Strict Delivery Record: {Feature Name}
 
-## Stage
+## Routing
 
-- Current stage id:
-- Stage status: completed | skipped | blocked
-- Started at:
-- Completed at:
+- Task type:
+- Mode: strict
+- Development strategy: tdd | test_first | verification_only
+- Complexity and risk reason:
+- Result: pass | blocked | partial
 
-## Files Read Before Action
-
-- `.ai/workflows/feature-development.yaml`
-- `.ai/rules/workflow-execution-rule.md`
-- Stage skill files:
-- Stage rule files:
-
-## Inputs Used
+## Specification
 
 - Requirement source:
+- Specification: `openspec/changes/{feature}/spec.md`
 - OpenSpec change:
-- RepoWiki context:
-- CodeGraph context:
-- FeishuProjectMcp payload:
+- Acceptance criteria status:
 
-## Files Created Or Updated
+## Implementation
 
-- 
+- Plan:
+- Changed files:
+- Key decisions:
+- Red evidence:
+- Green evidence:
+- Refactor evidence:
+- Strategy reason: required only for verification_only
 
-## Verification Commands
+## Verification And Review
 
-```text
+- Commands and exit codes:
+- Evidence:
+- Review result:
+- Residual risks:
 
-```
+## Archive And Handoff
 
-## Results
-
-- Exit code:
-- Pass/fail summary:
-- Evidence file:
-
-## Skipped Or Blocked Items
-
-- Item:
-- Reason:
-- Follow-up owner:
-
-## Notes
-
-- 
+- Required outputs status:
+- Handoff brief: N/A or path

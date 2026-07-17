@@ -1,71 +1,92 @@
-# Workflow Execution Rule
+# Adaptive SDD Execution Rule
 
-## Purpose
+## Goal
 
-Ensure AI agents execute `.ai/workflows/feature-development.yaml` as a binding workflow contract, not as optional guidance.
+Use the smallest workflow that still makes the requested change specification-driven and verifiable.
 
-## Mandatory Preflight
+The workflow standardizes outcomes, not ceremony. Do not execute stages or create files that do not improve clarity, delivery confidence, or handoff quality.
 
-Before starting or continuing feature work:
+## Non-Negotiable SDD Baseline
 
-- Read `.ai/workflows/feature-development.yaml`.
-- Read `.ai/workflow-manifest.json` when present and use it as the compact stage index.
-- Identify the current stage and the next stage.
-- Read every `skill` file referenced by the current stage unless it was already read in this run and its hash is unchanged.
-- Read every `rules` file referenced by the current stage unless it was already read in this run and its hash is unchanged.
-- If a referenced skill or rule file cannot be read, stop and report the missing file as a blocker.
+Every task must satisfy three conditions:
 
-## Execution Modes
+1. Use Superpowers from the active agent or harness to route and execute the task.
+2. Use OpenSpec as the specification source before implementation.
+3. Keep implementation within that specification.
+4. Run focused verification and record concrete evidence.
 
-Use `standard` mode by default.
+For a simple task, these may fit in three short files. More process is required only when complexity or risk justifies it.
 
-- `strict`: reread referenced files at every stage and use the full stage report. Use for high-risk, ambiguous, regulated, or release-critical work.
-- `standard`: reuse previously-read files when their hash is unchanged, use compact stage reports, and keep handoff briefs for agent transitions.
-- `lite`: only for low-risk work when the user explicitly allows a shortcut. Verification evidence and final artifact gate still remain required.
+## Route The Task First
 
-If the user requests a mode, record it in `knowledge/archive/{feature}/stage-report.md`.
+Classify the task by type, complexity, risk, impact scope, uncertainty, and development strategy.
 
-## Stage Execution Rules
+- `lite`: simple, localized, low-risk work with clear expected behavior.
+- `standard`: normal feature, bug fix, or existing behavior change with moderate scope. This is the default when uncertain.
+- `strict`: complex, cross-module, ambiguous, high-risk, regulated, data-sensitive, or release-critical work.
 
-- A non-optional stage must not be skipped unless the user explicitly says to skip it.
-- A stage with `skill` must follow that `SKILL.md` file before producing stage output.
-- A stage with `rules` must follow all referenced rule files before producing stage output.
-- Stage output must be a material file or a concrete verification result at the path required by the workflow, skill, or rule.
-- Stage `required_outputs` in `.ai/workflows/feature-development.yaml` are binding production outputs.
-- Internal task lists, TodoWrite entries, chat summaries, or unstored reasoning are not workflow artifacts.
-- A conversation message only counts as evidence when the workflow explicitly allows conversational output for that stage.
-- Verification must either run the relevant commands or document why they could not be run.
-- Archive is incomplete until every required file listed by `.ai/skills/knowledge-archive/SKILL.md` exists.
-- Optional stages may be skipped only when their dependency is unavailable or irrelevant; the skip reason must be recorded in the stage report.
-- Do not paste full previously-read workflow, skill, rule, OpenSpec, or archive files back into context when a stable path, hash, and short summary are enough.
-- When another agent continues the work, create or update `knowledge/archive/{feature}/handoff-brief.md` using `.ai/templates/handoff-brief.md`.
+Task type changes the specification focus:
 
-## Required Stage Report
+- New feature: user value, scope, non-goals, acceptance criteria, compatibility.
+- Bug fix: reproduction, observed and expected behavior, root cause, regression evidence.
+- Existing behavior change: current behavior, desired delta, compatibility, affected consumers.
+- Refactor: behavior invariants, impact boundary, rollback, regression coverage.
+- Maintenance/docs/config: exact change, operational impact, focused verification.
 
-At each stage boundary, update `knowledge/archive/{feature}/stage-report.md`.
+Record the selected task type and mode in `knowledge/archive/{feature}/stage-report.md`. Escalate the mode when new risk or uncertainty appears. A lighter user-requested mode is allowed when residual risk is recorded.
 
-Use:
+## Select A Development Strategy
 
-- `.ai/templates/stage-report-compact.md` in `standard` or `lite` mode.
-- `.ai/templates/stage-report.md` in `strict` mode, or when a blocker, skipped non-optional stage, failed verification, or material risk requires detail.
+The delivery mode controls process depth. The development strategy controls how implementation is produced.
 
-The report must include:
+- `tdd`: use Red -> Green -> Refactor. Select it for core business logic, algorithms, state machines, permissions, billing, public APIs, and other executable behavior where tests can drive design.
+- `test_first`: capture a failing reproduction or characterization before editing, then make it pass. Select it for bug fixes, existing behavior changes, and refactors when a stable test boundary exists.
+- `verification_only`: implement and run focused verification. Use it for docs, configuration, pure styling, exploratory work, or when test-first is impractical.
 
-- Current stage id.
-- Execution mode.
-- Skill files read.
-- Rule files read.
-- Hashes or timestamps for referenced files reused from prior context.
-- Files created or updated.
-- Verification commands run, when applicable.
-- Blockers or skipped items, with explicit reason.
-- Whether every `required_outputs` path for the stage exists.
+For `tdd`, record concise Red, Green, and Refactor evidence. For `test_first`, record Red and Green evidence. For `verification_only`, record why test-first is not appropriate.
+
+Do not force TDD onto work without a meaningful executable test boundary. Do not use `verification_only` merely to avoid writing practical regression tests.
+
+## Mode Rules
+
+### Lite
+
+Flow: Superpowers routing -> compact OpenSpec -> implementation -> verification.
+
+- Keep `openspec/changes/{feature}/spec.md` concise: expected change, boundaries, acceptance criteria.
+- Do not require a separate proposal, design, plan, review report, or full archive.
+- Write one compact delivery record and focused verification evidence.
+
+### Standard
+
+Flow: Superpowers routing -> OpenSpec -> plan -> implementation -> verification -> review.
+
+- Use a concise OpenSpec proposal and spec; add design only when it adds value.
+- Keep the plan in `implementation.md` and the review in `review-report.md`.
+- Avoid one report per stage. Update a single compact delivery record.
+
+### Strict
+
+Flow: Superpowers routing -> intake -> full OpenSpec -> spec review -> plan -> implementation -> verification -> review -> archive.
+
+- Use the global OpenSpec CLI against the project workspace.
+- Use full specification, design, verification, review, and archive evidence.
+- Use the detailed stage report only when traceability requires it.
+
+## Artifact Rules
+
+The machine-readable required output list is `.ai/workflow-manifest.json`.
+
+- Required outputs must be non-empty regular files.
+- Internal task lists, TodoWrite entries, chat summaries, and unstored reasoning are not artifacts.
+- A command result may be summarized; do not paste large logs when command, exit code, and key evidence are enough.
+- Create `handoff-brief.md` only when another agent will continue the work.
+- Do not duplicate the same information across requirement, spec, plan, and report files.
 
 ## Done Criteria
 
-- Every required stage has been executed in workflow order.
-- Every referenced skill and rule for executed stages has been read before action.
-- Every required artifact exists on disk.
-- Test and review evidence are archived.
-- If work crosses agent boundaries, `knowledge/archive/{feature}/handoff-brief.md` exists and points to the next required context.
-- `scripts/verify-workflow-artifacts.mjs --target . --feature {feature}` passes, when Node.js is available.
+- The selected mode's required outputs exist and contain meaningful content.
+- The delivery record identifies task type, mode, development strategy, specification, verification, and result.
+- The specification points to the project OpenSpec workspace.
+- Verification demonstrates the acceptance criteria or records why it could not, with residual risk.
+- Run `node scripts/verify-workflow-artifacts.mjs --target . --feature {feature} --mode {mode}` before final handoff.
