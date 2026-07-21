@@ -3,6 +3,9 @@
 - Task type: new_feature | bug_fix | existing_change | refactor | maintenance
 - Mode: lite | standard
 - Development strategy: tdd | test_first | verification_only
+- OSD controller: osd_workflow
+- OpenSpec participation: change/spec path plus validation or acceptance result
+- Superpowers participation: method or skill used plus concise result
 - Result: pass | blocked | partial
 - Specification: `openspec/changes/{feature}/spec.md`
 - Changed files: paths only
@@ -12,6 +15,7 @@
 - Refactor evidence: result after cleanup, or N/A
 - Strategy reason: required only for verification_only
 - Review: result or N/A for lite
+- Separate reports: N/A or paths when risk justifies them
 - Residual risk: none or short note
 - Handoff: N/A or `knowledge/archive/{feature}/handoff-brief.md`
 

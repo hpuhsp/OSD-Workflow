@@ -13,4 +13,6 @@ agent:
     - ".codegraph"
     - ".qoder/repowiki"
   output:
-    - "knowledge/archive/{feature}/test-report.md"
+    lite: "knowledge/archive/{feature}/stage-report.md"
+    standard: "knowledge/archive/{feature}/stage-report.md"
+    strict: "knowledge/archive/{feature}/test-report.md"

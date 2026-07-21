@@ -1,9 +1,11 @@
-# Implementation Plan
+# Superpowers Planning Adapter
 
 ## When To Use
 
 - Optional for lite work.
 - Required for standard and strict work.
+
+Delegate planning mechanics to the active Superpowers planning method. This adapter defines only the OSD output boundary and must not reproduce Superpowers planning steps.
 
 ## Output
 

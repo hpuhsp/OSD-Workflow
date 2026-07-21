@@ -1,25 +1,21 @@
-# Test Generation
+# Superpowers Verification Adapter
 
 ## Goal
 
 Choose the smallest verification set that credibly proves the accepted specification.
 
-## Steps
-
-1. Map acceptance criteria to automated tests, static checks, or manual verification.
-2. Prioritize changed behavior and likely regression paths.
-3. For bug fixes, capture regression evidence when practical.
-4. Reuse the project's test framework and conventions.
-5. Run the checks or state why they could not run.
+Delegate test design, TDD, debugging, and verification mechanics to the applicable Superpowers method. This adapter defines only OSD evidence placement.
 
 ## Strategy
 
-- For `tdd`, confirm the new behavior test fails for the expected reason before implementation, passes after the minimum implementation, and remains green after refactoring.
-- For `test_first`, confirm a regression or characterization fails before editing and passes afterward.
-- For `verification_only`, record why test-first is not practical and run focused verification.
+- `tdd`: record Red, Green, and Refactor evidence produced through Superpowers.
+- `test_first`: record failing-before and passing-after evidence produced through Superpowers.
+- `verification_only`: record the strategy reason and focused verification produced through Superpowers.
 
 ## Outputs
 
-- Always write actual results to `knowledge/archive/{feature}/test-report.md`.
+- For lite and standard work, write actual results to `knowledge/archive/{feature}/stage-report.md`.
+- For strict work, always write actual results to `knowledge/archive/{feature}/test-report.md`.
+- Create a separate `test-report.md` for lite or standard only when risk, complexity, or handoff value justifies it.
 - Create a separate `test-plan.md` only for strict work or when test design is materially complex.
 - Do not create a separate TDD report; use the delivery record for concise Red/Green/Refactor evidence.

@@ -2,10 +2,14 @@
 
 OSD Workflow 是一套面向团队的轻量级、自适应 SDD（规格驱动开发）标准。
 
-它连接两个必须参与整个工作流的运行时能力：
+OSD Workflow 是顶层编排器，并连接两个必须参与整个工作流的运行时能力：
 
-- **Superpowers**：位于 Agent/Harness 层，负责任务路由、执行纪律、验证和评审。
-- **OpenSpec**：作为所有任务的规格来源。
+- **OpenSpec**：在 OSD 规格阶段内作为规格权威来源。
+- **Superpowers**：在 OSD 当前阶段内提供执行、验证和评审方法。
+
+OpenSpec 和 Superpowers 必须参与，但都不能替代或重排 OSD Workflow。
+
+OSD 刻意保持为薄编排层：只选择流程深度和最低证据，再把原生规格生命周期委派给 OpenSpec，把执行方法委派给 Superpowers。
 
 项目模板负责提供 `.ai/` 团队契约、`openspec/changes/` 规格资产，以及 `knowledge/archive/` 中的精简交付证据。
 
@@ -23,9 +27,9 @@ OSD Workflow 是一套面向团队的轻量级、自适应 SDD（规格驱动开
 
 | 模式 | 适用任务 | 必需流程 |
 |---|---|---|
-| `lite` | 简单、局部、低风险任务 | Superpowers 路由 → 精简 OpenSpec → 实现 → 聚焦验证 |
-| `standard` | 中等规模日常任务，默认模式 | 路由 → OpenSpec proposal/spec → 计划 → 实现 → 验证 → 精简评审 |
-| `strict` | 复杂、模糊、高风险、跨模块或发布关键任务 | 路由 → 完整 OpenSpec → 规格评审 → 计划 → 实现 → 完整验证 → 评审 → 归档 |
+| `lite` | 简单、局部、低风险任务 | OSD 路由 → 精简 OpenSpec → 实现 → 聚焦验证 |
+| `standard` | 中等规模日常任务，默认模式 | OSD 路由 → OpenSpec proposal/spec → 计划 → 实现 → 验证 → 精简评审 |
+| `strict` | 复杂、模糊、高风险、跨模块或发布关键任务 | OSD 路由 → 完整 OpenSpec → 规格评审 → 计划 → 实现 → 完整验证 → 评审 → 归档 |
 
 OpenSpec 和 Superpowers 在三种模式中都必须参与。变化的只是过程深度和产物数量。
 
@@ -58,16 +62,15 @@ TDD 是条件化开发策略，不是第四种工作流模式。证据写入现�
 `lite` 只要求：
 
 - `openspec/changes/{feature}/spec.md`
-- `knowledge/archive/{feature}/test-report.md`
 - `knowledge/archive/{feature}/stage-report.md`
 
-`standard` 增加 proposal、实施摘要和评审摘要；`strict` 增加完整 OpenSpec 设计和完整归档。
+`standard` 增加 OpenSpec proposal 和精简实施计划。验证与评审默认合并到 `stage-report.md`，只有在风险控制或交接需要时才单独生成报告；`strict` 保留完整设计、验证、评审和归档证据。
 
 `.ai/workflow-manifest.json` 是唯一机器可读产物契约。不要在多个文件中重复相同内容。仅在另一个 Agent 将继续任务时创建 `handoff-brief.md`。
 
 ## 安装 OSD Workflow
 
-选择一种安装方式。安装器会把 OSD Workflow 契约、规则、模板、OpenSpec 工作区骨架和校验器复制到目标项目。
+选择一种安装方式。安装器会复制 OSD 契约，并把受控发现区块安全合并到常见 Agent 指令文件中，不覆盖项目已有指令。
 
 使用 Node.js / npx：
 
@@ -81,7 +84,9 @@ npx --yes github:hpuhsp/OSD-Workflow init --target . --with-docs
 powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs
 ```
 
-默认跳过已有文件。使用 `--force` / `-Force` 覆盖，使用 `--dry-run` / `-DryRun` 预览。
+模板文件默认跳过已有内容，使用 `--force` / `-Force` 覆盖。Agent 指令文件是例外：安装器只合并或刷新带标记的 OSD 区块。使用 `--dry-run` / `-DryRun` 预览。
+
+安装器会生成或合并 `AGENTS.md`、`CLAUDE.md`、`GEMINI.md`、`.github/copilot-instructions.md` 和 `.cursor/rules/osd-workflow.mdc`。这些适配器只指向同一个 `.ai` 契约，不重复维护完整流程。
 
 ### 完成运行时配置
 
@@ -129,16 +134,23 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target . -Update
 
 `update` 只覆盖模板管理的文件，不删除项目自己的 OpenSpec 变更和知识归档。可以先使用 `--dry-run` 预览，更新后建议检查 Git diff。
 
+Manifest v3 迁移：旧版本创建的活跃交付记录需要补充 `OSD controller: osd_workflow`、非空 `OpenSpec participation` 和非空 `Superpowers participation` 三个字段后再执行校验。
+
 ## 日常使用
 
 启动任务：
 
 ```text
-使用 Superpowers 和 OpenSpec，按 OSD Workflow 处理 {任务}。
-先判断任务类型、复杂度、风险和影响范围。
-选择 lite、standard 或 strict，再选择 tdd、test_first 或 verification_only。
-只执行必要流程并记录策略证据。
+{任务}
 ```
+
+Agent 正确加载项目指令后，任何会修改仓库的普通请求都会自动触发 OSD。未加载时使用最短兜底提示：
+
+```text
+按 OSD 执行：{任务}
+```
+
+Agent 应以 `OSD: <任务类型> | <模式> | <策略> | <当前阶段>` 开始，而不是先宣布 OpenSpec 或 Superpowers 的通用流程。
 
 验证交付：
 
@@ -160,6 +172,7 @@ node scripts/verify-workflow-artifacts.mjs --structural-only
 - `.ai/workflow-manifest.json`：机器可读产物契约
 - `.ai/rules/workflow-execution-rule.md`：自适应 SDD 规则
 - `.ai/templates/`：精简交付与交接模板
+- `AGENTS.md` 等 Agent 适配器：自动发现 OSD，同时保留项目已有指令
 - `scripts/verify-workflow-artifacts.mjs`：轻量交付校验器
 - `bin/osd-workflow-init.mjs`：Node.js 初始化器
 - `scripts/install.ps1`：PowerShell 初始化器

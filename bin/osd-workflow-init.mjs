@@ -11,6 +11,16 @@ const templateRoot = path.resolve(__dirname, "..");
 
 const REQUIRED_ENTRIES = [".ai", "openspec", "knowledge", "scripts/verify-workflow-artifacts.mjs"];
 const DOC_ENTRIES = ["docs"];
+const AGENT_ENTRY_TEMPLATE = ".ai/templates/agent-entry.md";
+const MANAGED_ENTRY_START = "<!-- osd-workflow:start -->";
+const MANAGED_ENTRY_END = "<!-- osd-workflow:end -->";
+const AGENT_ENTRY_FILES = [
+  "AGENTS.md",
+  "CLAUDE.md",
+  "GEMINI.md",
+  ".github/copilot-instructions.md",
+  ".cursor/rules/osd-workflow.mdc",
+];
 
 function printHelp() {
   console.log(`OSD Workflow initializer and updater
@@ -161,6 +171,83 @@ function copyEntry(source, destination, options, summary) {
   }
 }
 
+function renderManagedAgentEntry(template) {
+  const block = `${MANAGED_ENTRY_START}\n${template.trim()}\n${MANAGED_ENTRY_END}`;
+  return block;
+}
+
+function ensureCursorAlwaysApply(content) {
+  const defaultFrontmatter = "---\ndescription: Use OSD Workflow as the top-level controller for repository changes\nalwaysApply: true\n---\n\n";
+  if (!content.startsWith("---")) {
+    return `${defaultFrontmatter}${content}`;
+  }
+
+  const end = content.indexOf("\n---", 3);
+  if (end === -1) {
+    throw new Error("Malformed Cursor frontmatter in OSD agent entry file.");
+  }
+
+  const frontmatter = content.slice(0, end);
+  const normalized = /^alwaysApply:/im.test(frontmatter)
+    ? frontmatter.replace(/^alwaysApply:.*$/im, "alwaysApply: true")
+    : `${frontmatter}\nalwaysApply: true`;
+  return `${normalized}${content.slice(end)}`;
+}
+
+function mergeManagedAgentEntry(destination, template, options, summary) {
+  const block = renderManagedAgentEntry(template);
+  const exists = fs.existsSync(destination);
+  const current = exists ? fs.readFileSync(destination, "utf8") : "";
+  const start = current.indexOf(MANAGED_ENTRY_START);
+  const end = current.indexOf(MANAGED_ENTRY_END);
+
+  if ((start === -1) !== (end === -1) || (start !== -1 && end < start)) {
+    throw new Error(`Malformed OSD managed block in agent entry file: ${destination}`);
+  }
+
+  let next;
+  if (start !== -1) {
+    const after = end + MANAGED_ENTRY_END.length;
+    next = `${current.slice(0, start)}${block}${current.slice(after)}`;
+  } else if (current.trim()) {
+    next = `${current.trimEnd()}\n\n${block}\n`;
+  } else {
+    next = `${block}\n`;
+  }
+
+  if (destination.endsWith(".mdc")) {
+    next = ensureCursorAlwaysApply(next);
+  }
+
+  if (next === current) {
+    summary.skipped.push(destination);
+    return;
+  }
+
+  if (exists) {
+    summary.overwritten.push(destination);
+  } else {
+    summary.createdFiles.push(destination);
+  }
+
+  if (!options.dryRun) {
+    fs.mkdirSync(path.dirname(destination), { recursive: true });
+    fs.writeFileSync(destination, next, "utf8");
+  }
+}
+
+function installAgentEntries(options, summary) {
+  const source = path.join(templateRoot, AGENT_ENTRY_TEMPLATE);
+  if (!fs.existsSync(source)) {
+    throw new Error(`Template entry is missing: ${AGENT_ENTRY_TEMPLATE}`);
+  }
+
+  const template = fs.readFileSync(source, "utf8");
+  for (const entry of AGENT_ENTRY_FILES) {
+    mergeManagedAgentEntry(path.join(options.target, entry), template, options, summary);
+  }
+}
+
 function relativeList(target, items) {
   return items.map((item) => path.relative(target, item).replaceAll(path.sep, "/"));
 }
@@ -191,10 +278,9 @@ function printSummary(target, summary, options) {
   console.log("  1. Install or confirm the global OpenSpec CLI: npm install -g @fission-ai/openspec@latest.");
   console.log("  2. Run openspec init in the target project if it has not been initialized.");
   console.log("  3. Ensure Superpowers is available in each developer's AI agent or harness.");
-  console.log("  4. Use Superpowers to route the task to lite, standard, or strict mode.");
-  console.log("  5. Select tdd, test_first, or verification_only as the development strategy.");
-  console.log("  6. Create the mode-appropriate OpenSpec specification before implementation.");
-  console.log("  7. Before handoff, run: node scripts/verify-workflow-artifacts.mjs --target . --feature <feature> --mode <mode>.");
+  console.log("  4. Start a new agent session and describe the task normally; the generated agent entries activate OSD.");
+  console.log("  5. If an agent does not load project instructions, use: Execute with OSD: <task>.");
+  console.log("  6. Before handoff, run: node scripts/verify-workflow-artifacts.mjs --target . --feature <feature> --mode <mode>.");
 }
 
 export function run(argv = process.argv.slice(2)) {
@@ -226,6 +312,8 @@ export function run(argv = process.argv.slice(2)) {
 
     copyEntry(source, destination, options, summary);
   }
+
+  installAgentEntries(options, summary);
 
   printSummary(options.target, summary, options);
 }

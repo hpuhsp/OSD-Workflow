@@ -1,11 +1,75 @@
 {
-  "schema": "osd-workflow-manifest/v2",
+  "schema": "osd-workflow-manifest/v3",
   "workflow": ".ai/workflows/feature-development.yaml",
   "execution_rule": ".ai/rules/workflow-execution-rule.md",
   "default_mode": "standard",
+  "orchestration": {
+    "controller": "osd_workflow",
+    "specification_authority": "openspec",
+    "execution_method": "superpowers",
+    "external_methods_may_reorder_stages": false,
+    "startup_sequence": [
+      "load_osd_contract",
+      "classify_task",
+      "select_mode",
+      "select_development_strategy",
+      "announce_osd_route",
+      "execute_current_osd_stage"
+    ],
+    "startup_status_fields": ["task_type", "mode", "development_strategy", "current_stage"]
+  },
+  "discovery": {
+    "entry_template": ".ai/templates/agent-entry.md",
+    "template_source_marker": "bin/osd-workflow-init.mjs",
+    "managed_entry_files": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "GEMINI.md",
+      ".github/copilot-instructions.md",
+      ".cursor/rules/osd-workflow.mdc"
+    ],
+    "automatic_trigger_scope": "repository_change_tasks",
+    "fallback_prompt": "Execute with OSD: {task}"
+  },
+  "delegation": {
+    "routing": {
+      "owner": "osd_workflow",
+      "responsibility": "task classification, mode, strategy, stage order, and minimum evidence"
+    },
+    "specification": {
+      "owner": "openspec",
+      "support": ["superpowers"],
+      "responsibility": "native specification and change lifecycle at the depth selected by OSD"
+    },
+    "planning": {
+      "owner": "superpowers",
+      "inputs": ["accepted_openspec_change"],
+      "responsibility": "implementation planning without redefining the specification"
+    },
+    "implementation": {
+      "owner": "superpowers",
+      "inputs": ["accepted_openspec_change", "development_strategy"],
+      "responsibility": "implementation discipline, TDD, test-first, debugging, and focused execution"
+    },
+    "verification": {
+      "owner": "superpowers",
+      "governed_by": "osd_workflow",
+      "responsibility": "produce evidence against acceptance criteria"
+    },
+    "review": {
+      "owner": "superpowers",
+      "governed_by": "osd_workflow",
+      "responsibility": "risk-proportional specification and code review"
+    },
+    "archive": {
+      "owner": "openspec",
+      "responsibility": "native OpenSpec change archive when the selected mode requires archival"
+    }
+  },
   "sdd_required": [
-    "superpowers_execution",
+    "osd_orchestration",
     "openspec_specification",
+    "superpowers_execution",
     "specification_before_implementation",
     "implementation_matches_specification",
     "verification_evidence"
@@ -36,7 +100,8 @@
     ".ai/templates/stage-report-compact.md",
     ".ai/templates/stage-report.md",
     ".ai/templates/handoff-brief.md",
-    ".ai/templates/feishu-project-requirement.md"
+    ".ai/templates/feishu-project-requirement.md",
+    ".ai/templates/agent-entry.md"
   ],
   "task_types": {
     "new_feature": {
@@ -71,50 +136,55 @@
       "stages": ["specification", "implementation", "verification"],
       "required_outputs": [
         "openspec/changes/{feature}/spec.md",
-        "knowledge/archive/{feature}/test-report.md",
         "knowledge/archive/{feature}/stage-report.md"
       ],
       "optional_outputs": [
         "knowledge/archive/{feature}/implementation.md",
+        "knowledge/archive/{feature}/test-report.md",
         "knowledge/archive/{feature}/review-report.md"
       ]
     },
     "standard": {
       "description": "Default for medium-scope daily development.",
-      "stages": ["intake", "specification", "planning", "implementation", "verification", "review"],
+      "stages": ["specification", "planning", "implementation", "verification", "review"],
       "required_outputs": [
         "openspec/changes/{feature}/proposal.md",
         "openspec/changes/{feature}/spec.md",
         "knowledge/archive/{feature}/implementation.md",
-        "knowledge/archive/{feature}/test-report.md",
-        "knowledge/archive/{feature}/review-report.md",
         "knowledge/archive/{feature}/stage-report.md"
       ],
       "optional_outputs": [
         "knowledge/archive/{feature}/requirement.md",
-        "openspec/changes/{feature}/design.md"
+        "openspec/changes/{feature}/design.md",
+        "knowledge/archive/{feature}/test-report.md",
+        "knowledge/archive/{feature}/review-report.md"
       ]
     },
     "strict": {
       "description": "Complex, high-risk, ambiguous, or release-critical work.",
-      "stages": ["intake", "specification", "spec-review", "planning", "implementation", "verification", "review", "archive"],
+      "stages": ["specification", "spec-review", "planning", "implementation", "verification", "review", "archive"],
       "required_outputs": [
         "openspec/changes/{feature}/proposal.md",
         "openspec/changes/{feature}/spec.md",
         "openspec/changes/{feature}/design.md",
-        "knowledge/archive/{feature}/requirement.md",
-        "knowledge/archive/{feature}/spec.md",
-        "knowledge/archive/{feature}/design.md",
         "knowledge/archive/{feature}/implementation.md",
         "knowledge/archive/{feature}/test-report.md",
         "knowledge/archive/{feature}/review-report.md",
         "knowledge/archive/{feature}/stage-report.md"
       ],
       "optional_outputs": [
+        "knowledge/archive/{feature}/requirement.md",
         "knowledge/archive/{feature}/test-plan.md",
         "knowledge/archive/{feature}/spec-review.md",
         "knowledge/archive/{feature}/codegraph-impact.md"
       ]
+    }
+  },
+  "conditional_stages": {
+    "intake": {
+      "when": "request context is insufficient to classify or specify the task",
+      "before": "specification",
+      "applies_to": ["lite", "standard", "strict"]
     }
   },
   "conditional_outputs": {
@@ -123,6 +193,16 @@
   "artifact_rules": {
     "must_be_regular_file": true,
     "must_be_non_empty": true,
-    "stage_report_required_fields": ["task_type", "mode", "development_strategy", "specification", "verification", "result"]
+    "stage_report_required_fields": [
+      "task_type",
+      "mode",
+      "development_strategy",
+      "osd_controller",
+      "openspec_participation",
+      "superpowers_participation",
+      "specification",
+      "verification",
+      "result"
+    ]
   }
 }

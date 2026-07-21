@@ -9,7 +9,6 @@ Archive only the context worth reusing. Required files are defined per mode in `
 Keep only:
 
 - `openspec/changes/{feature}/spec.md`
-- `test-report.md`
 - `stage-report.md`
 
 ## Standard
@@ -19,15 +18,13 @@ Keep:
 - `openspec/changes/{feature}/proposal.md`
 - `openspec/changes/{feature}/spec.md`
 - `implementation.md`
-- `test-report.md`
-- `review-report.md`
 - `stage-report.md`
 
-Add `requirement.md` or OpenSpec files only when they add useful context.
+Add `requirement.md`, `test-report.md`, `review-report.md`, or optional OpenSpec files only when they add useful context or risk control.
 
 ## Strict
 
-Keep the complete requirement, accepted spec/design, implementation decisions, verification, review, and delivery record required by the manifest.
+Keep links to the accepted OpenSpec spec/design plus the implementation decisions, verification, review, and delivery record required by the manifest. Do not copy OpenSpec content into duplicate archive files.
 
 ## Handoff
 

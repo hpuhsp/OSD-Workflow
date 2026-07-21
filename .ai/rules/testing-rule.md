@@ -10,7 +10,7 @@ Verification depth scales with risk, but every task needs concrete evidence agai
 - `test_first`: preserve concise failing-before and passing-after evidence.
 - `verification_only`: record why test-first is not appropriate and provide focused verification.
 
-Evidence belongs in the existing delivery record and test report. Do not create a separate TDD report.
+Evidence belongs in the delivery record for lite and standard work. Strict work keeps a separate test report. Do not create a separate TDD report.
 
 ## By Mode
 
@@ -26,7 +26,7 @@ Evidence belongs in the existing delivery record and test report. Do not create 
 
 ## Evidence
 
-Write `knowledge/archive/{feature}/test-report.md` with:
+For lite and standard work, record the following in `knowledge/archive/{feature}/stage-report.md`. Use `test-report.md` only when risk, complexity, or handoff value justifies a separate report. Strict work always writes `test-report.md` with:
 
 - What was verified.
 - Command or manual procedure.

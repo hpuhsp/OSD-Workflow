@@ -2,13 +2,17 @@
 
 ## 1. 使用原则
 
-OSD Workflow 要求 OpenSpec 和 Superpowers 在所有任务中参与：
+OSD Workflow 控制所有会修改仓库的任务，OpenSpec 和 Superpowers 在其编排下参与：
 
-- OpenSpec 始终负责定义预期行为与验收标准。
-- Superpowers 始终负责任务路由、执行编排、验证和评审纪律。
+- OSD 负责任务分类、模式、开发策略、阶段顺序和必需产物。
+- OpenSpec 在 OSD 规格阶段内定义预期行为与验收标准。
+- Superpowers 在 OSD 当前阶段内提供执行、验证和评审方法。
+- 两者都不能替代、前置或重排 OSD 阶段。
 - 任务复杂度只决定流程深度和产物数量，不决定是否使用这两项能力。
 
 团队只需要统一三条 SDD 底线：先规格、按规格实现、用证据验证。
+
+OSD 只负责路由和最低结果治理。OpenSpec 负责自身原生规格生命周期，Superpowers 负责其内部计划、实施、TDD、调试、验证和评审方法。
 
 ## 2. 六步动态编排
 
@@ -35,13 +39,12 @@ OSD Workflow 要求 OpenSpec 和 Superpowers 在所有任务中参与：
 
 用于简单、局部、低风险且预期明确的任务。
 
-流程：Superpowers 路由 → 精简 OpenSpec spec → 实现 → 聚焦验证。
+流程：OSD 路由 → 精简 OpenSpec spec → 实现 → 聚焦验证。
 
 最小产物：
 
 ```text
 openspec/changes/{feature}/spec.md
-knowledge/archive/{feature}/test-report.md
 knowledge/archive/{feature}/stage-report.md
 ```
 
@@ -49,15 +52,15 @@ knowledge/archive/{feature}/stage-report.md
 
 用于中等规模日常任务，也是无法确定时的默认模式。
 
-流程：Superpowers 路由 → OpenSpec proposal/spec → 简短计划 → 实现 → 验证 → 精简评审。
+流程：OSD 路由 → OpenSpec proposal/spec → 简短计划 → 实现 → 验证 → 精简评审。
 
-必需产物由 `.ai/workflow-manifest.json` 定义，通常包括 proposal、spec、implementation、test-report、review-report 和一份简短交付记录。
+必需产物由 `.ai/workflow-manifest.json` 定义，包括 proposal、spec、implementation 和一份简短交付记录。验证与评审默认写入交付记录，只有风险或交接需要时才生成独立报告。
 
 #### Strict
 
 用于复杂、高风险、跨模块、模糊、合规或发布关键任务。
 
-流程：Superpowers 路由 → 完整 OpenSpec → 规格评审 → 计划 → 实现 → 完整验证 → 评审 → 归档。
+流程：OSD 路由 → 完整 OpenSpec → 规格评审 → 计划 → 实现 → 完整验证 → 评审 → 归档。
 
 ### 第四步：选择开发策略
 
@@ -101,9 +104,7 @@ node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode} --h
 规格重点：复现、实际行为、预期行为、验收标准、回归验证。
 
 ```text
-使用 Superpowers 和 OpenSpec，按 OSD Workflow lite 模式修复 {bug}。
-先在 OpenSpec spec 中记录复现、实际/预期行为和验收标准。
-选择 test_first，先建立失败回归证据，再实现最小修复到测试通过，并写入精简交付记录。
+按 OSD 执行：修复 {bug}。
 ```
 
 ### 中等 Bug 或跨模块问题
@@ -119,9 +120,7 @@ node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode} --h
 规格重点：当前行为、目标差异、不变行为、受影响方。
 
 ```text
-使用 Superpowers 和 OpenSpec 修改已有功能 {feature}。
-先判断影响范围并选择 lite 或 standard。
-OpenSpec 必须明确当前行为、目标差异、不变行为和验收标准。
+按 OSD 执行：修改已有功能 {feature}。
 ```
 
 ### 新功能
@@ -131,10 +130,7 @@ OpenSpec 必须明确当前行为、目标差异、不变行为和验收标准�
 规格重点：用户价值、范围、非目标、用户场景、验收标准、兼容性。
 
 ```text
-使用 Superpowers 和 OpenSpec，按 OSD Workflow 处理新功能 {feature}。
-先完成任务分类与模式选择。
-在编码前确认 OpenSpec proposal/spec；只有 strict 或设计复杂时才要求完整 design。
-核心可执行行为默认选择 tdd，并记录 Red、Green、Refactor 精简证据。
+按 OSD 执行：实现新功能 {feature}。
 ```
 
 ### 重构
@@ -151,12 +147,10 @@ OpenSpec 必须明确当前行为、目标差异、不变行为和验收标准�
 
 ## 4. FeishuProjectMcp
 
-需求来自飞书项目时，先用 `FeishuProjectMcp` 拉取必要字段，再由 Superpowers 完成分类和模式选择，最后写入 OpenSpec。
+需求来自飞书项目时，先用 `FeishuProjectMcp` 拉取必要字段，再由 OSD 完成分类和模式选择，随后委派 OpenSpec 建立规格，并由 Superpowers 在选定阶段内执行。
 
 ```text
-使用 FeishuProjectMcp 拉取 {链接或 ID}。
-使用 Superpowers 判断任务类型、复杂度、风险和影响范围。
-选择 OSD Workflow 模式，并通过 OpenSpec 建立对应深度的规格后继续开发。
+按 OSD 执行：基于飞书需求 {链接或 ID} 完成开发。
 ```
 
 只读取当前决策需要的评论、附件和历史，避免无差别加载全部上下文。
@@ -175,11 +169,14 @@ npx --yes github:hpuhsp/OSD-Workflow update .
 
 增加 `--with-docs` 可同步更新使用指南，增加 `--dry-run` 可先预览。更新只覆盖模板管理文件，不删除项目自己的 OpenSpec 变更和知识归档。
 
+把活跃交付升级到 manifest v3 时，需要在已有 `stage-report.md` 中补充 OSD controller 以及非空的 OpenSpec、Superpowers 参与字段。
+
 ## 6. 交付记录
 
 standard/lite 使用 `.ai/templates/stage-report-compact.md`，只记录：
 
 - 任务类型和模式。
+- OSD、OpenSpec、Superpowers 参与证据。
 - 规格路径。
 - 修改文件。
 - 验证命令、退出码和简短结果。
@@ -188,18 +185,24 @@ standard/lite 使用 `.ai/templates/stage-report-compact.md`，只记录：
 
 strict 才使用完整模板。`handoff-brief.md` 仅在另一个 Agent 继续任务时生成。
 
-## 7. 项目自定义指令
+## 7. Agent 自动发现与最简提示
 
-推荐写入项目级 Agent 指令：
+安装器会把 OSD 受控区块安全加入常见项目指令文件。新建 Agent 会话后，通常只需直接描述任务：
 
 ```text
-This project uses OSD Workflow adaptive SDD.
-Superpowers and OpenSpec must participate in every development task.
-First classify task type, complexity, risk, scope, and uncertainty.
-Select lite, standard, or strict from .ai/workflows/feature-development.yaml.
-Select tdd, test_first, or verification_only as the development strategy.
-Follow only the selected mode's required flow and outputs from .ai/workflow-manifest.json.
-Always specify before coding and record focused verification evidence.
-For tdd/test_first, record concise failing-before and passing-after evidence.
-Do not add process documents that are not required by the selected mode.
+修复登录超时问题。
 ```
+
+如果 Agent 没有加载项目指令，使用：
+
+```text
+按 OSD 执行：{任务}
+```
+
+正确的启动响应示例：
+
+```text
+OSD: bug_fix | lite | test_first | specification
+```
+
+“Superpowers 已加载，接下来头脑风暴、计划、实现……”属于错误启动方式，因为它绕过了 OSD 路由和阶段所有权。

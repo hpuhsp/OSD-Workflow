@@ -18,21 +18,15 @@
 
 ## TDD
 
-When strategy is `tdd`:
-
-1. Red: write the smallest test that expresses one accepted behavior and confirm it fails for the expected reason.
-2. Green: make the smallest coherent implementation that passes the test.
-3. Refactor: improve code and tests without changing accepted behavior, then rerun relevant verification.
-
-Repeat in small behavior increments. Record concise Red, Green, and Refactor evidence; do not paste full logs.
+When strategy is `tdd`, use the active Superpowers TDD method. OSD does not redefine that method; it requires only concise Red, Green, and Refactor evidence against the accepted OpenSpec behavior.
 
 ## Test-First
 
-When strategy is `test_first`, establish a failing regression, reproduction, or characterization before editing, then implement until it passes. Refactor when useful, but a separate refactor cycle is not mandatory.
+When strategy is `test_first`, use the applicable Superpowers debugging or test-first method. OSD requires concise failing-before and passing-after evidence but does not prescribe the internal steps.
 
 ## Verification-Only
 
-When strategy is `verification_only`, record why a meaningful test-first boundary is unavailable or disproportionate. Still run focused verification against the specification.
+When strategy is `verification_only`, use Superpowers verification discipline, record why a meaningful test-first boundary is unavailable or disproportionate, and provide focused evidence against the specification.
 
 ## Completion
 

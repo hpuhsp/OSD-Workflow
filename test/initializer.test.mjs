@@ -57,6 +57,67 @@ test("update refreshes managed files and preserves project artifacts", (t) => {
   assert.equal(readFileSync(projectArtifact, "utf8"), "keep project-owned content");
 });
 
+test("initializer installs cross-agent discovery entries", (t) => {
+  const target = mkdtempSync(join(tmpdir(), "osd-workflow-agents-"));
+  t.after(() => rmSync(target, { recursive: true, force: true }));
+
+  execFileSync(process.execPath, [cliPath, "init", target], { stdio: "pipe" });
+
+  const entries = [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "GEMINI.md",
+    ".github/copilot-instructions.md",
+    ".cursor/rules/osd-workflow.mdc",
+  ];
+  for (const entry of entries) {
+    const content = readFileSync(join(target, entry), "utf8");
+    assert.match(content, /<!-- osd-workflow:start -->/);
+    assert.match(content, /OSD Workflow as the top-level controller/);
+    assert.match(content, /<!-- osd-workflow:end -->/);
+  }
+  assert.match(readFileSync(join(target, ".cursor/rules/osd-workflow.mdc"), "utf8"), /alwaysApply: true/);
+});
+
+test("initializer and updater preserve project-owned agent instructions", (t) => {
+  const target = mkdtempSync(join(tmpdir(), "osd-workflow-agent-merge-"));
+  t.after(() => rmSync(target, { recursive: true, force: true }));
+
+  const agentFile = join(target, "AGENTS.md");
+  writeFileSync(agentFile, "# Project Rules\n\nKeep this instruction.\n", "utf8");
+  execFileSync(process.execPath, [cliPath, "init", target], { stdio: "pipe" });
+  writeFileSync(
+    agentFile,
+    readFileSync(agentFile, "utf8").replace("# OSD Workflow Agent Entry", "# Stale OSD Entry"),
+    "utf8",
+  );
+
+  execFileSync(process.execPath, [cliPath, "update", target], { stdio: "pipe" });
+
+  const updated = readFileSync(agentFile, "utf8");
+  assert.match(updated, /Keep this instruction\./);
+  assert.match(updated, /# OSD Workflow Agent Entry/);
+  assert.doesNotMatch(updated, /# Stale OSD Entry/);
+  assert.equal((updated.match(/<!-- osd-workflow:start -->/g) ?? []).length, 1);
+});
+
+test("initializer makes an existing Cursor OSD rule always apply", (t) => {
+  const target = mkdtempSync(join(tmpdir(), "osd-workflow-cursor-"));
+  t.after(() => rmSync(target, { recursive: true, force: true }));
+
+  const cursorRule = join(target, ".cursor", "rules", "osd-workflow.mdc");
+  mkdirSync(resolve(cursorRule, ".."), { recursive: true });
+  writeFileSync(cursorRule, "---\ndescription: Existing project rule\nalwaysApply: false\n---\n\nKeep this Cursor instruction.\n", "utf8");
+
+  execFileSync(process.execPath, [cliPath, "init", target], { stdio: "pipe" });
+
+  const updated = readFileSync(cursorRule, "utf8");
+  assert.match(updated, /^alwaysApply: true$/m);
+  assert.doesNotMatch(updated, /^alwaysApply: false$/m);
+  assert.match(updated, /Keep this Cursor instruction\./);
+  assert.match(updated, /<!-- osd-workflow:start -->/);
+});
+
 test("update rejects a directory without an existing installation", (t) => {
   const target = mkdtempSync(join(tmpdir(), "osd-workflow-missing-"));
   t.after(() => rmSync(target, { recursive: true, force: true }));

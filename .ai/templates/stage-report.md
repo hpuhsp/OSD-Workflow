@@ -5,6 +5,9 @@
 - Task type:
 - Mode: strict
 - Development strategy: tdd | test_first | verification_only
+- OSD controller: osd_workflow
+- OpenSpec participation:
+- Superpowers participation:
 - Complexity and risk reason:
 - Result: pass | blocked | partial
 

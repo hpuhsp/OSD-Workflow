@@ -6,6 +6,16 @@ import { pathToFileURL } from "node:url";
 
 const VALID_MODES = new Set(["lite", "standard", "strict"]);
 const VALID_STRATEGIES = new Set(["tdd", "test_first", "verification_only"]);
+const MANAGED_ENTRY_START = "<!-- osd-workflow:start -->";
+const MANAGED_ENTRY_END = "<!-- osd-workflow:end -->";
+const REQUIRED_STARTUP_SEQUENCE = [
+  "load_osd_contract",
+  "classify_task",
+  "select_mode",
+  "select_development_strategy",
+  "announce_osd_route",
+  "execute_current_osd_stage",
+];
 
 export function parseArgs(argv) {
   const options = {
@@ -122,11 +132,56 @@ function loadManifest(root, errors) {
 }
 
 function validateManifest(root, manifest, errors) {
-  if (manifest.schema !== "osd-workflow-manifest/v2") {
+  if (manifest.schema !== "osd-workflow-manifest/v3") {
     errors.push(`Unsupported manifest schema: ${manifest.schema ?? "(missing)"}`);
   }
   if (!VALID_MODES.has(manifest.default_mode)) {
     errors.push("Manifest default_mode must be lite, standard, or strict.");
+  }
+
+  const orchestration = manifest.orchestration;
+  if (orchestration?.controller !== "osd_workflow") {
+    errors.push("Manifest orchestration controller must be osd_workflow.");
+  }
+  if (orchestration?.specification_authority !== "openspec") {
+    errors.push("Manifest specification authority must be openspec.");
+  }
+  if (orchestration?.execution_method !== "superpowers") {
+    errors.push("Manifest execution method must be superpowers.");
+  }
+  if (orchestration?.external_methods_may_reorder_stages !== false) {
+    errors.push("Manifest must prohibit external methods from reordering OSD stages.");
+  }
+  if (manifest.sdd_required?.[0] !== "osd_orchestration") {
+    errors.push("Manifest sdd_required must place osd_orchestration first.");
+  }
+  if (JSON.stringify(orchestration?.startup_sequence) !== JSON.stringify(REQUIRED_STARTUP_SEQUENCE)) {
+    errors.push("Manifest startup_sequence must load and announce the OSD route before stage execution.");
+  }
+
+  const discovery = manifest.discovery;
+  if (!discovery || !Array.isArray(discovery.managed_entry_files) || discovery.managed_entry_files.length === 0) {
+    errors.push("Manifest agent discovery entries are missing.");
+  }
+  if (discovery?.entry_template !== ".ai/templates/agent-entry.md") {
+    errors.push("Manifest agent discovery template must be .ai/templates/agent-entry.md.");
+  }
+  validateDiscoveryEntries(root, discovery, errors);
+
+  const delegation = manifest.delegation;
+  const requiredOwners = {
+    routing: "osd_workflow",
+    specification: "openspec",
+    planning: "superpowers",
+    implementation: "superpowers",
+    verification: "superpowers",
+    review: "superpowers",
+    archive: "openspec",
+  };
+  for (const [stage, owner] of Object.entries(requiredOwners)) {
+    if (delegation?.[stage]?.owner !== owner) {
+      errors.push(`Manifest delegation owner for ${stage} must be ${owner}.`);
+    }
   }
   if (!manifest.modes || typeof manifest.modes !== "object") {
     errors.push("Manifest modes are missing.");
@@ -166,6 +221,48 @@ function validateManifest(root, manifest, errors) {
         errors.push(`Invalid required output template for ${mode}: ${output}`);
       }
     }
+    if (config.stages.includes("intake")) {
+      errors.push(`Manifest intake must be conditional, not fixed in mode stages: ${mode}`);
+    }
+  }
+
+  if (manifest.conditional_stages?.intake?.before !== "specification") {
+    errors.push("Manifest conditional intake stage must run before specification.");
+  }
+}
+
+function validateDiscoveryEntries(root, discovery, errors) {
+  if (!discovery || !Array.isArray(discovery.managed_entry_files)) {
+    return;
+  }
+
+  const sourceMarker = discovery.template_source_marker;
+  if (typeof sourceMarker === "string" && nonEmptyFile(resolve(root, sourceMarker))) {
+    return;
+  }
+
+  for (const entry of discovery.managed_entry_files) {
+    if (typeof entry !== "string") {
+      errors.push("Manifest contains an invalid managed agent entry path.");
+      continue;
+    }
+    const entryPath = resolve(root, entry);
+    if (!nonEmptyFile(entryPath)) {
+      errors.push(`Missing or empty managed agent entry: ${entry}`);
+      continue;
+    }
+    const content = readText(entryPath);
+    const starts = content.split(MANAGED_ENTRY_START).length - 1;
+    const ends = content.split(MANAGED_ENTRY_END).length - 1;
+    if (starts !== 1 || ends !== 1) {
+      errors.push(`Managed agent entry must contain exactly one complete OSD block: ${entry}`);
+    }
+    if (!content.includes("OSD Workflow as the top-level controller")) {
+      errors.push(`Managed agent entry does not declare OSD control: ${entry}`);
+    }
+    if (entry.endsWith(".mdc") && !/^alwaysApply:\s*true\s*$/im.test(content)) {
+      errors.push(`Cursor OSD rule must set alwaysApply: true: ${entry}`);
+    }
   }
 }
 
@@ -202,6 +299,9 @@ function validateDeliveryRecord(path, mode, errors) {
     ["task type", /^\s*-\s*Task type:\s*(?!new_feature\s*\|)(\S+)/im],
     ["mode", new RegExp(`^\\s*-\\s*Mode:\\s*${mode}\\s*$`, "im")],
     ["development strategy", /^\s*-\s*Development strategy:\s*(tdd|test_first|verification_only)\s*$/im],
+    ["OSD controller", /^\s*-\s*OSD controller:\s*osd_workflow\s*$/im],
+    ["OpenSpec participation", /^\s*-\s*OpenSpec participation:\s*(?!N\/A\s*$)(?!none\s*$)(?!\s*$).+/im],
+    ["Superpowers participation", /^\s*-\s*Superpowers participation:\s*(?!N\/A\s*$)(?!none\s*$)(?!\s*$).+/im],
     ["specification", /^\s*-\s*Specification:\s*(?!\s*$).+/im],
     ["verification", /^\s*-\s*(Verification|Commands and exit codes):\s*(?!\s*$).+/im],
     ["result", /^\s*-\s*Result:\s*pass\s*$/im],

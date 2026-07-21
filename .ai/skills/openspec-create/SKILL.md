@@ -1,8 +1,10 @@
-# OpenSpec Create
+# OpenSpec Delegation
 
 ## When To Use
 
-Use OpenSpec for every task. The selected mode controls how much of the change package is required.
+Use the installed OpenSpec workflow for every task. OSD selects only the required depth; OpenSpec owns proposal, specification, task, validation, apply, and archive behavior.
+
+Do not reproduce OpenSpec command logic or invent a parallel specification lifecycle in this skill.
 
 - `lite`: require only a concise `spec.md` with expected behavior, boundaries, and acceptance criteria.
 - `standard`: require `proposal.md` and `spec.md`; add `design.md` when design choices or compatibility need explanation.
@@ -17,13 +19,15 @@ Use OpenSpec for every task. The selected mode controls how much of the change p
 
 ## Outputs
 
-Create only the files required by the selected mode under `openspec/changes/{feature}/`:
+Delegate creation and validation to OpenSpec. Confirm that the selected mode's minimum compatibility artifacts exist under `openspec/changes/{feature}/`:
 
 - `proposal.md`: motivation, scope, non-goals, value
 - `spec.md`: behavior and testable acceptance criteria
 - `design.md`: approach, alternatives, compatibility, risks
 
 Keep each file as short as the task allows. Explicit unknowns are better than speculative detail.
+
+Record the OpenSpec change path and concise validation or acceptance result in the delivery record.
 
 ## Done Criteria
 

@@ -93,6 +93,71 @@ function Copy-TemplateEntry {
     }
 }
 
+function Install-AgentEntry {
+    param(
+        [string]$Destination,
+        [string]$Template,
+        [hashtable]$Summary
+    )
+
+    $startMarker = "<!-- osd-workflow:start -->"
+    $endMarker = "<!-- osd-workflow:end -->"
+    $exists = Test-Path -LiteralPath $Destination
+    $current = if ($exists) { [System.IO.File]::ReadAllText($Destination) } else { "" }
+    $start = $current.IndexOf($startMarker, [System.StringComparison]::Ordinal)
+    $end = $current.IndexOf($endMarker, [System.StringComparison]::Ordinal)
+
+    if (($start -lt 0) -ne ($end -lt 0) -or ($start -ge 0 -and $end -lt $start)) {
+        throw "Malformed OSD managed block in agent entry file: $Destination"
+    }
+
+    $block = $startMarker + "`n" + $Template.Trim() + "`n" + $endMarker
+    if ($start -ge 0) {
+        $after = $end + $endMarker.Length
+        $next = $current.Substring(0, $start) + $block + $current.Substring($after)
+    } elseif (-not [string]::IsNullOrWhiteSpace($current)) {
+        $next = $current.TrimEnd() + "`n`n" + $block + "`n"
+    } else {
+        $next = $block + "`n"
+    }
+
+    if ($Destination.EndsWith(".mdc")) {
+        $defaultFrontmatter = "---`ndescription: Use OSD Workflow as the top-level controller for repository changes`nalwaysApply: true`n---`n`n"
+        if (-not $next.StartsWith("---")) {
+            $next = $defaultFrontmatter + $next
+        } else {
+            $frontmatterEnd = $next.IndexOf("`n---", 3, [System.StringComparison]::Ordinal)
+            if ($frontmatterEnd -lt 0) {
+                throw "Malformed Cursor frontmatter in OSD agent entry file: $Destination"
+            }
+            $frontmatter = $next.Substring(0, $frontmatterEnd)
+            if ($frontmatter -match "(?im)^alwaysApply:") {
+                $frontmatter = [regex]::Replace($frontmatter, "(?im)^alwaysApply:.*$", "alwaysApply: true")
+            } else {
+                $frontmatter += "`nalwaysApply: true"
+            }
+            $next = $frontmatter + $next.Substring($frontmatterEnd)
+        }
+    }
+
+    if ($next -ceq $current) {
+        Add-Result $Summary "Skipped" $Destination
+        return
+    }
+
+    if ($exists) {
+        Add-Result $Summary "Overwritten" $Destination
+    } else {
+        Add-Result $Summary "CreatedFiles" $Destination
+    }
+
+    if (-not $DryRun) {
+        $parent = Split-Path -Parent $Destination
+        New-Item -ItemType Directory -Path $parent -Force | Out-Null
+        [System.IO.File]::WriteAllText($Destination, $next, [System.Text.UTF8Encoding]::new($false))
+    }
+}
+
 function Convert-ToRelativeDisplay {
     param(
         [string]$TargetRoot,
@@ -154,6 +219,22 @@ foreach ($entry in $entries) {
     Copy-TemplateEntry -Source $source -Destination $destination -TargetRoot $targetRoot -Summary $summary
 }
 
+$agentEntryTemplatePath = Join-Path $templateRoot ".ai\templates\agent-entry.md"
+if (-not (Test-Path -LiteralPath $agentEntryTemplatePath)) {
+    throw "Template entry is missing: .ai/templates/agent-entry.md"
+}
+$agentEntryTemplate = [System.IO.File]::ReadAllText($agentEntryTemplatePath)
+$agentEntryFiles = @(
+    "AGENTS.md",
+    "CLAUDE.md",
+    "GEMINI.md",
+    ".github\copilot-instructions.md",
+    ".cursor\rules\osd-workflow.mdc"
+)
+foreach ($entry in $agentEntryFiles) {
+    Install-AgentEntry -Destination (Join-Path $targetRoot $entry) -Template $agentEntryTemplate -Summary $summary
+}
+
 $action = if ($Update) { "Update" } else { "Initialization" }
 $prefix = if ($DryRun) { "$action dry run complete" } else { "$action complete" }
 Write-Host "$prefix`: $targetRoot"
@@ -184,7 +265,6 @@ Write-Host "Next steps:"
 Write-Host "  1. Install or confirm the global OpenSpec CLI: npm install -g @fission-ai/openspec@latest."
 Write-Host "  2. Run openspec init in the target project if it has not been initialized."
 Write-Host "  3. Ensure Superpowers is available in each developer's AI agent or harness."
-Write-Host "  4. Use Superpowers to route the task to lite, standard, or strict mode."
-Write-Host "  5. Select tdd, test_first, or verification_only as the development strategy."
-Write-Host "  6. Create the mode-appropriate OpenSpec specification before implementation."
-Write-Host "  7. Before handoff, run: node scripts/verify-workflow-artifacts.mjs --target . --feature <feature> --mode <mode>."
+Write-Host "  4. Start a new agent session and describe the task normally; the generated agent entries activate OSD."
+Write-Host "  5. If an agent does not load project instructions, use: Execute with OSD: <task>."
+Write-Host "  6. Before handoff, run: node scripts/verify-workflow-artifacts.mjs --target . --feature <feature> --mode <mode>."

@@ -6,14 +6,32 @@ Use the smallest workflow that still makes the requested change specification-dr
 
 The workflow standardizes outcomes, not ceremony. Do not execute stages or create files that do not improve clarity, delivery confidence, or handoff quality.
 
+## Orchestration Precedence
+
+OSD Workflow is the top-level controller. It owns task classification, mode selection, development strategy, stage order, and required outputs.
+
+- OpenSpec is the specification authority inside the OSD specification stage.
+- Superpowers is the required execution method inside the active OSD stage.
+- OpenSpec and Superpowers must not replace, prepend, skip, or reorder OSD stages.
+- Superpowers brainstorming belongs inside the OSD specification stage. It is not a top-level stage before OpenSpec.
+
+Before announcing or executing a process:
+
+1. Read `.ai/AI_WORKFLOW.md`, `.ai/workflow-manifest.json`, and this rule.
+2. Classify the task and select the mode and development strategy.
+3. Announce only `OSD: <task_type> | <mode> | <strategy> | <current_stage>`.
+4. Invoke OpenSpec and Superpowers only in their roles within the current OSD stage.
+
+Do not lead with “Superpowers is loaded” or restate a generic `brainstorm -> plan -> implement` process. For `standard` and `strict`, the required OpenSpec artifacts must exist before planning or implementation.
+
 ## Non-Negotiable SDD Baseline
 
-Every task must satisfy three conditions:
+Every task must satisfy four conditions:
 
-1. Use Superpowers from the active agent or harness to route and execute the task.
+1. Use OSD Workflow to route and control the task.
 2. Use OpenSpec as the specification source before implementation.
-3. Keep implementation within that specification.
-4. Run focused verification and record concrete evidence.
+3. Use Superpowers as the execution method within the selected OSD stages.
+4. Keep implementation within that specification and record focused verification evidence.
 
 For a simple task, these may fit in three short files. More process is required only when complexity or risk justifies it.
 
@@ -35,6 +53,16 @@ Task type changes the specification focus:
 
 Record the selected task type and mode in `knowledge/archive/{feature}/stage-report.md`. Escalate the mode when new risk or uncertainty appears. A lighter user-requested mode is allowed when residual risk is recorded.
 
+`intake` is conditional. Run it only when the request and repository context are insufficient to classify or specify the task. Otherwise begin at `specification`.
+
+## Delegate, Do Not Duplicate
+
+- OSD owns routing and minimum outcome governance only.
+- OpenSpec owns its native specification and change lifecycle.
+- Superpowers owns planning, implementation discipline, TDD, debugging, verification, and review methods inside the selected OSD stages.
+- Do not recreate OpenSpec commands or Superpowers skill internals in OSD rules.
+- Record concise OpenSpec and Superpowers participation evidence in the delivery record.
+
 ## Select A Development Strategy
 
 The delivery mode controls process depth. The development strategy controls how implementation is produced.
@@ -51,23 +79,23 @@ Do not force TDD onto work without a meaningful executable test boundary. Do not
 
 ### Lite
 
-Flow: Superpowers routing -> compact OpenSpec -> implementation -> verification.
+Flow: OSD route -> compact OpenSpec with Superpowers assistance -> implementation -> verification.
 
 - Keep `openspec/changes/{feature}/spec.md` concise: expected change, boundaries, acceptance criteria.
 - Do not require a separate proposal, design, plan, review report, or full archive.
-- Write one compact delivery record and focused verification evidence.
+- Put focused verification and review evidence in one compact delivery record. Create separate reports only when they add value.
 
 ### Standard
 
-Flow: Superpowers routing -> OpenSpec -> plan -> implementation -> verification -> review.
+Flow: OSD route -> OpenSpec with Superpowers assistance -> plan -> implementation -> verification -> review.
 
 - Use a concise OpenSpec proposal and spec; add design only when it adds value.
-- Keep the plan in `implementation.md` and the review in `review-report.md`.
-- Avoid one report per stage. Update a single compact delivery record.
+- Keep the plan in `implementation.md` and summarize verification and review in the compact delivery record.
+- Create separate test or review reports only when complexity, risk, or handoff value justifies them.
 
 ### Strict
 
-Flow: Superpowers routing -> intake -> full OpenSpec -> spec review -> plan -> implementation -> verification -> review -> archive.
+Flow: OSD route -> optional intake -> full OpenSpec with Superpowers assistance -> spec review -> plan -> implementation -> verification -> review -> archive.
 
 - Use the global OpenSpec CLI against the project workspace.
 - Use full specification, design, verification, review, and archive evidence.
@@ -86,6 +114,7 @@ The machine-readable required output list is `.ai/workflow-manifest.json`.
 ## Done Criteria
 
 - The selected mode's required outputs exist and contain meaningful content.
+- The delivery record declares `osd_workflow` as controller and contains non-empty OpenSpec and Superpowers participation evidence.
 - The delivery record identifies task type, mode, development strategy, specification, verification, and result.
 - The specification points to the project OpenSpec workspace.
 - Verification demonstrates the acceptance criteria or records why it could not, with residual risk.
