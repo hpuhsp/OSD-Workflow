@@ -65,28 +65,41 @@ Escalate when scope, uncertainty, or risk grows. A user may explicitly choose a 
 
 The machine-readable output contract is `.ai/workflow-manifest.json`. Do not duplicate the same information across files. Create `handoff-brief.md` only when another agent will continue the task.
 
-## Installation
+## Install OSD Workflow
 
-Prerequisites:
+Choose one installation method. The installer copies the OSD Workflow contract, rules, templates, OpenSpec workspace skeleton, and verifier into the target project.
 
-- OpenSpec CLI installed globally: `npm install -g @fission-ai/openspec@latest`
-- Superpowers available in the active AI agent or harness
-
-Node.js:
+Using Node.js / npx:
 
 ```bash
-npx --yes github:hpuhsp/OSD-Workflow --target . --with-docs
-openspec init
+npx --yes github:hpuhsp/OSD-Workflow init --target . --with-docs
 ```
 
-PowerShell from a cloned repository:
+Using PowerShell from a cloned OSD Workflow repository:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs
-openspec init
 ```
 
 Existing files are skipped unless `--force` or `-Force` is supplied. Use `--dry-run` or `-DryRun` to preview changes.
+
+### Complete Runtime Setup
+
+After OSD Workflow is installed in the project:
+
+1. Install the OpenSpec CLI globally:
+
+   ```bash
+   npm install -g @fission-ai/openspec@latest
+   ```
+
+2. Initialize the project OpenSpec workspace:
+
+   ```bash
+   openspec init
+   ```
+
+3. Ensure Superpowers is available in the AI agent or harness used by each developer.
 
 ## One-Click Update
 

@@ -65,28 +65,41 @@ TDD 是条件化开发策略，不是第四种工作流模式。证据写入现�
 
 `.ai/workflow-manifest.json` 是唯一机器可读产物契约。不要在多个文件中重复相同内容。仅在另一个 Agent 将继续任务时创建 `handoff-brief.md`。
 
-## 安装
+## 安装 OSD Workflow
 
-前置条件：
+选择一种安装方式。安装器会把 OSD Workflow 契约、规则、模板、OpenSpec 工作区骨架和校验器复制到目标项目。
 
-- 全局安装 OpenSpec CLI：`npm install -g @fission-ai/openspec@latest`
-- 当前 AI Agent 或 Harness 已提供 Superpowers
-
-Node.js：
+使用 Node.js / npx：
 
 ```bash
-npx --yes github:hpuhsp/OSD-Workflow --target . --with-docs
-openspec init
+npx --yes github:hpuhsp/OSD-Workflow init --target . --with-docs
 ```
 
-从克隆仓库使用 PowerShell：
+从克隆的 OSD Workflow 仓库使用 PowerShell：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs
-openspec init
 ```
 
 默认跳过已有文件。使用 `--force` / `-Force` 覆盖，使用 `--dry-run` / `-DryRun` 预览。
+
+### 完成运行时配置
+
+OSD Workflow 安装到项目后：
+
+1. 全局安装 OpenSpec CLI：
+
+   ```bash
+   npm install -g @fission-ai/openspec@latest
+   ```
+
+2. 初始化项目 OpenSpec 工作区：
+
+   ```bash
+   openspec init
+   ```
+
+3. 确保每位开发者使用的 AI Agent 或 Harness 已提供 Superpowers。
 
 ## 一键更新
 
