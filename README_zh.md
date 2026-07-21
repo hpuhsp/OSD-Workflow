@@ -15,6 +15,14 @@ OSD 刻意保持为薄编排层：只选择流程深度和最低证据，再把�
 
 本仓库是可安装的模板源，不是一个提供业务运行时的应用。请先将它安装到目标项目，再在目标项目中初始化 OpenSpec 工作区。
 
+## 项目概览
+
+![自适应 OSD 交付路由](docs/assets/readme/workflow-loop.png)
+
+![运行时职责契约](docs/assets/readme/runtime-contract.png)
+
+![安装后的项目结构](docs/assets/readme/project-structure.png)
+
 ## 设计目标
 
 统一 SDD 结果，不要求所有任务执行同样复杂的流程。
@@ -189,7 +197,7 @@ node scripts/verify-workflow-artifacts.mjs --structural-only
 - `bin/osd-workflow-init.mjs`：Node.js 初始化器
 - `scripts/install.ps1`：PowerShell 初始化器
 
-完整使用说明见 [docs/USAGE_zh.md](docs/USAGE_zh.md) 和 [docs/USAGE.md](docs/USAGE.md)。`docs/` 中的 Qoder 报告是历史实测证据，不是当前契约。
+完整使用说明见 [docs/USAGE_zh.md](docs/USAGE_zh.md) 和 [docs/USAGE.md](docs/USAGE.md)。
 
 ## License
 

@@ -15,6 +15,14 @@ The project template supplies the shared contract under `.ai/`, OpenSpec assets 
 
 This repository is the installable template source. It does not implement an application runtime; install it into a target project, then initialize that project's OpenSpec workspace.
 
+## At A Glance
+
+![Adaptive OSD delivery route](docs/assets/readme/workflow-loop.png)
+
+![Runtime responsibility contract](docs/assets/readme/runtime-contract.png)
+
+![Installed project structure](docs/assets/readme/project-structure.png)
+
 ## Design Goal
 
 Standardize the SDD outcome without forcing every task through the same amount of ceremony.
@@ -191,7 +199,7 @@ See [docs/USAGE.md](docs/USAGE.md) for task-specific prompts and routing example
 - `bin/osd-workflow-init.mjs`: Node.js initializer
 - `scripts/install.ps1`: PowerShell initializer
 
-For the human workflow guide, see [docs/USAGE.md](docs/USAGE.md). For the Chinese guide, see [docs/USAGE_zh.md](docs/USAGE_zh.md). The Qoder report in `docs/` is historical evidence, not a current contract.
+For the human workflow guide, see [docs/USAGE.md](docs/USAGE.md). For the Chinese guide, see [docs/USAGE_zh.md](docs/USAGE_zh.md).
 
 ## License
 

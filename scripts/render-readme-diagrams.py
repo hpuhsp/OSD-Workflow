@@ -129,16 +129,16 @@ def title(draw, main, sub, w):
 def workflow():
     name, size = "workflow-loop", (1180, 680)
     steps = [
-        ("Requirement", "需求", BLUE),
-        ("Specification", "规格", TEAL),
-        ("Plan", "计划", BEIGE),
-        ("Implementation", "实现", TEAL),
-        ("Verification", "验证", BLUE),
-        ("Knowledge Archive", "知识归档", GRAY),
+        ("User Task", "任务", BLUE),
+        ("OSD Route", "路由", TEAL),
+        ("OpenSpec", "规格权威", BEIGE),
+        ("Superpowers", "执行方法", TEAL),
+        ("Verification", "验证证据", BLUE),
+        ("Delivery Record", "交付记录", GRAY),
     ]
 
     def render(draw):
-        title(draw, "Traceable Engineering Loop", "从需求到知识归档的可追溯研发闭环", size[0])
+        title(draw, "Adaptive OSD Delivery Route", "OSD 按风险选择流程深度，OpenSpec 定义规格，Superpowers 执行交付", size[0])
         box_w, box_h = 260, 96
         positions = [
             (80, 190),
@@ -162,12 +162,12 @@ def workflow():
         for start, end in connectors:
             arrow(draw, start, end)
         draw.rounded_rectangle((260, 565, 920, 615), radius=18, fill=CREAM, outline="#e3cfa4", width=2)
-        centered_text(draw, (590, 590), "OpenSpec records why and what; Superpowers guides how", F_SMALL, MUTED)
+        centered_text(draw, (590, 590), "OSD selects depth; OpenSpec defines what; Superpowers guides how", F_SMALL, MUTED)
 
     save_png(name, size, render)
     svg = Svg(*size)
-    svg.text(size[0] / 2, 58, "Traceable Engineering Loop", 34, 700)
-    svg.text(size[0] / 2, 92, "从需求到知识归档的可追溯研发闭环", 18, 400, MUTED)
+    svg.text(size[0] / 2, 58, "Adaptive OSD Delivery Route", 34, 700)
+    svg.text(size[0] / 2, 92, "OSD 按风险选择流程深度，OpenSpec 定义规格，Superpowers 执行交付", 18, 400, MUTED)
     box_w, box_h = 260, 96
     positions = [(80, 190), (460, 190), (840, 190), (840, 410), (460, 410), (80, 410)]
     for i, (en, zh, fill) in enumerate(steps):
@@ -178,7 +178,7 @@ def workflow():
     for start, end in [((340, 238), (460, 238)), ((720, 238), (840, 238)), ((970, 286), (970, 410)), ((840, 458), (720, 458)), ((460, 458), (340, 458))]:
         svg.line_arrow(start[0], start[1], end[0], end[1], 4)
     svg.box(260, 565, 660, 50, CREAM, 18, "#e3cfa4", 2)
-    svg.text(590, 597, "OpenSpec records why and what; Superpowers guides how", 16, 400, MUTED)
+    svg.text(590, 597, "OSD selects depth; OpenSpec defines what; Superpowers guides how", 16, 400, MUTED)
     svg.save(name)
 
 
@@ -186,11 +186,11 @@ def runtime_contract():
     name, size = "runtime-contract", (1440, 760)
 
     def render(draw):
-        title(draw, "Runtime Responsibility Contract", "Superpowers 按 Agent/Harness 安装；OpenSpec CLI 全局安装；OpenSpec 资产项目级沉淀", size[0])
+        title(draw, "Runtime Responsibility Contract", "OSD 控制路由；OpenSpec 提供规格工具链；Superpowers 由 Agent/Harness 提供执行方法", size[0])
         columns = [
-            (70, 150, 450, 650, "Agent / Harness", "执行能力层", TEAL, ["Superpowers", "Plugin / extension", "Planning discipline", "Verification gates"]),
-            (530, 150, 910, 650, "Global Tool", "全局工具层", BEIGE, ["OpenSpec CLI", "npm install -g", "openspec commands", "Not project-owned"]),
-            (990, 150, 1370, 650, "Project Workspace", "项目资产层", BLUE, ["openspec init", ".ai workflow contract", "openspec/changes", "knowledge/archive"]),
+            (70, 150, 450, 650, "OSD Workflow", "项目控制层", TEAL, ["Task routing", "Mode + strategy", "Stage order", "Minimum evidence"]),
+            (530, 150, 910, 650, "OpenSpec CLI", "全局规格工具", BEIGE, ["npm install -g", "openspec init", "Native lifecycle", "Specification authority"]),
+            (990, 150, 1370, 650, "Superpowers", "Agent/Harness 执行", BLUE, ["Planning", "Implementation", "TDD / test-first", "Verification + review"]),
         ]
         for x1, y1, x2, y2, en, zh, fill, items in columns:
             rounded_box(draw, (x1, y1, x2, y2), CREAM, radius=28, width=3)
@@ -205,16 +205,16 @@ def runtime_contract():
         arrow(draw, (450, 390), (530, 390), 4)
         arrow(draw, (910, 390), (990, 390), 4)
         centered_text(draw, (490, 350), "uses", F_TINY, MUTED)
-        centered_text(draw, (950, 350), "initializes", F_TINY, MUTED)
+        centered_text(draw, (950, 350), "runs within", F_TINY, MUTED)
 
     save_png(name, size, render)
     svg = Svg(*size)
     svg.text(size[0] / 2, 58, "Runtime Responsibility Contract", 34, 700)
-    svg.text(size[0] / 2, 92, "Superpowers 按 Agent/Harness 安装；OpenSpec CLI 全局安装；OpenSpec 资产项目级沉淀", 18, 400, MUTED)
+    svg.text(size[0] / 2, 92, "OSD 控制路由；OpenSpec 提供规格工具链；Superpowers 由 Agent/Harness 提供执行方法", 18, 400, MUTED)
     for x1, y1, x2, y2, en, zh, fill, items in [
-        (70, 150, 450, 650, "Agent / Harness", "执行能力层", TEAL, ["Superpowers", "Plugin / extension", "Planning discipline", "Verification gates"]),
-        (530, 150, 910, 650, "Global Tool", "全局工具层", BEIGE, ["OpenSpec CLI", "npm install -g", "openspec commands", "Not project-owned"]),
-        (990, 150, 1370, 650, "Project Workspace", "项目资产层", BLUE, ["openspec init", ".ai workflow contract", "openspec/changes", "knowledge/archive"]),
+        (70, 150, 450, 650, "OSD Workflow", "项目控制层", TEAL, ["Task routing", "Mode + strategy", "Stage order", "Minimum evidence"]),
+        (530, 150, 910, 650, "OpenSpec CLI", "全局规格工具", BEIGE, ["npm install -g", "openspec init", "Native lifecycle", "Specification authority"]),
+        (990, 150, 1370, 650, "Superpowers", "Agent/Harness 执行", BLUE, ["Planning", "Implementation", "TDD / test-first", "Verification + review"]),
     ]:
         svg.box(x1, y1, x2 - x1, y2 - y1, CREAM, 28)
         svg.box(x1 + 30, y1 + 35, x2 - x1 - 60, 85, fill, 22)
@@ -229,7 +229,7 @@ def runtime_contract():
     svg.line_arrow(450, 390, 530, 390, 4)
     svg.line_arrow(910, 390, 990, 390, 4)
     svg.text(490, 350, "uses", 14, 400, MUTED)
-    svg.text(950, 350, "initializes", 14, 400, MUTED)
+    svg.text(950, 350, "runs within", 14, 400, MUTED)
     svg.save(name)
 
 
@@ -238,129 +238,45 @@ def project_structure():
 
     def render(draw):
         title(draw, "Project Template Structure", "一键接入后写入目标项目的核心目录", size[0])
-        rounded_box(draw, (490, 125, 790, 205), BEIGE, radius=22)
-        centered_text(draw, (640, 165), "OSD Workflow", F_NODE)
+        rounded_box(draw, (490, 110, 790, 190), BEIGE, radius=22)
+        centered_text(draw, (640, 150), "OSD Workflow", F_NODE)
         branches = [
-            (105, 290, ".ai/", "Workflow contract", TEAL, ["rules/", "workflows/", "skills/", "agents/", "AI_WORKFLOW.md"]),
-            (500, 290, "openspec/", "Project specs", BLUE, ["README.md", "changes/"]),
-            (855, 290, "knowledge/", "Requirement archive", GRAY, ["archive/"]),
+            (45, 270, ".ai/", "Workflow contract", TEAL, ["workflow-manifest.json", "workflows/", "rules/", "templates/"]),
+            (355, 270, "openspec/", "Project specs", BLUE, ["README.md", "changes/"]),
+            (665, 270, "knowledge/", "Delivery evidence", GRAY, ["archive/"]),
+            (975, 270, "runtime", "Install + verify", BEIGE, ["bin/", "scripts/", "docs/", "AGENTS.md"]),
         ]
         for x, y, head, sub, fill, items in branches:
-            arrow(draw, (640, 205), (x + 160, y - 28), 4)
-            rounded_box(draw, (x, y, x + 320, y + 90), fill, radius=22)
-            multiline_center(draw, (x, y, x + 320, y + 90), [head, sub], [F_NODE, F_TINY], [INK, MUTED])
+            arrow(draw, (640, 190), (x + 130, y - 28), 4)
+            rounded_box(draw, (x, y, x + 260, y + 90), fill, radius=22)
+            multiline_center(draw, (x, y, x + 260, y + 90), [head, sub], [F_NODE, F_TINY], [INK, MUTED])
             yy = y + 125
             for item in items:
-                rounded_box(draw, (x + 28, yy, x + 292, yy + 52), CREAM, radius=14, width=2)
-                centered_text(draw, (x + 160, yy + 26), item, F_SMALL)
+                rounded_box(draw, (x + 18, yy, x + 242, yy + 52), CREAM, radius=14, width=2)
+                centered_text(draw, (x + 130, yy + 26), item, F_SMALL)
                 yy += 65
 
     save_png(name, size, render)
     svg = Svg(*size)
     svg.text(size[0] / 2, 58, "Project Template Structure", 34, 700)
     svg.text(size[0] / 2, 92, "一键接入后写入目标项目的核心目录", 18, 400, MUTED)
-    svg.box(490, 125, 300, 80, BEIGE, 22)
-    svg.text(640, 174, "OSD Workflow", 22, 700)
+    svg.box(490, 110, 300, 80, BEIGE, 22)
+    svg.text(640, 159, "OSD Workflow", 22, 700)
     for x, y, head, sub, fill, items in [
-        (105, 290, ".ai/", "Workflow contract", TEAL, ["rules/", "workflows/", "skills/", "agents/", "AI_WORKFLOW.md"]),
-        (500, 290, "openspec/", "Project specs", BLUE, ["README.md", "changes/"]),
-        (855, 290, "knowledge/", "Requirement archive", GRAY, ["archive/"]),
+        (45, 270, ".ai/", "Workflow contract", TEAL, ["workflow-manifest.json", "workflows/", "rules/", "templates/"]),
+        (355, 270, "openspec/", "Project specs", BLUE, ["README.md", "changes/"]),
+        (665, 270, "knowledge/", "Delivery evidence", GRAY, ["archive/"]),
+        (975, 270, "runtime", "Install + verify", BEIGE, ["bin/", "scripts/", "docs/", "AGENTS.md"]),
     ]:
-        svg.line_arrow(640, 205, x + 160, y - 28, 4)
-        svg.box(x, y, 320, 90, fill, 22)
-        svg.text(x + 160, y + 42, head, 22, 700)
-        svg.text(x + 160, y + 70, sub, 14, 400, MUTED)
+        svg.line_arrow(640, 190, x + 130, y - 28, 4)
+        svg.box(x, y, 260, 90, fill, 22)
+        svg.text(x + 130, y + 42, head, 22, 700)
+        svg.text(x + 130, y + 70, sub, 14, 400, MUTED)
         yy = y + 125
         for item in items:
-            svg.box(x + 28, yy, 264, 52, CREAM, 14, STROKE, 2)
-            svg.text(x + 160, yy + 33, item, 16, 600)
+            svg.box(x + 18, yy, 224, 52, CREAM, 14, STROKE, 2)
+            svg.text(x + 130, yy + 33, item, 16, 600)
             yy += 65
-    svg.save(name)
-
-
-def openspec_change():
-    name, size = "openspec-change", (1100, 500)
-
-    def render(draw):
-        title(draw, "OpenSpec Change Package", "每个需求对应一个项目级变更包", size[0])
-        rounded_box(draw, (110, 155, 990, 405), CREAM, radius=28, width=3)
-        rounded_box(draw, (360, 190, 740, 260), BLUE, radius=18)
-        centered_text(draw, (550, 225), "openspec/changes/{feature}/", F_SMALL)
-        for i, (label, sub, fill) in enumerate([
-            ("proposal.md", "Why and scope", BEIGE),
-            ("spec.md", "Behavior and acceptance", TEAL),
-            ("design.md", "Approach and risks", GRAY),
-        ]):
-            x = 245 + i * 230
-            rounded_box(draw, (x, 310, x + 175, 380), fill, radius=18)
-            multiline_center(draw, (x, 310, x + 175, 380), [label, sub], [F_SMALL, F_TINY], [INK, MUTED])
-            arrow(draw, (550, 260), (x + 88, 305), 3)
-
-    save_png(name, size, render)
-    svg = Svg(*size)
-    svg.text(size[0] / 2, 58, "OpenSpec Change Package", 34, 700)
-    svg.text(size[0] / 2, 92, "每个需求对应一个项目级变更包", 18, 400, MUTED)
-    svg.box(110, 155, 880, 250, CREAM, 28)
-    svg.box(360, 190, 380, 70, BLUE, 18)
-    svg.text(550, 233, "openspec/changes/{feature}/", 16, 600)
-    for i, (label, sub, fill) in enumerate([
-        ("proposal.md", "Why and scope", BEIGE),
-        ("spec.md", "Behavior and acceptance", TEAL),
-        ("design.md", "Approach and risks", GRAY),
-    ]):
-        x = 245 + i * 230
-        svg.box(x, 310, 175, 70, fill, 18)
-        svg.text(x + 88, 342, label, 16, 700)
-        svg.text(x + 88, 365, sub, 13, 400, MUTED)
-        svg.line_arrow(550, 260, x + 88, 305, 3)
-    svg.save(name)
-
-
-def knowledge_archive():
-    name, size = "knowledge-archive", (1180, 620)
-
-    def render(draw):
-        title(draw, "Knowledge Archive Unit", "一个需求沉淀为一个完整研发知识单元", size[0])
-        rounded_box(draw, (120, 145, 1060, 500), CREAM, radius=28, width=3)
-        rounded_box(draw, (350, 185, 830, 255), GRAY, radius=18)
-        centered_text(draw, (590, 220), "knowledge/archive/{feature}/", F_SMALL)
-        docs = [
-            ("requirement.md", BLUE),
-            ("spec.md", TEAL),
-            ("design.md", BEIGE),
-            ("implementation.md", TEAL),
-            ("test-report.md", BLUE),
-            ("review-report.md", GRAY),
-        ]
-        centered_text(draw, (590, 292), "contains / 包含", F_TINY, MUTED)
-        for i, (label, fill) in enumerate(docs):
-            row, col = divmod(i, 3)
-            x = 230 + col * 250
-            y = 315 + row * 95
-            rounded_box(draw, (x, y, x + 190, y + 60), fill, radius=16)
-            centered_text(draw, (x + 95, y + 30), label, F_TINY, INK)
-
-    save_png(name, size, render)
-    svg = Svg(*size)
-    svg.text(size[0] / 2, 58, "Knowledge Archive Unit", 34, 700)
-    svg.text(size[0] / 2, 92, "一个需求沉淀为一个完整研发知识单元", 18, 400, MUTED)
-    svg.box(120, 145, 940, 355, CREAM, 28)
-    svg.box(350, 185, 480, 70, GRAY, 18)
-    svg.text(590, 228, "knowledge/archive/{feature}/", 16, 600)
-    svg.text(590, 299, "contains / 包含", 14, 400, MUTED)
-    for i, (label, fill) in enumerate([
-        ("requirement.md", BLUE),
-        ("spec.md", TEAL),
-        ("design.md", BEIGE),
-        ("implementation.md", TEAL),
-        ("test-report.md", BLUE),
-        ("review-report.md", GRAY),
-    ]):
-        row, col = divmod(i, 3)
-        x = 230 + col * 250
-        y = 315 + row * 95
-        svg.box(x, y, 190, 60, fill, 16)
-        svg.text(x + 95, y + 37, label, 14, 600)
     svg.save(name)
 
 
@@ -368,8 +284,6 @@ def main():
     workflow()
     runtime_contract()
     project_structure()
-    openspec_change()
-    knowledge_archive()
     print(f"Generated README diagrams in {OUT}")
 
 
