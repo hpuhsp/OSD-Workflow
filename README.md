@@ -13,6 +13,8 @@ OSD is deliberately thin: it selects process depth and minimum evidence, then de
 
 The project template supplies the shared contract under `.ai/`, OpenSpec assets under `openspec/changes/`, and concise delivery evidence under `knowledge/archive/`.
 
+This repository is the installable template source. It does not implement an application runtime; install it into a target project, then initialize that project's OpenSpec workspace.
+
 ## Design Goal
 
 Standardize the SDD outcome without forcing every task through the same amount of ceremony.
@@ -68,6 +70,16 @@ Escalate when scope, uncertainty, or risk grows. A user may explicitly choose a 
 
 The machine-readable output contract is `.ai/workflow-manifest.json`. Do not duplicate the same information across files. Create `handoff-brief.md` only when another agent will continue the task.
 
+The required delivery files are mode-dependent:
+
+| Mode | Required files |
+|---|---|
+| `lite` | `openspec/changes/{feature}/spec.md`, `knowledge/archive/{feature}/stage-report.md` |
+| `standard` | `proposal.md`, `spec.md`, `knowledge/archive/{feature}/implementation.md`, `stage-report.md` |
+| `strict` | `proposal.md`, `spec.md`, `design.md`, `implementation.md`, `test-report.md`, `review-report.md`, `stage-report.md` |
+
+The complete paths and optional outputs are defined only by `.ai/workflow-manifest.json`; the table above is a quick reference.
+
 ## Install OSD Workflow
 
 Choose one installation method. The installer copies the OSD contract and safely merges a managed discovery block into common Agent instruction files. Existing project instructions remain intact.
@@ -92,7 +104,7 @@ The generated discovery adapters cover `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.
 
 After OSD Workflow is installed in the project:
 
-1. Install the OpenSpec CLI globally:
+1. Install the OpenSpec CLI globally (the installer does not install it):
 
    ```bash
    npm install -g @fission-ai/openspec@latest
@@ -104,7 +116,7 @@ After OSD Workflow is installed in the project:
    openspec init
    ```
 
-3. Ensure Superpowers is available in the AI agent or harness used by each developer.
+3. Ensure Superpowers is available in the AI agent or harness used by each developer. It is an execution capability supplied by the harness, not copied into the target project by this repository.
 
 ## One-Click Update
 
@@ -132,7 +144,7 @@ PowerShell:
 powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target . -Update -WithDocs
 ```
 
-`update` overwrites only files managed by the template. It does not delete project-owned OpenSpec changes or knowledge archives. Use `--dry-run` to preview and review the Git diff after updating.
+`update` overwrites only files managed by the template. It does not delete project-owned OpenSpec changes or knowledge archives. Use `--dry-run` to preview and review the Git diff after updating. `--with-docs` is opt-in so installed usage guides are not changed unexpectedly.
 
 Manifest v3 migration: active delivery records created by older versions must add `OSD controller: osd_workflow`, non-empty `OpenSpec participation`, and non-empty `Superpowers participation` fields before verification.
 
@@ -158,6 +170,8 @@ Verify a delivery:
 node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode}
 ```
 
+If `--mode` is omitted, the verifier reads the mode from `stage-report.md`, falling back to the manifest default (`standard`). A successful delivery prints `Result: DELIVERY PASS`.
+
 Verify only the installed contract:
 
 ```bash
@@ -176,6 +190,8 @@ See [docs/USAGE.md](docs/USAGE.md) for task-specific prompts and routing example
 - `scripts/verify-workflow-artifacts.mjs`: lightweight delivery verifier
 - `bin/osd-workflow-init.mjs`: Node.js initializer
 - `scripts/install.ps1`: PowerShell initializer
+
+For the human workflow guide, see [docs/USAGE.md](docs/USAGE.md). For the Chinese guide, see [docs/USAGE_zh.md](docs/USAGE_zh.md). The Qoder report in `docs/` is historical evidence, not a current contract.
 
 ## License
 

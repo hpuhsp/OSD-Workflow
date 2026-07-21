@@ -13,6 +13,8 @@ OSD 刻意保持为薄编排层：只选择流程深度和最低证据，再把�
 
 项目模板负责提供 `.ai/` 团队契约、`openspec/changes/` 规格资产，以及 `knowledge/archive/` 中的精简交付证据。
 
+本仓库是可安装的模板源，不是一个提供业务运行时的应用。请先将它安装到目标项目，再在目标项目中初始化 OpenSpec 工作区。
+
 ## 设计目标
 
 统一 SDD 结果，不要求所有任务执行同样复杂的流程。
@@ -68,6 +70,14 @@ TDD 是条件化开发策略，不是第四种工作流模式。证据写入现�
 
 `.ai/workflow-manifest.json` 是唯一机器可读产物契约。不要在多个文件中重复相同内容。仅在另一个 Agent 将继续任务时创建 `handoff-brief.md`。
 
+各模式的必需交付文件如下（完整路径和可选产物以 `.ai/workflow-manifest.json` 为准）：
+
+| 模式 | 必需文件 |
+|---|---|
+| `lite` | `openspec/changes/{feature}/spec.md`、`knowledge/archive/{feature}/stage-report.md` |
+| `standard` | `proposal.md`、`spec.md`、`knowledge/archive/{feature}/implementation.md`、`stage-report.md` |
+| `strict` | `proposal.md`、`spec.md`、`design.md`、`implementation.md`、`test-report.md`、`review-report.md`、`stage-report.md` |
+
 ## 安装 OSD Workflow
 
 选择一种安装方式。安装器会复制 OSD 契约，并把受控发现区块安全合并到常见 Agent 指令文件中，不覆盖项目已有指令。
@@ -92,7 +102,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPl
 
 OSD Workflow 安装到项目后：
 
-1. 全局安装 OpenSpec CLI：
+1. 全局安装 OpenSpec CLI（安装器不会代为安装）：
 
    ```bash
    npm install -g @fission-ai/openspec@latest
@@ -104,7 +114,7 @@ OSD Workflow 安装到项目后：
    openspec init
    ```
 
-3. 确保每位开发者使用的 AI Agent 或 Harness 已提供 Superpowers。
+3. 确保每位开发者使用的 AI Agent 或 Harness 已提供 Superpowers。它由 Agent/Harness 提供，不会由本仓库复制到目标项目。
 
 ## 一键更新
 
@@ -132,7 +142,7 @@ PowerShell：
 powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target . -Update -WithDocs
 ```
 
-`update` 只覆盖模板管理的文件，不删除项目自己的 OpenSpec 变更和知识归档。可以先使用 `--dry-run` 预览，更新后建议检查 Git diff。
+`update` 只覆盖模板管理的文件，不删除项目自己的 OpenSpec 变更和知识归档。可以先使用 `--dry-run` 预览，更新后建议检查 Git diff。`--with-docs` 需要显式指定，避免意外更新已安装的使用指南。
 
 Manifest v3 迁移：旧版本创建的活跃交付记录需要补充 `OSD controller: osd_workflow`、非空 `OpenSpec participation` 和非空 `Superpowers participation` 三个字段后再执行校验。
 
@@ -158,6 +168,8 @@ Agent 应以 `OSD: <任务类型> | <模式> | <策略> | <当前阶段>` 开始
 node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode}
 ```
 
+省略 `--mode` 时，校验器优先从 `stage-report.md` 读取模式，否则回退到 manifest 默认值 `standard`。交付校验成功时会输出 `Result: DELIVERY PASS`。
+
 只检查工作流契约：
 
 ```bash
@@ -176,6 +188,8 @@ node scripts/verify-workflow-artifacts.mjs --structural-only
 - `scripts/verify-workflow-artifacts.mjs`：轻量交付校验器
 - `bin/osd-workflow-init.mjs`：Node.js 初始化器
 - `scripts/install.ps1`：PowerShell 初始化器
+
+完整使用说明见 [docs/USAGE_zh.md](docs/USAGE_zh.md) 和 [docs/USAGE.md](docs/USAGE.md)。`docs/` 中的 Qoder 报告是历史实测证据，不是当前契约。
 
 ## License
 

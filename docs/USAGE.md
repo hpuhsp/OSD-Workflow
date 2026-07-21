@@ -21,7 +21,7 @@ OSD routes and governs minimum outcomes only. OpenSpec owns its native specifica
 3. Select `lite`, `standard`, or `strict`.
 4. Select `tdd`, `test_first`, or `verification_only` as the development strategy.
 5. Execute each OSD stage with Superpowers and escalate if new risk appears.
-6. Run the lightweight delivery verifier.
+6. Run the lightweight delivery verifier against the selected feature.
 
 ## Modes
 
@@ -40,6 +40,8 @@ openspec/changes/{feature}/spec.md
 knowledge/archive/{feature}/stage-report.md
 ```
 
+`lite` does not require a proposal, implementation plan, test report, or review report. Add those only when they improve risk control or handoff.
+
 ### Standard
 
 Default for medium-scope daily work.
@@ -50,6 +52,8 @@ OSD route -> OpenSpec proposal/spec -> concise plan -> implementation -> verific
 
 Verification and review are summarized in `stage-report.md`; separate reports are optional unless risk or handoff value justifies them.
 
+Required artifacts are `proposal.md`, `spec.md`, `knowledge/archive/{feature}/implementation.md`, and `stage-report.md`.
+
 ### Strict
 
 For complex, ambiguous, cross-module, high-risk, regulated, or release-critical work.
@@ -57,6 +61,8 @@ For complex, ambiguous, cross-module, high-risk, regulated, or release-critical 
 ```text
 OSD route -> full OpenSpec -> spec review -> plan -> implementation -> full verification -> review -> archive
 ```
+
+Required artifacts are `proposal.md`, `spec.md`, `design.md`, `implementation.md`, `test-report.md`, `review-report.md`, and `stage-report.md` under their mode-specific directories.
 
 ## Development Strategies
 
@@ -94,7 +100,7 @@ Usually use `lite`. Keep the OpenSpec spec short and avoid separate plan/review 
 
 ## FeishuProjectMcp
 
-When a requirement comes from Feishu Project, use `FeishuProjectMcp` to pull only the context needed for routing and specification.
+When a requirement comes from Feishu Project, use the available `FeishuProjectMcp` integration to pull only the context needed for routing and specification. If that integration is unavailable, continue only when the supplied requirement context is sufficient and record its source; do not treat guessed or synthetic data as an actual Feishu lookup.
 
 ```text
 Execute with OSD using the Feishu requirement at {link or ID}.
@@ -114,7 +120,7 @@ npx --yes github:hpuhsp/OSD-Workflow update .
 
 Add `--with-docs` to refresh usage guides and `--dry-run` to preview. Update overwrites template-managed files but preserves project-owned OpenSpec changes and knowledge archives.
 
-When upgrading an active delivery to manifest v3, add the OSD controller plus non-empty OpenSpec and Superpowers participation fields to its existing `stage-report.md`.
+When upgrading an active delivery to manifest v3, add `OSD controller: osd_workflow` plus non-empty OpenSpec and Superpowers participation fields to its existing `stage-report.md`.
 
 ## Verification
 
@@ -123,6 +129,8 @@ Verify a delivery:
 ```bash
 node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode}
 ```
+
+`--target <project>` is available when the command is run outside the target project. `--mode` is optional: without it, the verifier reads the mode from `stage-report.md`, then uses `standard`. A successful delivery reports `Result: DELIVERY PASS`; structural-only checks report `STRUCTURAL PASS`.
 
 Require a cross-agent handoff brief:
 
@@ -136,7 +144,7 @@ Verify only the installed contract:
 node scripts/verify-workflow-artifacts.mjs --structural-only
 ```
 
-The verifier checks only minimal delivery facts. It does not audit chat history or require a report for every stage.
+The verifier checks regular, non-empty required files, acceptance criteria, selected delivery-record fields, and strategy evidence. It does not audit chat history, prove that an external harness was invoked, or require a separate report for every stage.
 
 ## Compact Delivery Record
 

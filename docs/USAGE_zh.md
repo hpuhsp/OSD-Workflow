@@ -48,6 +48,8 @@ openspec/changes/{feature}/spec.md
 knowledge/archive/{feature}/stage-report.md
 ```
 
+`lite` 不要求 proposal、实施计划、测试报告或评审报告；只有在它们能改善风险控制或交接时才增加。
+
 #### Standard
 
 用于中等规模日常任务，也是无法确定时的默认模式。
@@ -56,11 +58,15 @@ knowledge/archive/{feature}/stage-report.md
 
 必需产物由 `.ai/workflow-manifest.json` 定义，包括 proposal、spec、implementation 和一份简短交付记录。验证与评审默认写入交付记录，只有风险或交接需要时才生成独立报告。
 
+具体必需文件是 `proposal.md`、`spec.md`、`knowledge/archive/{feature}/implementation.md` 和 `stage-report.md`。
+
 #### Strict
 
 用于复杂、高风险、跨模块、模糊、合规或发布关键任务。
 
 流程：OSD 路由 → 完整 OpenSpec → 规格评审 → 计划 → 实现 → 完整验证 → 评审 → 归档。
+
+具体必需文件是 `proposal.md`、`spec.md`、`design.md`、`implementation.md`、`test-report.md`、`review-report.md` 和 `stage-report.md`，分别位于对应的 OpenSpec 与知识归档目录。
 
 ### 第四步：选择开发策略
 
@@ -87,13 +93,15 @@ knowledge/archive/{feature}/stage-report.md
 node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode}
 ```
 
+在目标项目外执行时，可增加 `--target <project>`。省略 `--mode` 时，校验器优先从 `stage-report.md` 读取模式，否则使用 `standard`。交付校验成功输出 `Result: DELIVERY PASS`，仅校验契约成功输出 `STRUCTURAL PASS`。
+
 跨 Agent 交接时增加：
 
 ```bash
 node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode} --handoff
 ```
 
-门禁只检查最小必要事实：文件有效、规格包含验收标准、验证有结果、交付记录完整。它不审计聊天过程，也不要求每阶段单独报告。
+门禁检查必需文件为普通非空文件、规格含验收标准、交付记录字段完整，以及策略对应的证据。它不审计聊天过程、不证明外部 Harness 确实被调用，也不要求每个阶段单独生成报告。
 
 ## 3. 场景编排
 
@@ -147,7 +155,7 @@ node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode} --h
 
 ## 4. FeishuProjectMcp
 
-需求来自飞书项目时，先用 `FeishuProjectMcp` 拉取必要字段，再由 OSD 完成分类和模式选择，随后委派 OpenSpec 建立规格，并由 Superpowers 在选定阶段内执行。
+需求来自飞书项目时，使用可用的 `FeishuProjectMcp` 集成只拉取路由和规格所需字段，再由 OSD 完成分类和模式选择，随后委派 OpenSpec 建立规格，并由 Superpowers 在选定阶段内执行。若集成不可用，只有在已有需求上下文足够时才继续，并应明确记录来源；不要把猜测或模拟数据当作真实飞书读取结果。
 
 ```text
 按 OSD 执行：基于飞书需求 {链接或 ID} 完成开发。
@@ -169,7 +177,7 @@ npx --yes github:hpuhsp/OSD-Workflow update .
 
 增加 `--with-docs` 可同步更新使用指南，增加 `--dry-run` 可先预览。更新只覆盖模板管理文件，不删除项目自己的 OpenSpec 变更和知识归档。
 
-把活跃交付升级到 manifest v3 时，需要在已有 `stage-report.md` 中补充 OSD controller 以及非空的 OpenSpec、Superpowers 参与字段。
+把活跃交付升级到 manifest v3 时，需要在已有 `stage-report.md` 中补充 `OSD controller: osd_workflow` 以及非空的 OpenSpec、Superpowers 参与字段。
 
 ## 6. 交付记录
 

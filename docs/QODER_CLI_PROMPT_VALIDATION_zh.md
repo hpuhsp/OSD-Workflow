@@ -1,6 +1,8 @@
-# Qoder CLI 提示词有效性验证报告
+# Qoder CLI 提示词有效性验证报告（历史）
 
 > 历史说明：本报告验证的是 2026-07-16 的固定全流程版本。当前项目已升级为自适应 SDD 路由；本文件保留为历史实测证据，不作为当前 workflow 和 required outputs 的权威说明。当前规则以 `.ai/workflows/feature-development.yaml` 和 `.ai/workflow-manifest.json` 为准。
+
+使用本报告时，请优先阅读 [当前使用指南](USAGE_zh.md)。报告中的“三件套”、分阶段提示词和完整归档清单属于当时的测试场景；当前模式的必需文件以 manifest v3 为准，不能从本报告反推。
 
 ## 验证结论
 
@@ -8,9 +10,9 @@
 
 结论：
 
-- 强约束两段式提示词有效，可以驱动 Qoder 读取 `.ai/workflows/feature-development.yaml`、各阶段 skill/rule 文件，并产出落盘 artifact。
+- 在当时的固定全流程测试中，强约束两段式提示词有效，可以驱动 Qoder 读取 `.ai/workflows/feature-development.yaml`、各阶段 skill/rule 文件，并产出落盘 artifact。
 - `FeishuProjectMcp` 名称明确写入提示词后，Qoder 会尝试调用飞书项目 MCP。模拟 ID `SIM-QODER-001` 因真实 MCP 参数无效失败后，Qoder 能按提示词中的 fallback payload 继续执行。
-- `Spec approved. Continue...` 类型续跑提示词有效，但必须继续强调 `required_outputs`、`stage-report.md` 和最终 artifact gate。
+- `Spec approved. Continue...` 类型续跑提示词在该测试中有效，但必须按当前选定模式理解 `required_outputs`、`stage-report.md` 和最终 artifact gate。
 - 最终门禁通过：`node scripts/verify-workflow-artifacts.mjs --target . --feature loyalty-points` 输出 `Result: PASS`。
 - 测试通过：`node --test` 共 15 个测试全部通过。
 - 最小提示词不建议直接用于首次接入或新 Agent，除非该 Agent 已确认加载项目级自定义指令。
@@ -123,8 +125,8 @@ Result: PASS
 
 | USAGE 模板 | 本次验证方式 | 结论 | 使用建议 |
 |---|---|---|---|
-| 推荐日常模式 Step 1 | Qoder 真实执行 | 有效 | 首次处理需求时推荐使用 |
-| 推荐日常模式 Step 2 | Qoder 真实执行 | 有效 | 规格确认后推荐使用 |
+| 历史日常模式 Step 1 | Qoder 真实执行 | 历史有效 | 仅用于理解当时的分段执行方式 |
+| 历史日常模式 Step 2 | Qoder 真实执行 | 历史有效 | 当前使用时先按 manifest 选择模式 |
 | Strict Workflow Execution Prefix | 嵌入 Step 1/Step 2 执行 | 有效 | 对 Qoder、Codex、Cursor、Claude Code 等通用 |
 | Create OpenSpec From Feishu Project Requirement | Step 1 覆盖执行 | 有效 | 必须明确写 `FeishuProjectMcp` |
 | Continue After Spec Approval | Step 2 覆盖执行 | 有效 | 必须强调最终 gate |
@@ -246,9 +248,9 @@ Before each stage, read referenced skill/rule files and write required_outputs t
 
 ## 生产使用建议
 
-1. 默认使用两段式提示词：先 OpenSpec，审批后再实现。
-2. 在任何新 Agent 中，先用强触发前缀，不要直接用最小提示词。
+1. 当前项目默认按任务类型和风险选择 `lite`、`standard` 或 `strict`；只有需要人工规格确认时才采用两段式提示词。
+2. 在任何新 Agent 中，先确认已加载项目级 OSD 契约，再使用强触发前缀或最小提示词。
 3. 所有飞书项目需求都显式写 `FeishuProjectMcp`，不要只写“飞书 MCP”。
-4. 每次交付前强制运行 `node scripts/verify-workflow-artifacts.mjs --target . --feature {feature}`。
+4. 每次交付前运行 `node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode}`；如果在其他目录执行，再加 `--target <project>`。
 5. 对 optional 阶段允许跳过，但必须在 `stage-report.md` 写明原因。
 6. 对 bug fix 和 small change 建议另建独立测试项目做专项验证后再作为默认推荐。
