@@ -225,11 +225,7 @@ if (-not (Test-Path -LiteralPath $agentEntryTemplatePath)) {
 }
 $agentEntryTemplate = [System.IO.File]::ReadAllText($agentEntryTemplatePath)
 $agentEntryFiles = @(
-    "AGENTS.md",
-    "CLAUDE.md",
-    "GEMINI.md",
-    ".github\copilot-instructions.md",
-    ".cursor\rules\osd-workflow.mdc"
+    "AGENTS.md"
 )
 foreach ($entry in $agentEntryFiles) {
     Install-AgentEntry -Destination (Join-Path $targetRoot $entry) -Template $agentEntryTemplate -Summary $summary

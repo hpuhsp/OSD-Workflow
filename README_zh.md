@@ -104,7 +104,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPl
 
 模板文件默认跳过已有内容，使用 `--force` / `-Force` 覆盖。Agent 指令文件是例外：安装器只合并或刷新带标记的 OSD 区块。使用 `--dry-run` / `-DryRun` 预览。
 
-安装器会生成或合并 `AGENTS.md`、`CLAUDE.md`、`GEMINI.md`、`.github/copilot-instructions.md` 和 `.cursor/rules/osd-workflow.mdc`。这些适配器只指向同一个 `.ai` 契约，不重复维护完整流程。
+安装器默认只生成或合并根目录 `AGENTS.md`。Qoder 通过原生兼容 `AGENTS.md` 接入。如果项目使用 Claude、Gemini、GitHub Copilot 或 Cursor，再按需将同一托管入口复制到对应原生路径：`CLAUDE.md`、`GEMINI.md`、`.github/copilot-instructions.md` 或 `.cursor/rules/osd-workflow.mdc`。安装器不会创建未使用的重复适配器。
 
 ### 完成运行时配置
 

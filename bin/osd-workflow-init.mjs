@@ -16,10 +16,6 @@ const MANAGED_ENTRY_START = "<!-- osd-workflow:start -->";
 const MANAGED_ENTRY_END = "<!-- osd-workflow:end -->";
 const AGENT_ENTRY_FILES = [
   "AGENTS.md",
-  "CLAUDE.md",
-  "GEMINI.md",
-  ".github/copilot-instructions.md",
-  ".cursor/rules/osd-workflow.mdc",
 ];
 
 function printHelp() {

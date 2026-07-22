@@ -195,7 +195,7 @@ strict 才使用完整模板。`handoff-brief.md` 仅在另一个 Agent 继续�
 
 ## 7. Agent 自动发现与最简提示
 
-安装器会把 OSD 受控区块安全加入常见项目指令文件。新建 Agent 会话后，通常只需直接描述任务：
+安装器默认只把 OSD 受控区块安全加入根目录 `AGENTS.md`。新建 Agent 会话后，通常只需直接描述任务：
 
 ```text
 修复登录超时问题。
@@ -214,3 +214,5 @@ OSD: bug_fix | lite | test_first | specification
 ```
 
 “Superpowers 已加载，接下来头脑风暴、计划、实现……”属于错误启动方式，因为它绕过了 OSD 路由和阶段所有权。
+
+Qoder 通过原生 `AGENTS.md` 兼容能力支持 OSD。请保留项目根目录生成的 `AGENTS.md`，不要再创建 `.qoder/rules` 副本。如果项目使用其他 Agent，再按需将托管区块复制到 `CLAUDE.md`、`GEMINI.md`、`.github/copilot-instructions.md` 或 `.cursor/rules/osd-workflow.mdc`；Cursor 还需要 `alwaysApply: true` frontmatter。

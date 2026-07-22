@@ -80,6 +80,8 @@ test("OSD remains the top-level workflow controller", () => {
   assert.equal(manifest.orchestration.controller, "osd_workflow");
   assert.equal(manifest.orchestration.specification_authority, "openspec");
   assert.equal(manifest.orchestration.execution_method, "superpowers");
+  assert.equal(manifest.discovery.client_compatibility.qoder.entry_file, "AGENTS.md");
+  assert.equal(manifest.discovery.client_compatibility.qoder.mode, "native_agents_md");
   assert.equal(manifest.orchestration.external_methods_may_reorder_stages, false);
   assert.equal(manifest.sdd_required[0], "osd_orchestration");
   assert.equal(manifest.delegation.specification.owner, "openspec");

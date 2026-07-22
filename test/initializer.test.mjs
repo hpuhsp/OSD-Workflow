@@ -57,26 +57,19 @@ test("update refreshes managed files and preserves project artifacts", (t) => {
   assert.equal(readFileSync(projectArtifact, "utf8"), "keep project-owned content");
 });
 
-test("initializer installs cross-agent discovery entries", (t) => {
+test("initializer installs only the default AGENTS discovery entry", (t) => {
   const target = mkdtempSync(join(tmpdir(), "osd-workflow-agents-"));
   t.after(() => rmSync(target, { recursive: true, force: true }));
 
   execFileSync(process.execPath, [cliPath, "init", target], { stdio: "pipe" });
 
-  const entries = [
-    "AGENTS.md",
-    "CLAUDE.md",
-    "GEMINI.md",
-    ".github/copilot-instructions.md",
-    ".cursor/rules/osd-workflow.mdc",
-  ];
-  for (const entry of entries) {
-    const content = readFileSync(join(target, entry), "utf8");
-    assert.match(content, /<!-- osd-workflow:start -->/);
-    assert.match(content, /OSD Workflow as the top-level controller/);
-    assert.match(content, /<!-- osd-workflow:end -->/);
+  const content = readFileSync(join(target, "AGENTS.md"), "utf8");
+  assert.match(content, /<!-- osd-workflow:start -->/);
+  assert.match(content, /OSD Workflow as the top-level controller/);
+  assert.match(content, /<!-- osd-workflow:end -->/);
+  for (const entry of ["CLAUDE.md", "GEMINI.md", ".github/copilot-instructions.md", ".cursor/rules/osd-workflow.mdc"]) {
+    assert.throws(() => readFileSync(join(target, entry), "utf8"));
   }
-  assert.match(readFileSync(join(target, ".cursor/rules/osd-workflow.mdc"), "utf8"), /alwaysApply: true/);
 });
 
 test("initializer and updater preserve project-owned agent instructions", (t) => {
@@ -101,7 +94,7 @@ test("initializer and updater preserve project-owned agent instructions", (t) =>
   assert.equal((updated.match(/<!-- osd-workflow:start -->/g) ?? []).length, 1);
 });
 
-test("initializer makes an existing Cursor OSD rule always apply", (t) => {
+test("initializer leaves an optional existing Cursor rule untouched", (t) => {
   const target = mkdtempSync(join(tmpdir(), "osd-workflow-cursor-"));
   t.after(() => rmSync(target, { recursive: true, force: true }));
 
@@ -112,10 +105,9 @@ test("initializer makes an existing Cursor OSD rule always apply", (t) => {
   execFileSync(process.execPath, [cliPath, "init", target], { stdio: "pipe" });
 
   const updated = readFileSync(cursorRule, "utf8");
-  assert.match(updated, /^alwaysApply: true$/m);
-  assert.doesNotMatch(updated, /^alwaysApply: false$/m);
+  assert.match(updated, /^alwaysApply: false$/m);
   assert.match(updated, /Keep this Cursor instruction\./);
-  assert.match(updated, /<!-- osd-workflow:start -->/);
+  assert.doesNotMatch(updated, /<!-- osd-workflow:start -->/);
 });
 
 test("update rejects a directory without an existing installation", (t) => {

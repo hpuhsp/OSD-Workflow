@@ -22,14 +22,23 @@
     "entry_template": ".ai/templates/agent-entry.md",
     "template_source_marker": "bin/osd-workflow-init.mjs",
     "managed_entry_files": [
-      "AGENTS.md",
+      "AGENTS.md"
+    ],
+    "optional_entry_files": [
       "CLAUDE.md",
       "GEMINI.md",
       ".github/copilot-instructions.md",
       ".cursor/rules/osd-workflow.mdc"
     ],
     "automatic_trigger_scope": "repository_change_tasks",
-    "fallback_prompt": "Execute with OSD: {task}"
+    "fallback_prompt": "Execute with OSD: {task}",
+    "client_compatibility": {
+      "qoder": {
+        "entry_file": "AGENTS.md",
+        "mode": "native_agents_md",
+        "note": "Qoder automatically recognizes project-level AGENTS.md; no duplicate .qoder/rules adapter is generated."
+      }
+    }
   },
   "delegation": {
     "routing": {

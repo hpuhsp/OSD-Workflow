@@ -154,7 +154,7 @@ Use the full report only for strict work. Create `handoff-brief.md` only when an
 
 ## Agent Discovery And Minimal Prompt
 
-The installer safely adds an OSD managed block to common project instruction files. On a new Agent session, a normal request is enough:
+The installer safely adds an OSD managed block to the root `AGENTS.md` by default. On a new Agent session, a normal request is enough:
 
 ```text
 Fix the login timeout regression.
@@ -173,3 +173,5 @@ OSD: bug_fix | lite | test_first | specification
 ```
 
 An opening such as “Superpowers loaded; brainstorm, plan, implement...” is incorrect because it bypasses OSD routing and stage ownership.
+
+Qoder is supported through its native `AGENTS.md` compatibility. Keep the generated root `AGENTS.md`; do not create a second `.qoder/rules` copy. If the project uses another Agent, copy the managed block to its native entry path only when needed: `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, or `.cursor/rules/osd-workflow.mdc`. Cursor additionally needs `alwaysApply: true` frontmatter.

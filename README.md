@@ -106,7 +106,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPl
 
 Template files are skipped unless `--force` or `-Force` is supplied. Agent instruction files are the exception: only the marked OSD block is merged or refreshed. Use `--dry-run` or `-DryRun` to preview changes.
 
-The generated discovery adapters cover `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, and `.cursor/rules/osd-workflow.mdc`. Each adapter points to the same `.ai` contract instead of duplicating the workflow.
+The installer creates or merges only the root `AGENTS.md` by default. Qoder is supported through its native `AGENTS.md` compatibility. If a project uses Claude, Gemini, GitHub Copilot, or Cursor, copy the same managed entry into that tool's native instruction path as needed; the optional paths are `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, and `.cursor/rules/osd-workflow.mdc`. The installer avoids creating unused duplicate adapters.
 
 ### Complete Runtime Setup
 
