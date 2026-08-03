@@ -8,7 +8,8 @@ For every task that changes code, tests, documentation, configuration, or projec
 4. Do not ask the user to choose a mode or strategy when the repository context makes the route clear. Escalate only when risk or uncertainty requires it.
 5. Start with one concise status line: `OSD: <task_type> | <mode> | <strategy> | <current_stage>`. Do not lead with a generic OpenSpec or Superpowers process.
 6. Delegate each stage according to `.ai/workflow-manifest.json`; do not reproduce OpenSpec commands or Superpowers skill internals in OSD.
-7. Record concise OpenSpec and Superpowers participation evidence, complete only the selected mode's required outputs, and run the verifier before handoff.
+7. For standard and strict work, carry the change state, approved specification, assigned `T-*` task, and linked `AC-*` criteria into each agent handoff.
+8. Record concise OpenSpec and Superpowers participation evidence, complete only the selected mode's required outputs, and run the verifier before handoff.
 
 If OpenSpec or Superpowers is unavailable, report the missing required runtime instead of substituting a different top-level process.
 

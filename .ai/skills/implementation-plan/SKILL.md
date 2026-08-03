@@ -13,6 +13,7 @@ Create `knowledge/archive/{feature}/implementation.md` with only the information
 
 - Affected areas
 - Ordered implementation steps
+- Atomic task IDs and linked acceptance criteria
 - Compatibility or migration concerns
 - Verification plan
 - Risks or assumptions

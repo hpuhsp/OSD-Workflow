@@ -31,13 +31,69 @@ function writeLiteDelivery(root, feature = "small-fix") {
   write(root, `knowledge/archive/${feature}/stage-report.md`, deliveryRecord({ feature }));
 }
 
+function writeStandardGovernance(root, feature = "governed-change", overrides = {}) {
+  const strategy = overrides.strategy ?? "tdd";
+  const mode = overrides.mode ?? "standard";
+  const status = overrides.status ?? "reviewed";
+  write(root, `openspec/changes/${feature}/proposal.md`, "# Proposal\n\nApproved scope.\n");
+  write(root, `openspec/changes/${feature}/spec.md`, "# Spec\n\n## Acceptance Criteria\n\n- **AC-01**: Expected behavior is defined and observable.\n");
+  write(root, `openspec/changes/${feature}/approval.md`, overrides.approval ?? "- Decision: approved\n- Reviewer: reviewer\n- Decision timestamp: 2026-08-03T00:00:00+08:00\n- Reviewed proposal: proposal.md\n- Reviewed specification: spec.md\n- Scope notes: approved\n- Residual risks: none\n");
+  write(root, `openspec/changes/${feature}/osd-state.json`, JSON.stringify({
+    schema: "osd-change-state/v1",
+    feature,
+    task_type: "new_feature",
+    mode,
+    strategy,
+    stage: "review",
+    status,
+    specification: `openspec/changes/${feature}/spec.md`,
+    updated_at: "2026-08-03T00:00:00+08:00",
+  }));
+  write(root, `openspec/changes/${feature}/tasks.md`, overrides.tasks ?? "- T-01: implement behavior. Linked acceptance criteria: AC-01. Owner: developer. Dependencies: none. Status: done. Verification: node --test.\n");
+  write(root, `openspec/changes/${feature}/verification.json`, JSON.stringify(overrides.evidence ?? {
+    schema: "osd-verification-evidence/v1",
+    feature,
+    strategy,
+    steps: [
+      { step: "red", command_id: "test", exit_code: 1, observed_at: "2026-08-03T00:00:00+08:00", covered_acceptance_criteria: ["AC-01"], summary: "failed before implementation" },
+      { step: "green", command_id: "test", exit_code: 0, observed_at: "2026-08-03T00:01:00+08:00", covered_acceptance_criteria: ["AC-01"], summary: "passed after implementation" },
+      { step: "refactor", command_id: "test", exit_code: 0, observed_at: "2026-08-03T00:02:00+08:00", covered_acceptance_criteria: ["AC-01"], summary: "remained green" },
+    ],
+  }));
+  if (mode === "strict") {
+    write(root, `openspec/changes/${feature}/design.md`, "# Design\n\n- Compatibility-preserving verifier extension.\n");
+    write(root, `knowledge/archive/${feature}/test-report.md`, "# Test Report\n\nResult: pass\n");
+    write(root, `knowledge/archive/${feature}/review-report.md`, "# Review Report\n\nResult: pass\n");
+    write(root, `openspec/changes/${feature}/archive-result.json`, JSON.stringify({
+      schema: "osd-archive-result/v1",
+      feature,
+      status: "archived",
+      native_command: "openspec archive",
+      exit_code: 0,
+      archived_change_location: "archive/" + feature,
+      knowledge_sync: "not_required",
+      completed_at: "2026-08-03T00:03:00+08:00",
+      summary: "archive completed",
+    }));
+  }
+  write(root, `knowledge/archive/${feature}/implementation.md`, "# Implementation\n\n- T-01 complete.\n");
+  write(root, `knowledge/archive/${feature}/stage-report.md`, deliveryRecord({
+    feature,
+    taskType: "new_feature",
+    strategy,
+    mode,
+    extra: "- Approval: approval.md approved\n- Task traceability: T-01 covers AC-01\n- Structured evidence: verification.json\n- Red evidence: test failed before implementation\n- Green evidence: test passed after implementation\n- Refactor evidence: focused suite remained green\n",
+  }));
+}
+
 function deliveryRecord({
   feature,
   taskType = "bug_fix",
   strategy = "test_first",
+  mode = "lite",
   extra = "- Red evidence: regression test failed before fix\n- Green evidence: node --test passed after fix\n",
 }) {
-  return `# Delivery Record\n\n- Task type: ${taskType}\n- Mode: lite\n- Development strategy: ${strategy}\n- OSD controller: osd_workflow\n- OpenSpec participation: validated openspec/changes/${feature}/spec.md\n- Superpowers participation: applied ${strategy} execution discipline\n- Result: pass\n- Specification: openspec/changes/${feature}/spec.md\n- Verification: node --test, exit 0\n${extra}`;
+  return `# Delivery Record\n\n- Task type: ${taskType}\n- Mode: ${mode}\n- Development strategy: ${strategy}\n- OSD controller: osd_workflow\n- OpenSpec participation: validated openspec/changes/${feature}/spec.md\n- Superpowers participation: applied ${strategy} execution discipline\n- Result: pass\n- Specification: openspec/changes/${feature}/spec.md\n- Verification: node --test, exit 0\n${extra}`;
 }
 
 test("structural verification passes for the repository contract", () => {
@@ -66,11 +122,65 @@ test("mode contracts scale artifact requirements", () => {
   assert.ok(lite < standard);
   assert.ok(standard < strict);
   assert.equal(lite, 2);
-  assert.equal(standard, 4);
-  assert.equal(strict, 7);
+  assert.equal(standard, 8);
+  assert.equal(strict, 12);
   assert.ok(manifest.modes.lite.required_outputs.includes("openspec/changes/{feature}/spec.md"));
   assert.ok(!manifest.modes.standard.required_outputs.includes("knowledge/archive/{feature}/test-report.md"));
   assert.deepEqual(manifest.development_strategies.tdd.required_evidence, ["red", "green", "refactor"]);
+  assert.equal(manifest.schema, "osd-workflow-manifest/v4");
+  assert.ok(manifest.governance.approval_required_modes.includes("standard"));
+});
+
+test("valid standard governance delivery passes", (t) => {
+  const root = fixture();
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  writeStandardGovernance(root);
+  const result = verify({ target: root, structuralOnly: false, feature: "governed-change", mode: "standard", handoff: false });
+  assert.deepEqual(result.errors, []);
+});
+
+test("standard delivery requires explicit approval", (t) => {
+  const root = fixture();
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  writeStandardGovernance(root, "approval-required", { approval: "- Decision: changes_requested\n- Reviewer: reviewer\n- Decision timestamp: 2026-08-03T00:00:00+08:00\n- Reviewed proposal: proposal.md\n- Reviewed specification: spec.md\n- Scope notes: revise\n- Residual risks: unknown\n" });
+  const result = verify({ target: root, structuralOnly: false, feature: "approval-required", mode: "standard", handoff: false });
+  assert.ok(result.errors.some((error) => error.includes("must be approved")));
+});
+
+test("standard delivery rejects uncovered acceptance criteria", (t) => {
+  const root = fixture();
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  writeStandardGovernance(root, "criteria-covered", { tasks: "- T-01: implement behavior. Linked acceptance criteria: AC-99. Owner: developer. Dependencies: none. Status: done. Verification: node --test.\n" });
+  const result = verify({ target: root, structuralOnly: false, feature: "criteria-covered", mode: "standard", handoff: false });
+  assert.ok(result.errors.some((error) => error.includes("not covered by a task")));
+});
+
+test("standard delivery rejects invalid structured evidence", (t) => {
+  const root = fixture();
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  writeStandardGovernance(root, "evidence-required", { evidence: { schema: "osd-verification-evidence/v1", feature: "evidence-required", strategy: "tdd", steps: [] } });
+  const result = verify({ target: root, structuralOnly: false, feature: "evidence-required", mode: "standard", handoff: false });
+  assert.ok(result.errors.some((error) => error.includes("has no steps")));
+});
+
+test("strict delivery requires a successful archive result", (t) => {
+  const root = fixture();
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  writeStandardGovernance(root, "strict-change", { mode: "strict", status: "archived" });
+  const result = verify({ target: root, structuralOnly: false, feature: "strict-change", mode: "strict", handoff: false });
+  assert.deepEqual(result.errors, []);
+});
+
+test("legacy v3 structural verification reports a migration warning", (t) => {
+  const root = fixture();
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const manifestPath = join(root, ".ai/workflow-manifest.json");
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  manifest.schema = "osd-workflow-manifest/v3";
+  writeFileSync(manifestPath, JSON.stringify(manifest), "utf8");
+  const result = verify({ target: root, structuralOnly: true, feature: "", mode: "", handoff: false });
+  assert.deepEqual(result.errors, []);
+  assert.ok(result.warnings.some((warning) => warning.includes("Legacy manifest schema")));
 });
 
 test("OSD remains the top-level workflow controller", () => {

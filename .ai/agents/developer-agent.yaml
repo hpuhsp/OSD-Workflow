@@ -7,12 +7,18 @@ agent:
     - "../rules/workflow-execution-rule.md"
     - "../rules/development-rule.md"
   required_context:
+    - "openspec/changes/{feature}/osd-state.json"
     - "openspec/changes/{feature}/spec.md"
+    - "openspec/changes/{feature}/tasks.md"
+  task_context:
+    - "assigned task ID"
+    - "linked acceptance-criteria IDs"
   mode_context:
     standard:
       - "knowledge/archive/{feature}/implementation.md"
     strict:
       - "openspec/changes/{feature}/spec.md"
       - "openspec/changes/{feature}/design.md"
+      - "openspec/changes/{feature}/approval.md"
   handoff_context:
     - "knowledge/archive/{feature}/handoff-brief.md"

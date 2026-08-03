@@ -6,6 +6,14 @@ import { pathToFileURL } from "node:url";
 
 const VALID_MODES = new Set(["lite", "standard", "strict"]);
 const VALID_STRATEGIES = new Set(["tdd", "test_first", "verification_only"]);
+const SUPPORTED_MANIFEST_SCHEMAS = new Set(["osd-workflow-manifest/v3", "osd-workflow-manifest/v4"]);
+const CURRENT_MANIFEST_SCHEMA = "osd-workflow-manifest/v4";
+const VALID_STATE_STAGES = new Set(["specification", "approval", "planning", "implementation", "verification", "review", "archive", "complete"]);
+const VALID_STATE_STATUSES = new Set(["draft", "proposed", "approved", "in_progress", "verified", "reviewed", "archived", "blocked", "complete"]);
+const VALID_APPROVAL_DECISIONS = new Set(["approved", "rejected", "changes_requested"]);
+const VALID_TASK_STATUSES = new Set(["todo", "in_progress", "done", "blocked"]);
+const ACCEPTANCE_ID = /AC-[0-9]+/g;
+const TASK_ID = /T-[0-9]+/g;
 const MANAGED_ENTRY_START = "<!-- osd-workflow:start -->";
 const MANAGED_ENTRY_END = "<!-- osd-workflow:end -->";
 const REQUIRED_STARTUP_SEQUENCE = [
@@ -131,9 +139,11 @@ function loadManifest(root, errors) {
   }
 }
 
-function validateManifest(root, manifest, errors) {
-  if (manifest.schema !== "osd-workflow-manifest/v3") {
+function validateManifest(root, manifest, errors, warnings = []) {
+  if (!SUPPORTED_MANIFEST_SCHEMAS.has(manifest.schema)) {
     errors.push(`Unsupported manifest schema: ${manifest.schema ?? "(missing)"}`);
+  } else if (manifest.schema !== CURRENT_MANIFEST_SCHEMA) {
+    warnings.push(`Legacy manifest schema requires migration before v4 guarantees apply: ${manifest.schema}`);
   }
   if (!VALID_MODES.has(manifest.default_mode)) {
     errors.push("Manifest default_mode must be lite, standard, or strict.");
@@ -229,6 +239,42 @@ function validateManifest(root, manifest, errors) {
   if (manifest.conditional_stages?.intake?.before !== "specification") {
     errors.push("Manifest conditional intake stage must run before specification.");
   }
+
+  if (manifest.schema === CURRENT_MANIFEST_SCHEMA) {
+    const governance = manifest.governance;
+    const requiredGovernance = [
+      "state_file",
+      "approval_file",
+      "task_file",
+      "verification_file",
+      "archive_result_file",
+      "acceptance_criterion_pattern",
+      "task_pattern",
+    ];
+    for (const field of requiredGovernance) {
+      if (typeof governance?.[field] !== "string" || governance[field].trim() === "") {
+        errors.push(`Manifest governance is missing ${field}.`);
+      }
+    }
+    if (!Array.isArray(governance?.approval_required_modes) || !governance.approval_required_modes.includes("standard") || !governance.approval_required_modes.includes("strict")) {
+      errors.push("Manifest governance approval_required_modes must include standard and strict.");
+    }
+    if (!Array.isArray(governance?.structured_evidence_required_modes) || !governance.structured_evidence_required_modes.includes("standard") || !governance.structured_evidence_required_modes.includes("strict")) {
+      errors.push("Manifest governance structured_evidence_required_modes must include standard and strict.");
+    }
+    if (!Array.isArray(governance?.archive_required_modes) || !governance.archive_required_modes.includes("strict")) {
+      errors.push("Manifest governance archive_required_modes must include strict.");
+    }
+    for (const mode of governance?.approval_required_modes ?? []) {
+      const requiredOutputs = manifest.modes?.[mode]?.required_outputs ?? [];
+      for (const artifact of [governance.approval_file, governance.state_file, governance.task_file, governance.verification_file]) {
+        if (!requiredOutputs.includes(artifact)) errors.push(`Manifest mode ${mode} must require governance artifact ${artifact}.`);
+      }
+    }
+    for (const mode of governance?.archive_required_modes ?? []) {
+      if (!(manifest.modes?.[mode]?.required_outputs ?? []).includes(governance.archive_result_file)) errors.push(`Manifest mode ${mode} must require governance archive result.`);
+    }
+  }
 }
 
 function validateDiscoveryEntries(root, discovery, errors) {
@@ -292,7 +338,150 @@ function validateContent(path, errors) {
   }
 }
 
-function validateDeliveryRecord(path, mode, errors) {
+function readJsonArtifact(path, errors, label) {
+  try {
+    return JSON.parse(readText(path));
+  } catch (error) {
+    errors.push(`${label} is not valid JSON: ${path} (${error.message})`);
+    return null;
+  }
+}
+
+function nonEmptyField(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function uniqueMatches(text, pattern) {
+  return [...new Set([...text.matchAll(pattern)].map((match) => match[0]))];
+}
+
+function definedAcceptanceCriteria(specPath, errors) {
+  const text = readText(specPath);
+  const ids = [...new Set([...text.matchAll(/^\s*(?:[-*]\s*)?(?:\*\*)?(AC-[0-9]+)(?:\*\*)?\s*[:.)-]/gm)].map((match) => match[1]))];
+  if (ids.length === 0) errors.push(`Specification has no uniquely identified acceptance criteria: ${specPath}`);
+  return ids;
+}
+
+function validateState(path, feature, mode, strategy, errors, requireFinalState) {
+  const state = readJsonArtifact(path, errors, "OSD state");
+  if (!state) return null;
+  if (state.schema !== "osd-change-state/v1") errors.push(`OSD state has unsupported schema: ${path}`);
+  if (state.feature !== feature) errors.push(`OSD state feature does not match ${feature}: ${path}`);
+  if (state.mode !== mode) errors.push(`OSD state mode does not match ${mode}: ${path}`);
+  if (state.strategy !== strategy) errors.push(`OSD state strategy does not match ${strategy}: ${path}`);
+  if (!VALID_STATE_STAGES.has(state.stage)) errors.push(`OSD state has invalid stage: ${path}`);
+  if (!VALID_STATE_STATUSES.has(state.status)) errors.push(`OSD state has invalid status: ${path}`);
+  if (!nonEmptyField(state.specification)) errors.push(`OSD state must name the specification: ${path}`);
+  if (!nonEmptyField(state.updated_at) || Number.isNaN(Date.parse(state.updated_at))) errors.push(`OSD state updated_at must be an ISO-8601 timestamp: ${path}`);
+  if (requireFinalState) {
+    const allowed = mode === "strict" ? new Set(["archived", "complete"]) : new Set(["verified", "reviewed", "complete"]);
+    if (!allowed.has(state.status)) errors.push(`OSD state is not final for a passing ${mode} delivery: ${path}`);
+  }
+  return state;
+}
+
+function validateApproval(path, errors) {
+  const text = readText(path);
+  const decision = text.match(/^\s*-\s*Decision:\s*(approved|rejected|changes_requested)\s*$/im)?.[1];
+  if (!VALID_APPROVAL_DECISIONS.has(decision)) errors.push(`Approval has no valid decision: ${path}`);
+  for (const field of ["Reviewer", "Decision timestamp", "Reviewed proposal", "Reviewed specification", "Scope notes", "Residual risks"]) {
+    const pattern = new RegExp(`^\\s*-\\s*${field}:\\s*(?!$).+`, "im");
+    if (!pattern.test(text)) errors.push(`Approval is missing ${field}: ${path}`);
+  }
+  const timestamp = text.match(/^\s*-\s*Decision timestamp:\s*(.+)$/im)?.[1];
+  if (timestamp && Number.isNaN(Date.parse(timestamp.trim()))) errors.push(`Approval timestamp is not ISO-8601: ${path}`);
+  return decision;
+}
+
+function validateTasks(path, criteria, errors) {
+  const lines = readText(path).split(/\r?\n/).filter((line) => /^\s*[-*]\s*T-[0-9]+\s*:/i.test(line));
+  if (lines.length === 0) {
+    errors.push(`Task plan has no atomic tasks: ${path}`);
+    return { ids: new Set(), covered: new Set() };
+  }
+  const ids = new Set();
+  const covered = new Set();
+  const dependencies = new Map();
+  for (const line of lines) {
+    const id = line.match(/\bT-[0-9]+\b/i)?.[0];
+    if (!id) continue;
+    if (ids.has(id)) errors.push(`Task plan contains duplicate task ID ${id}: ${path}`);
+    ids.add(id);
+    const refs = uniqueMatches(line, /AC-[0-9]+/g);
+    for (const ref of refs) {
+      covered.add(ref);
+      if (!criteria.has(ref)) errors.push(`Task ${id} references undefined acceptance criterion ${ref}: ${path}`);
+    }
+    const status = line.match(/\bStatus:\s*(todo|in_progress|done|blocked)\b/i)?.[1]?.toLowerCase();
+    if (!VALID_TASK_STATUSES.has(status)) errors.push(`Task ${id} has no valid status: ${path}`);
+    const depText = line.match(/\bDependencies:\s*([^.]*)/i)?.[1] ?? "";
+    dependencies.set(id, uniqueMatches(depText, /T-[0-9]+/g));
+    if (!/\bVerification:\s*\S+/i.test(line)) errors.push(`Task ${id} is missing a verification method: ${path}`);
+  }
+  for (const criterion of criteria) if (!covered.has(criterion)) errors.push(`Acceptance criterion ${criterion} is not covered by a task: ${path}`);
+  for (const [id, deps] of dependencies) for (const dependency of deps) if (!ids.has(dependency)) errors.push(`Task ${id} depends on unknown task ${dependency}: ${path}`);
+  const visiting = new Set();
+  const visited = new Set();
+  const visit = (id) => {
+    if (visiting.has(id)) return true;
+    if (visited.has(id)) return false;
+    visiting.add(id);
+    const cycle = (dependencies.get(id) ?? []).some((dependency) => ids.has(dependency) && visit(dependency));
+    visiting.delete(id);
+    visited.add(id);
+    return cycle;
+  };
+  for (const id of ids) if (visit(id)) errors.push(`Task plan contains a dependency cycle: ${path}`);
+  return { ids, covered };
+}
+
+function validateVerification(path, strategy, criteria, errors) {
+  const evidence = readJsonArtifact(path, errors, "Verification evidence");
+  if (!evidence) return null;
+  if (evidence.schema !== "osd-verification-evidence/v1") errors.push(`Verification evidence has unsupported schema: ${path}`);
+  if (evidence.strategy !== strategy) errors.push(`Verification evidence strategy does not match ${strategy}: ${path}`);
+  if (!Array.isArray(evidence.steps) || evidence.steps.length === 0) {
+    errors.push(`Verification evidence has no steps: ${path}`);
+    return evidence;
+  }
+  const names = new Set(evidence.steps.map((step) => step?.step));
+  const has = (...values) => values.some((value) => names.has(value));
+  const required = strategy === "tdd" ? [["red"], ["green"], ["refactor"]] : strategy === "test_first" ? [["failing_before", "red"], ["passing_after", "green"]] : [["focused"]];
+  for (const alternatives of required) if (!has(...alternatives)) errors.push(`Verification evidence is missing ${alternatives.join(" or ")}: ${path}`);
+  const covered = new Set();
+  for (const step of evidence.steps) {
+    if (!step || typeof step !== "object") {
+      errors.push(`Verification evidence contains a non-object step: ${path}`);
+      continue;
+    }
+    if (!nonEmptyField(step.command_id)) errors.push(`Verification evidence step is missing command_id: ${path}`);
+    if (!Number.isInteger(step.exit_code)) errors.push(`Verification evidence step has an invalid exit_code: ${path}`);
+    if (!nonEmptyField(step.observed_at) || Number.isNaN(Date.parse(step.observed_at))) errors.push(`Verification evidence step has an invalid observed_at: ${path}`);
+    if (!Array.isArray(step.covered_acceptance_criteria)) errors.push(`Verification evidence step is missing covered_acceptance_criteria: ${path}`);
+    for (const criterion of step.covered_acceptance_criteria ?? []) {
+      covered.add(criterion);
+      if (!criteria.has(criterion)) errors.push(`Verification evidence references undefined acceptance criterion ${criterion}: ${path}`);
+    }
+    if ((step.step === "red" || step.step === "failing_before") && step.exit_code === 0) errors.push(`Verification evidence ${step.step} step must fail with a non-zero exit code: ${path}`);
+    if (["green", "refactor", "passing_after", "focused"].includes(step.step) && step.exit_code !== 0) errors.push(`Verification evidence ${step.step} step must pass with exit code 0: ${path}`);
+  }
+  for (const criterion of criteria) if (!covered.has(criterion)) errors.push(`Acceptance criterion ${criterion} has no verification evidence: ${path}`);
+  return evidence;
+}
+
+function validateArchiveResult(path, errors) {
+  const archive = readJsonArtifact(path, errors, "Archive result");
+  if (!archive) return null;
+  if (archive.schema !== "osd-archive-result/v1") errors.push(`Archive result has unsupported schema: ${path}`);
+  if (archive.status !== "archived") errors.push(`Archive result is not archived: ${path}`);
+  if (archive.exit_code !== 0) errors.push(`Archive result must have exit_code 0: ${path}`);
+  for (const field of ["native_command", "archived_change_location", "completed_at", "summary"]) if (!nonEmptyField(archive[field])) errors.push(`Archive result is missing ${field}: ${path}`);
+  if (!nonEmptyField(archive.completed_at) || Number.isNaN(Date.parse(archive.completed_at))) errors.push(`Archive result completed_at must be ISO-8601: ${path}`);
+  if (!["not_required", "passed"].includes(archive.knowledge_sync)) errors.push(`Archive result knowledge_sync must be not_required or passed: ${path}`);
+  return archive;
+}
+
+function validateDeliveryRecord(path, mode, errors, governanceEnabled) {
   const text = readText(path);
   const strategyMatch = text.match(/^\s*-\s*Development strategy:\s*(tdd|test_first|verification_only)\s*$/im);
   const requiredPatterns = [
@@ -306,6 +495,14 @@ function validateDeliveryRecord(path, mode, errors) {
     ["verification", /^\s*-\s*(Verification|Commands and exit codes):\s*(?!\s*$).+/im],
     ["result", /^\s*-\s*Result:\s*pass\s*$/im],
   ];
+
+  if (governanceEnabled) {
+    requiredPatterns.push(
+      ["approval", /^\s*-\s*Approval:\s*(?!N\/A\s*$)(?!none\s*$)(?!\s*$).+/im],
+      ["task traceability", /^\s*-\s*Task traceability:\s*(?!N\/A\s*$)(?!none\s*$)(?!\s*$).+/im],
+      ["evidence", /^\s*-\s*(?:Evidence|Structured evidence):\s*(?!N\/A\s*$)(?!none\s*$)(?!\s*$).+/im],
+    );
+  }
 
   for (const [field, pattern] of requiredPatterns) {
     if (!pattern.test(text)) {
@@ -342,7 +539,7 @@ export function verify(options) {
     return { root, mode: null, feature: options.feature || null, structuralOnly: options.structuralOnly, errors, warnings };
   }
 
-  validateManifest(root, manifest, errors);
+  validateManifest(root, manifest, errors, warnings);
   if (options.structuralOnly) {
     return { root, mode: null, feature: null, structuralOnly: true, errors, warnings };
   }
@@ -380,8 +577,30 @@ export function verify(options) {
   }
 
   const reportPath = join(root, "knowledge", "archive", options.feature, "stage-report.md");
+  const governanceEnabled = manifest.schema === CURRENT_MANIFEST_SCHEMA && ["standard", "strict"].includes(mode);
   if (nonEmptyFile(reportPath)) {
-    validateDeliveryRecord(reportPath, mode, errors);
+    validateDeliveryRecord(reportPath, mode, errors, governanceEnabled);
+  }
+
+  if (governanceEnabled) {
+    const specPath = resolveArtifact(root, "openspec/changes/{feature}/spec.md", options.feature);
+    const statePath = resolveArtifact(root, manifest.governance.state_file, options.feature);
+    const approvalPath = resolveArtifact(root, manifest.governance.approval_file, options.feature);
+    const taskPath = resolveArtifact(root, manifest.governance.task_file, options.feature);
+    const verificationPath = resolveArtifact(root, manifest.governance.verification_file, options.feature);
+    const reportText = nonEmptyFile(reportPath) ? readText(reportPath) : "";
+    const strategy = reportText.match(/^\s*-\s*Development strategy:\s*(tdd|test_first|verification_only)\s*$/im)?.[1]?.toLowerCase();
+    if (!strategy) errors.push(`Delivery record has no usable development strategy: ${reportPath}`);
+    const criteria = existsSync(specPath) && statSync(specPath).isFile() ? new Set(definedAcceptanceCriteria(specPath, errors)) : new Set();
+    const approval = existsSync(approvalPath) && statSync(approvalPath).isFile() ? validateApproval(approvalPath, errors) : null;
+    if (approval !== "approved") errors.push(`Change must be approved before delivery verification: ${approvalPath}`);
+    validateState(statePath, options.feature, mode, strategy, errors, /^\s*-\s*Result:\s*pass\s*$/im.test(reportText));
+    validateTasks(taskPath, criteria, errors);
+    if (strategy) validateVerification(verificationPath, strategy, criteria, errors);
+    if (mode === "strict") {
+      const archivePath = resolveArtifact(root, manifest.governance.archive_result_file, options.feature);
+      validateArchiveResult(archivePath, errors);
+    }
   }
 
   return { root, mode, feature: options.feature, structuralOnly: false, errors, warnings };

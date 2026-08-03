@@ -4,6 +4,11 @@
 
 Archive only the context worth reusing. Required files are defined per mode in `.ai/workflow-manifest.json`.
 
+Standard and strict changes must retain the approval decision, change state,
+atomic task mapping, and structured verification evidence alongside the native
+OpenSpec artifacts. These are traceability records, not replacements for the
+OpenSpec specification or archive lifecycle.
+
 ## Lite
 
 Keep only:

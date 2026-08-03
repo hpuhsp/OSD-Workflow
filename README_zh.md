@@ -38,8 +38,8 @@ OSD 刻意保持为薄编排层：只选择流程深度和最低证据，再把�
 | 模式 | 适用任务 | 必需流程 |
 |---|---|---|
 | `lite` | 简单、局部、低风险任务 | OSD 路由 → 精简 OpenSpec → 实现 → 聚焦验证 |
-| `standard` | 中等规模日常任务，默认模式 | OSD 路由 → OpenSpec proposal/spec → 计划 → 实现 → 验证 → 精简评审 |
-| `strict` | 复杂、模糊、高风险、跨模块或发布关键任务 | OSD 路由 → 完整 OpenSpec → 规格评审 → 计划 → 实现 → 完整验证 → 评审 → 归档 |
+| `standard` | 中等规模日常任务，默认模式 | OSD 路由 → OpenSpec proposal/spec → 批准 → 原子任务 → 实现 → 验证 → 精简评审 |
+| `strict` | 复杂、模糊、高风险、跨模块或发布关键任务 | OSD 路由 → 完整 OpenSpec → 规格评审 → 批准 → 原子任务 → 实现 → 完整验证 → 评审 → 归档 |
 
 OpenSpec 和 Superpowers 在三种模式中都必须参与。变化的只是过程深度和产物数量。
 
@@ -53,7 +53,7 @@ OpenSpec 和 Superpowers 在三种模式中都必须参与。变化的只是过�
 | `test_first` | Bug 修复、已有行为修改、重构 | 修改前失败、修改后通过 |
 | `verification_only` | 文档、配置、纯样式、探索性工作、缺少合理测试边界 | 原因和聚焦验证 |
 
-TDD 是条件化开发策略，不是第四种工作流模式。证据写入现有交付记录，不新增独立 TDD 报告。
+TDD 是条件化开发策略，不是第四种工作流模式。摘要证据写入现有交付记录；standard 和 strict 另外写入 `verification.json` 结构化证据，不新增独立 TDD 报告。
 
 ## 按任务类型路由
 
@@ -74,7 +74,7 @@ TDD 是条件化开发策略，不是第四种工作流模式。证据写入现�
 - `openspec/changes/{feature}/spec.md`
 - `knowledge/archive/{feature}/stage-report.md`
 
-`standard` 增加 OpenSpec proposal 和精简实施计划。验证与评审默认合并到 `stage-report.md`，只有在风险控制或交接需要时才单独生成报告；`strict` 保留完整设计、验证、评审和归档证据。
+`standard` 增加 OpenSpec proposal、明确批准、机器可读状态、原子任务、结构化验证证据和精简实施计划。验证与评审默认合并到 `stage-report.md`，只有在风险控制或交接需要时才单独生成报告；`strict` 额外保留完整设计、验证、评审和归档结果证据。
 
 `.ai/workflow-manifest.json` 是唯一机器可读产物契约。不要在多个文件中重复相同内容。仅在另一个 Agent 将继续任务时创建 `handoff-brief.md`。
 
@@ -83,8 +83,8 @@ TDD 是条件化开发策略，不是第四种工作流模式。证据写入现�
 | 模式 | 必需文件 |
 |---|---|
 | `lite` | `openspec/changes/{feature}/spec.md`、`knowledge/archive/{feature}/stage-report.md` |
-| `standard` | `proposal.md`、`spec.md`、`knowledge/archive/{feature}/implementation.md`、`stage-report.md` |
-| `strict` | `proposal.md`、`spec.md`、`design.md`、`implementation.md`、`test-report.md`、`review-report.md`、`stage-report.md` |
+| `standard` | `proposal.md`、`spec.md`、`approval.md`、`osd-state.json`、`tasks.md`、`verification.json`、`knowledge/archive/{feature}/implementation.md`、`stage-report.md` |
+| `strict` | `proposal.md`、`spec.md`、`design.md`、`approval.md`、`osd-state.json`、`tasks.md`、`verification.json`、`archive-result.json`、`implementation.md`、`test-report.md`、`review-report.md`、`stage-report.md` |
 
 ## 安装 OSD Workflow
 

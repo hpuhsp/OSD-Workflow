@@ -7,7 +7,10 @@ agent:
     - "../rules/workflow-execution-rule.md"
     - "../rules/testing-rule.md"
   context_priority:
+    - "openspec/changes/{feature}/osd-state.json"
     - "openspec/changes/{feature}/spec.md"
+    - "openspec/changes/{feature}/tasks.md"
+    - "assigned task ID and linked acceptance criteria"
     - "Current code changes"
     - "knowledge/archive/{feature}/implementation.md"
     - ".codegraph"
@@ -16,3 +19,4 @@ agent:
     lite: "knowledge/archive/{feature}/stage-report.md"
     standard: "knowledge/archive/{feature}/stage-report.md"
     strict: "knowledge/archive/{feature}/test-report.md"
+  evidence: "openspec/changes/{feature}/verification.json"

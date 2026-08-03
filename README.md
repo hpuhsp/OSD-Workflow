@@ -38,8 +38,8 @@ Every task must:
 | Mode | Use for | Required flow |
 |---|---|---|
 | `lite` | Simple, localized, low-risk work | OSD route → compact OpenSpec → implementation → verification |
-| `standard` | Normal medium-scope work; default | OSD route → OpenSpec proposal/spec → plan → implementation → verification → review |
-| `strict` | Complex, ambiguous, high-risk, cross-module, or release-critical work | OSD route → full OpenSpec → spec review → plan → implementation → full verification → review → archive |
+| `standard` | Normal medium-scope work; default | OSD route → OpenSpec proposal/spec → approval → atomic tasks → implementation → verification → review |
+| `strict` | Complex, ambiguous, high-risk, cross-module, or release-critical work | OSD route → full OpenSpec → spec review → approval → atomic tasks → implementation → full verification → review → archive |
 
 OpenSpec and Superpowers participate in all three modes. Only process depth and artifact volume change.
 
@@ -53,7 +53,7 @@ Mode and development strategy are separate decisions:
 | `test_first` | Bug fixes, existing behavior changes, refactors | Failing-before and passing-after evidence |
 | `verification_only` | Docs, config, pure styling, exploration, impractical test boundary | Reason plus focused verification |
 
-TDD is conditional, not a fourth workflow mode. Evidence stays in the existing delivery record; no separate TDD report is required.
+TDD is conditional, not a fourth workflow mode. Summary evidence stays in the delivery record; standard and strict work additionally records structured evidence in `verification.json`. No separate TDD report is required.
 
 ## Task-Aware Routing
 
@@ -74,7 +74,7 @@ Escalate when scope, uncertainty, or risk grows. A user may explicitly choose a 
 - `openspec/changes/{feature}/spec.md`
 - `knowledge/archive/{feature}/stage-report.md`
 
-`standard` adds an OpenSpec proposal and a concise implementation plan. Verification and review stay in `stage-report.md` unless a separate report adds risk-control or handoff value. `strict` keeps full design, verification, review, and archive evidence.
+`standard` adds an OpenSpec proposal, explicit approval, machine-readable state, atomic tasks, structured verification evidence, and a concise implementation plan. Verification and review stay in `stage-report.md` unless a separate report adds risk-control or handoff value. `strict` additionally requires design, full verification/review evidence, and an archive result.
 
 The machine-readable output contract is `.ai/workflow-manifest.json`. Do not duplicate the same information across files. Create `handoff-brief.md` only when another agent will continue the task.
 
@@ -83,8 +83,8 @@ The required delivery files are mode-dependent:
 | Mode | Required files |
 |---|---|
 | `lite` | `openspec/changes/{feature}/spec.md`, `knowledge/archive/{feature}/stage-report.md` |
-| `standard` | `proposal.md`, `spec.md`, `knowledge/archive/{feature}/implementation.md`, `stage-report.md` |
-| `strict` | `proposal.md`, `spec.md`, `design.md`, `implementation.md`, `test-report.md`, `review-report.md`, `stage-report.md` |
+| `standard` | `proposal.md`, `spec.md`, `approval.md`, `osd-state.json`, `tasks.md`, `verification.json`, `knowledge/archive/{feature}/implementation.md`, `stage-report.md` |
+| `strict` | `proposal.md`, `spec.md`, `design.md`, `approval.md`, `osd-state.json`, `tasks.md`, `verification.json`, `archive-result.json`, `implementation.md`, `test-report.md`, `review-report.md`, `stage-report.md` |
 
 The complete paths and optional outputs are defined only by `.ai/workflow-manifest.json`; the table above is a quick reference.
 

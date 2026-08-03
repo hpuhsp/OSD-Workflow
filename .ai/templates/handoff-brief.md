@@ -6,6 +6,10 @@
 - Execution mode: standard
 - Next stage:
 - Blockers:
+- Current task ID:
+- Completed task IDs:
+- Blocked task IDs:
+- Next task acceptance criteria:
 
 ## Requirement Summary
 

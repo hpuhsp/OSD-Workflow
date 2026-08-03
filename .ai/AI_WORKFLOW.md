@@ -33,8 +33,8 @@ Every task follows the same SDD baseline:
 The amount of process scales with complexity and risk:
 
 - `lite`: compact OpenSpec spec plus one delivery record containing focused verification.
-- `standard`: OpenSpec proposal/spec, concise plan, and one delivery record containing verification and review.
-- `strict`: full OpenSpec proposal/spec/design, review checkpoints, plan, implementation, full verification, review, archive.
+- `standard`: OpenSpec proposal/spec, approval, atomic tasks, concise plan, and one delivery record containing verification and review.
+- `strict`: full OpenSpec proposal/spec/design, approval checkpoint, atomic tasks, plan, implementation, full verification, review, archive.
 
 The default is `standard`. Use `lite` for clear low-risk work and `strict` for high-risk, ambiguous, cross-module, or release-critical work.
 
@@ -47,6 +47,9 @@ After selecting a mode, select how implementation will be produced:
 - `verification_only`: implementation -> focused verification for docs, config, pure styling, or work without a practical test-first boundary.
 
 TDD evidence stays in the existing delivery record. Do not create a separate TDD report.
+
+Standard and strict changes also carry explicit approval, `AC-*` acceptance-criteria IDs,
+`T-*` atomic tasks, `osd-state.json`, and structured `verification.json` evidence.
 
 ## Task Types
 

@@ -12,4 +12,10 @@ Artifact depth scales by mode:
 
 Every spec must define expected behavior, boundaries, and testable acceptance criteria before implementation begins. Record the OpenSpec change path and concise validation or acceptance result in `knowledge/archive/{feature}/stage-report.md`.
 
+For standard and strict changes, OSD additionally requires an explicit approval
+decision, `osd-state.json`, atomic `T-*` tasks covering `AC-*` criteria, and
+structured `verification.json` evidence. These files strengthen the OSD delivery
+contract without replacing OpenSpec's native proposal, task, validation, apply,
+or archive lifecycle.
+
 Use the current OpenSpec CLI lifecycle for proposal, specification, validation, apply, and archive. OSD selects the depth and required evidence; it does not duplicate those commands.

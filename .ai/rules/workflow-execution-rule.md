@@ -14,6 +14,7 @@ OSD Workflow is the top-level controller. It owns task classification, mode sele
 - Superpowers is the required execution method inside the active OSD stage.
 - OpenSpec and Superpowers must not replace, prepend, skip, or reorder OSD stages.
 - Superpowers brainstorming belongs inside the OSD specification stage. It is not a top-level stage before OpenSpec.
+- Standard and strict work must record explicit approval before planning advances to implementation.
 
 Before announcing or executing a process:
 
@@ -21,6 +22,10 @@ Before announcing or executing a process:
 2. Classify the task and select the mode and development strategy.
 3. Announce only `OSD: <task_type> | <mode> | <strategy> | <current_stage>`.
 4. Invoke OpenSpec and Superpowers only in their roles within the current OSD stage.
+
+For standard and strict work, the required OpenSpec artifacts, `osd-state.json`,
+`approval.md`, `tasks.md`, and structured `verification.json` evidence must exist
+before implementation or final delivery.
 
 Do not lead with “Superpowers is loaded” or restate a generic `brainstorm -> plan -> implement` process. For `standard` and `strict`, the required OpenSpec artifacts must exist before planning or implementation.
 
@@ -75,6 +80,10 @@ For `tdd`, record concise Red, Green, and Refactor evidence. For `test_first`, r
 
 Do not force TDD onto work without a meaningful executable test boundary. Do not use `verification_only` merely to avoid writing practical regression tests.
 
+Acceptance criteria use stable `AC-*` identifiers. Standard and strict tasks use
+stable `T-*` identifiers and must link each non-trivial acceptance criterion to
+an atomic task and verification evidence.
+
 ## Mode Rules
 
 ### Lite
@@ -87,7 +96,7 @@ Flow: OSD route -> compact OpenSpec with Superpowers assistance -> implementatio
 
 ### Standard
 
-Flow: OSD route -> OpenSpec with Superpowers assistance -> plan -> implementation -> verification -> review.
+Flow: OSD route -> OpenSpec with Superpowers assistance -> approval -> atomic tasks -> plan -> implementation -> verification -> review.
 
 - Use a concise OpenSpec proposal and spec; add design only when it adds value.
 - Keep the plan in `implementation.md` and summarize verification and review in the compact delivery record.
@@ -95,7 +104,7 @@ Flow: OSD route -> OpenSpec with Superpowers assistance -> plan -> implementatio
 
 ### Strict
 
-Flow: OSD route -> optional intake -> full OpenSpec with Superpowers assistance -> spec review -> plan -> implementation -> verification -> review -> archive.
+Flow: OSD route -> optional intake -> full OpenSpec with Superpowers assistance -> spec review -> approval -> atomic tasks -> plan -> implementation -> verification -> review -> archive.
 
 - Use the global OpenSpec CLI against the project workspace.
 - Use full specification, design, verification, review, and archive evidence.

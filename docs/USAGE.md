@@ -47,22 +47,22 @@ knowledge/archive/{feature}/stage-report.md
 Default for medium-scope daily work.
 
 ```text
-OSD route -> OpenSpec proposal/spec -> concise plan -> implementation -> verification -> concise review
+OSD route -> OpenSpec proposal/spec -> approval -> atomic tasks -> concise plan -> implementation -> verification -> concise review
 ```
 
 Verification and review are summarized in `stage-report.md`; separate reports are optional unless risk or handoff value justifies them.
 
-Required artifacts are `proposal.md`, `spec.md`, `knowledge/archive/{feature}/implementation.md`, and `stage-report.md`.
+Required artifacts are `proposal.md`, `spec.md`, `approval.md`, `osd-state.json`, `tasks.md`, `verification.json`, `knowledge/archive/{feature}/implementation.md`, and `stage-report.md`.
 
 ### Strict
 
 For complex, ambiguous, cross-module, high-risk, regulated, or release-critical work.
 
 ```text
-OSD route -> full OpenSpec -> spec review -> plan -> implementation -> full verification -> review -> archive
+OSD route -> full OpenSpec -> spec review -> approval -> atomic tasks -> plan -> implementation -> full verification -> review -> archive
 ```
 
-Required artifacts are `proposal.md`, `spec.md`, `design.md`, `implementation.md`, `test-report.md`, `review-report.md`, and `stage-report.md` under their mode-specific directories.
+Required artifacts are `proposal.md`, `spec.md`, `design.md`, `approval.md`, `osd-state.json`, `tasks.md`, `verification.json`, `archive-result.json`, `implementation.md`, `test-report.md`, `review-report.md`, and `stage-report.md` under their mode-specific directories.
 
 ## Development Strategies
 
@@ -120,7 +120,9 @@ npx --yes github:hpuhsp/OSD-Workflow update .
 
 Add `--with-docs` to refresh usage guides and `--dry-run` to preview. Update overwrites template-managed files but preserves project-owned OpenSpec changes and knowledge archives.
 
-When upgrading an active delivery to manifest v3, add `OSD controller: osd_workflow` plus non-empty OpenSpec and Superpowers participation fields to its existing `stage-report.md`.
+When upgrading an active delivery from manifest v3, use the migration guidance
+to add approval, state, task, and structured-evidence artifacts. Legacy v3
+verification must be explicit and must not claim the v4 guarantees.
 
 ## Verification
 
@@ -144,7 +146,13 @@ Verify only the installed contract:
 node scripts/verify-workflow-artifacts.mjs --structural-only
 ```
 
-The verifier checks regular, non-empty required files, acceptance criteria, selected delivery-record fields, and strategy evidence. It does not audit chat history, prove that an external harness was invoked, or require a separate report for every stage.
+The verifier checks regular, non-empty required files, approval state, `AC-*` criteria, `T-*` task coverage, structured evidence, selected delivery-record fields, and strategy evidence. It does not execute arbitrary commands from artifacts, audit chat history, or prove that an external harness was invoked.
+
+For standard and strict work, a passing delivery requires an approved `approval.md`,
+an `osd-state.json` in a final state, tasks covering every acceptance criterion, and
+`verification.json` covering those criteria. Strict work additionally requires a
+successful native OpenSpec archive result. `lite` remains exempt from these heavier
+gates unless the task is escalated.
 
 ## Compact Delivery Record
 

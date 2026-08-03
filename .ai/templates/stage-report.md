@@ -8,6 +8,8 @@
 - OSD controller: osd_workflow
 - OpenSpec participation:
 - Superpowers participation:
+- Approval:
+- Task traceability:
 - Complexity and risk reason:
 - Result: pass | blocked | partial
 
@@ -31,6 +33,7 @@
 ## Verification And Review
 
 - Commands and exit codes:
+- Structured evidence: `openspec/changes/{feature}/verification.json`
 - Evidence:
 - Review result:
 - Residual risks:

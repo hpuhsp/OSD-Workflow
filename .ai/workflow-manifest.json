@@ -1,5 +1,5 @@
 {
-  "schema": "osd-workflow-manifest/v3",
+  "schema": "osd-workflow-manifest/v4",
   "workflow": ".ai/workflows/feature-development.yaml",
   "execution_rule": ".ai/rules/workflow-execution-rule.md",
   "default_mode": "standard",
@@ -97,6 +97,19 @@
       "required_evidence": ["strategy_reason"]
     }
   },
+  "governance": {
+    "state_file": "openspec/changes/{feature}/osd-state.json",
+    "approval_file": "openspec/changes/{feature}/approval.md",
+    "task_file": "openspec/changes/{feature}/tasks.md",
+    "verification_file": "openspec/changes/{feature}/verification.json",
+    "archive_result_file": "openspec/changes/{feature}/archive-result.json",
+    "acceptance_criterion_pattern": "AC-[0-9]+",
+    "task_pattern": "T-[0-9]+",
+    "approval_required_modes": ["standard", "strict"],
+    "structured_evidence_required_modes": ["standard", "strict"],
+    "archive_required_modes": ["strict"],
+    "legacy_schemas": ["osd-workflow-manifest/v3"]
+  },
   "references": [
     ".ai/rules/workflow-execution-rule.md",
     ".ai/rules/development-rule.md",
@@ -109,6 +122,11 @@
     ".ai/templates/stage-report-compact.md",
     ".ai/templates/stage-report.md",
     ".ai/templates/handoff-brief.md",
+    ".ai/templates/approval.md",
+    ".ai/templates/tasks.md",
+    ".ai/templates/osd-state.json",
+    ".ai/templates/verification.json",
+    ".ai/templates/archive-result.json",
     ".ai/templates/feishu-project-requirement.md",
     ".ai/templates/agent-entry.md"
   ],
@@ -155,10 +173,14 @@
     },
     "standard": {
       "description": "Default for medium-scope daily development.",
-      "stages": ["specification", "planning", "implementation", "verification", "review"],
+      "stages": ["specification", "approval", "planning", "implementation", "verification", "review"],
       "required_outputs": [
         "openspec/changes/{feature}/proposal.md",
         "openspec/changes/{feature}/spec.md",
+        "openspec/changes/{feature}/approval.md",
+        "openspec/changes/{feature}/osd-state.json",
+        "openspec/changes/{feature}/tasks.md",
+        "openspec/changes/{feature}/verification.json",
         "knowledge/archive/{feature}/implementation.md",
         "knowledge/archive/{feature}/stage-report.md"
       ],
@@ -171,11 +193,16 @@
     },
     "strict": {
       "description": "Complex, high-risk, ambiguous, or release-critical work.",
-      "stages": ["specification", "spec-review", "planning", "implementation", "verification", "review", "archive"],
+      "stages": ["specification", "spec-review", "approval", "planning", "implementation", "verification", "review", "archive"],
       "required_outputs": [
         "openspec/changes/{feature}/proposal.md",
         "openspec/changes/{feature}/spec.md",
         "openspec/changes/{feature}/design.md",
+        "openspec/changes/{feature}/approval.md",
+        "openspec/changes/{feature}/osd-state.json",
+        "openspec/changes/{feature}/tasks.md",
+        "openspec/changes/{feature}/verification.json",
+        "openspec/changes/{feature}/archive-result.json",
         "knowledge/archive/{feature}/implementation.md",
         "knowledge/archive/{feature}/test-report.md",
         "knowledge/archive/{feature}/review-report.md",
@@ -212,6 +239,12 @@
       "specification",
       "verification",
       "result"
+    ],
+    "governed_stage_report_required_fields": [
+      "approval",
+      "task_traceability",
+      "evidence",
+      "archive_result"
     ]
   }
 }

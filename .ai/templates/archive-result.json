@@ -1,0 +1,11 @@
+{
+  "schema": "osd-archive-result/v1",
+  "feature": "{feature}",
+  "status": "archived|active|blocked",
+  "native_command": "OpenSpec native archive command or integration identifier",
+  "exit_code": 0,
+  "archived_change_location": "path or URL",
+  "knowledge_sync": "not_required|passed|failed",
+  "completed_at": "ISO-8601 timestamp",
+  "summary": "short observed result"
+}
