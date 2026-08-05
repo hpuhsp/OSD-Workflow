@@ -110,6 +110,19 @@ Flow: OSD route -> optional intake -> full OpenSpec with Superpowers assistance 
 - Use full specification, design, verification, review, and archive evidence.
 - Use the detailed stage report only when traceability requires it.
 
+## Runtime Governance
+
+For `standard` and `strict` delivery, use the single resource and policy catalog at `.ai/runtime-governance/governance.json`.
+
+- Generate one runnable context package per atomic `T-*` task under `openspec/changes/{feature}/context/`.
+- The coordinator routes, decomposes, assigns, and aggregates; it does not write business code.
+- Each atomic task has exactly one active write-capable executor with declared owned areas and isolated execution.
+- Test verifier and reviewer stay read-only. They run approved verification or inspect the specification, task, diff, and evidence; neither merges changes.
+- Monitor stays read-only and may only report timeout, retry, policy, verification, or blockage signals. It cannot approve delivery or modify code.
+- `lite` defaults to the executor only; `standard` adds test/review/monitor only when risk requires them; `strict` requires executor, test verifier, reviewer, and monitor evidence.
+- Record metadata-only runtime events in `run-events.jsonl`; do not store prompts, source, credentials, raw inputs, or raw tool outputs.
+- Record deterministic acceptance-criterion evaluation in `evaluation.json` and derive `runtime-summary.json` from the event log.
+
 ## Artifact Rules
 
 The machine-readable required output list is `.ai/workflow-manifest.json`.

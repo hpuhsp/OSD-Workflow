@@ -3,11 +3,18 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { basename, isAbsolute, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import {
+  summarizeRunEvents,
+  validateContextPackage,
+  validateEvaluationRecord,
+  validateRunEvent,
+  validateRuntimeCatalog,
+} from "./runtime-governance.mjs";
 
 const VALID_MODES = new Set(["lite", "standard", "strict"]);
 const VALID_STRATEGIES = new Set(["tdd", "test_first", "verification_only"]);
-const SUPPORTED_MANIFEST_SCHEMAS = new Set(["osd-workflow-manifest/v3", "osd-workflow-manifest/v4"]);
-const CURRENT_MANIFEST_SCHEMA = "osd-workflow-manifest/v4";
+const SUPPORTED_MANIFEST_SCHEMAS = new Set(["osd-workflow-manifest/v3", "osd-workflow-manifest/v4", "osd-workflow-manifest/v5"]);
+const CURRENT_MANIFEST_SCHEMA = "osd-workflow-manifest/v5";
 const VALID_STATE_STAGES = new Set(["specification", "approval", "planning", "implementation", "verification", "review", "archive", "complete"]);
 const VALID_STATE_STATUSES = new Set(["draft", "proposed", "approved", "in_progress", "verified", "reviewed", "archived", "blocked", "complete"]);
 const VALID_APPROVAL_DECISIONS = new Set(["approved", "rejected", "changes_requested"]);
@@ -143,7 +150,7 @@ function validateManifest(root, manifest, errors, warnings = []) {
   if (!SUPPORTED_MANIFEST_SCHEMAS.has(manifest.schema)) {
     errors.push(`Unsupported manifest schema: ${manifest.schema ?? "(missing)"}`);
   } else if (manifest.schema !== CURRENT_MANIFEST_SCHEMA) {
-    warnings.push(`Legacy manifest schema requires migration before v4 guarantees apply: ${manifest.schema}`);
+    warnings.push(`Legacy manifest schema requires migration before v5 runtime governance applies: ${manifest.schema}`);
   }
   if (!VALID_MODES.has(manifest.default_mode)) {
     errors.push("Manifest default_mode must be lite, standard, or strict.");
@@ -273,6 +280,28 @@ function validateManifest(root, manifest, errors, warnings = []) {
     }
     for (const mode of governance?.archive_required_modes ?? []) {
       if (!(manifest.modes?.[mode]?.required_outputs ?? []).includes(governance.archive_result_file)) errors.push(`Manifest mode ${mode} must require governance archive result.`);
+    }
+
+    const runtime = manifest.runtime_governance;
+    const requiredRuntime = ["contract_version", "catalog_file", "context_directory", "run_events_file", "evaluation_file", "summary_file"];
+    if (runtime?.enabled !== true) errors.push("Manifest runtime_governance must be enabled for v5.");
+    for (const field of requiredRuntime) {
+      if (typeof runtime?.[field] !== "string" || runtime[field].trim() === "") errors.push(`Manifest runtime_governance is missing ${field}.`);
+    }
+    if (runtime?.contract_version !== "osd-runtime-governance/v1") errors.push("Manifest runtime_governance has an unsupported contract_version.");
+    if (!Array.isArray(runtime?.required_modes) || !runtime.required_modes.includes("standard") || !runtime.required_modes.includes("strict")) errors.push("Manifest runtime_governance required_modes must include standard and strict.");
+    for (const [mode, roles] of Object.entries(runtime?.required_roles_by_mode ?? {})) {
+      if (!VALID_MODES.has(mode) || !Array.isArray(roles) || !roles.includes("executor")) errors.push(`Manifest runtime_governance has invalid role requirements for ${mode}.`);
+    }
+    for (const role of ["executor", "test_verifier", "reviewer", "monitor"]) {
+      if (!runtime?.required_roles_by_mode?.strict?.includes(role)) errors.push(`Manifest strict runtime_governance must require ${role}.`);
+    }
+    const catalogPath = typeof runtime?.catalog_file === "string" ? resolve(root, runtime.catalog_file) : null;
+    if (!catalogPath || !nonEmptyFile(catalogPath)) {
+      errors.push("Missing or empty runtime governance catalog.");
+    } else {
+      const catalog = readJsonArtifact(catalogPath, errors, "Runtime governance catalog");
+      if (catalog) errors.push(...validateRuntimeCatalog(catalog).map((error) => `Runtime governance catalog: ${error}`));
     }
   }
 }
@@ -481,6 +510,79 @@ function validateArchiveResult(path, errors) {
   return archive;
 }
 
+function readJsonLines(path, errors, label) {
+  const records = [];
+  for (const [index, line] of readText(path).split(/\r?\n/).entries()) {
+    if (!line.trim()) continue;
+    try {
+      records.push(JSON.parse(line));
+    } catch (error) {
+      errors.push(`${label} line ${index + 1} is not valid JSON: ${path} (${error.message})`);
+    }
+  }
+  return records;
+}
+
+function sameSummary(expected, actual) {
+  return Object.keys(expected).every((key) => expected[key] === actual?.[key]);
+}
+
+function validateRuntimeGovernance(root, manifest, feature, mode, strategy, criteria, taskIds, errors) {
+  const runtime = manifest.runtime_governance;
+  if (!runtime?.enabled || !runtime.required_modes?.includes(mode)) return;
+  const resolveRuntime = (template) => resolveArtifact(root, template, feature);
+  const catalogPath = resolve(root, runtime.catalog_file);
+  const catalog = nonEmptyFile(catalogPath) ? readJsonArtifact(catalogPath, errors, "Runtime governance catalog") : null;
+  if (!catalog) return;
+
+  const contextDirectory = resolveRuntime(runtime.context_directory);
+  for (const taskId of taskIds) {
+    const contextPath = join(contextDirectory, `${taskId}.json`);
+    if (!nonEmptyFile(contextPath)) {
+      errors.push(`Missing or empty runtime context package for ${taskId}: ${relative(root, contextPath)}`);
+      continue;
+    }
+    const context = readJsonArtifact(contextPath, errors, "Runtime context package");
+    if (context) errors.push(...validateContextPackage(context, { feature, mode, strategy, taskId, criteria, catalog }).map((error) => `Runtime context ${taskId}: ${error}`));
+  }
+
+  const eventsPath = resolveRuntime(runtime.run_events_file);
+  let events = [];
+  if (!nonEmptyFile(eventsPath)) {
+    errors.push(`Missing or empty runtime event log: ${relative(root, eventsPath)}`);
+  } else {
+    events = readJsonLines(eventsPath, errors, "Runtime event log");
+    for (const event of events) {
+      errors.push(...validateRunEvent(event).map((error) => `Runtime event: ${error}`));
+      if (event?.feature !== feature) errors.push(`Runtime event feature does not match ${feature}: ${relative(root, eventsPath)}`);
+      if (event?.contract_version !== catalog.version) errors.push(`Runtime event contract_version does not match runtime catalog: ${relative(root, eventsPath)}`);
+    }
+    for (const role of runtime.required_roles_by_mode?.[mode] ?? []) {
+      if (!events.some((event) => event.actor_role === role && event.event_type === "role_completed" && event.status === "completed")) errors.push(`Runtime event log has no completed ${role} role evidence: ${relative(root, eventsPath)}`);
+    }
+  }
+
+  const evaluationPath = resolveRuntime(runtime.evaluation_file);
+  if (!nonEmptyFile(evaluationPath)) {
+    errors.push(`Missing or empty runtime evaluation: ${relative(root, evaluationPath)}`);
+  } else {
+    const evaluation = readJsonArtifact(evaluationPath, errors, "Runtime evaluation");
+    if (evaluation) {
+      if (evaluation.feature !== feature) errors.push(`Runtime evaluation feature does not match ${feature}: ${relative(root, evaluationPath)}`);
+      if (evaluation.context_package_version !== catalog.version || evaluation.policy_version !== catalog.version) errors.push(`Runtime evaluation version does not match runtime catalog: ${relative(root, evaluationPath)}`);
+      errors.push(...validateEvaluationRecord(evaluation, criteria).map((error) => `Runtime evaluation: ${error}`));
+    }
+  }
+
+  const summaryPath = resolveRuntime(runtime.summary_file);
+  if (!nonEmptyFile(summaryPath)) {
+    errors.push(`Missing or empty runtime summary: ${relative(root, summaryPath)}`);
+  } else {
+    const summary = readJsonArtifact(summaryPath, errors, "Runtime summary");
+    if (summary && events.length > 0 && !sameSummary(summarizeRunEvents(events), summary)) errors.push(`Runtime summary does not match event log: ${relative(root, summaryPath)}`);
+  }
+}
+
 function validateDeliveryRecord(path, mode, errors, governanceEnabled) {
   const text = readText(path);
   const strategyMatch = text.match(/^\s*-\s*Development strategy:\s*(tdd|test_first|verification_only)\s*$/im);
@@ -595,8 +697,9 @@ export function verify(options) {
     const approval = existsSync(approvalPath) && statSync(approvalPath).isFile() ? validateApproval(approvalPath, errors) : null;
     if (approval !== "approved") errors.push(`Change must be approved before delivery verification: ${approvalPath}`);
     validateState(statePath, options.feature, mode, strategy, errors, /^\s*-\s*Result:\s*pass\s*$/im.test(reportText));
-    validateTasks(taskPath, criteria, errors);
+    const tasks = validateTasks(taskPath, criteria, errors);
     if (strategy) validateVerification(verificationPath, strategy, criteria, errors);
+    if (strategy) validateRuntimeGovernance(root, manifest, options.feature, mode, strategy, criteria, tasks.ids, errors);
     if (mode === "strict") {
       const archivePath = resolveArtifact(root, manifest.governance.archive_result_file, options.feature);
       validateArchiveResult(archivePath, errors);

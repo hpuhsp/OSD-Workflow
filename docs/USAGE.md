@@ -72,6 +72,27 @@ Required artifacts are `proposal.md`, `spec.md`, `design.md`, `approval.md`, `os
 
 Mode controls process depth; strategy controls implementation mechanics. A simple business rule can use `lite + tdd`, while a complex configuration migration may use `strict + verification_only`.
 
+## Runtime Governance (Manifest v5)
+
+Runtime governance is local-first and policy-first. It adds no OSD scheduler, MCP server, RAG store, or hosted control plane. The sole managed catalog is `.ai/runtime-governance/governance.json`; per-change evidence stays next to its OpenSpec change.
+
+For standard and strict work, first create a runnable package for every atomic task:
+
+```bash
+node scripts/runtime-governance.mjs context --feature {feature} --task T-01 --owned-area src/example.js --isolated true
+```
+
+Then record metadata-only lifecycle events, evaluate deterministic checks against `AC-*`, and create the summary:
+
+```bash
+node scripts/runtime-governance.mjs record-event --feature {feature} --event '{"schema":"osd-run-event/v1","run_id":"run-1","feature":"{feature}","task_id":"T-01","stage":"implementation","actor_role":"executor","event_type":"role_completed","status":"completed","timestamp":"2026-08-05T00:00:00+08:00","contract_version":"1"}'
+node scripts/runtime-governance.mjs summarize --feature {feature}
+```
+
+The coordinator routes, decomposes, assigns, and aggregates but never writes business code. One executor has exclusive write ownership for an atomic task. Test verifier and reviewer are read-only; neither merges changes. Monitor only reports timeout, retry, authorization, verification-coverage, and blockage signals; it cannot approve delivery or remediate code. `lite` uses the executor by default, `standard` enables independent roles when risk demands them, and `strict` requires executor, test verifier, reviewer, and monitor completion evidence.
+
+Events and evaluation records must omit prompts, source, credentials, and raw tool I/O. Deterministic checks are mandatory for a pass. Model-assisted graders are optional and must be recorded as `pass`, `fail`, or `not_run`. A future adapter may expose catalog resources through read-only MCP resources and policy-approved narrow tools, but transport, authentication, scheduling, worktrees, and sandboxes stay in the harness.
+
 ## Task Examples
 
 ### Simple Bug

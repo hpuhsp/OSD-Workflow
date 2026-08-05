@@ -5,6 +5,7 @@ import { join, resolve } from "node:path";
 import test from "node:test";
 
 import { parseArgs, verify } from "../scripts/verify-workflow-artifacts.mjs";
+import { summarizeRunEvents } from "../scripts/runtime-governance.mjs";
 
 const projectRoot = resolve(import.meta.dirname, "..");
 
@@ -60,6 +61,7 @@ function writeStandardGovernance(root, feature = "governed-change", overrides = 
       { step: "refactor", command_id: "test", exit_code: 0, observed_at: "2026-08-03T00:02:00+08:00", covered_acceptance_criteria: ["AC-01"], summary: "remained green" },
     ],
   }));
+  writeRuntimeGovernance(root, feature, mode);
   if (mode === "strict") {
     write(root, `openspec/changes/${feature}/design.md`, "# Design\n\n- Compatibility-preserving verifier extension.\n");
     write(root, `knowledge/archive/${feature}/test-report.md`, "# Test Report\n\nResult: pass\n");
@@ -84,6 +86,51 @@ function writeStandardGovernance(root, feature = "governed-change", overrides = 
     mode,
     extra: "- Approval: approval.md approved\n- Task traceability: T-01 covers AC-01\n- Structured evidence: verification.json\n- Red evidence: test failed before implementation\n- Green evidence: test passed after implementation\n- Refactor evidence: focused suite remained green\n",
   }));
+}
+
+function writeRuntimeGovernance(root, feature, mode) {
+  const timestamp = "2026-08-03T00:03:00+08:00";
+  const roles = mode === "strict" ? ["executor", "test_verifier", "reviewer", "monitor"] : ["executor"];
+  const assignments = roles.map((role) => ({
+    task_id: "T-01",
+    role,
+    ...(role === "executor" ? { owned_areas: ["scripts/runtime-governance.mjs"], isolated_execution: true } : {}),
+  }));
+  write(root, `openspec/changes/${feature}/context/T-01.json`, JSON.stringify({
+    schema: "osd-runtime-context/v1",
+    contract_version: "1",
+    feature,
+    mode,
+    strategy: "tdd",
+    stage: "implementation",
+    state_path: `openspec/changes/${feature}/osd-state.json`,
+    specification_path: `openspec/changes/${feature}/spec.md`,
+    task_id: "T-01",
+    acceptance_criteria: ["AC-01"],
+    dependencies: [],
+    affected_areas: ["scripts/runtime-governance.mjs"],
+    verification_method: "node --test",
+    policy_version: "1",
+    resource_ids: ["specification", "tasks", "state", "verification", "review", "archive"],
+    assignments,
+    status: "runnable",
+    reasons: [],
+    generated_at: timestamp,
+  }));
+  const events = [
+    ...roles.map((role, index) => ({ schema: "osd-run-event/v1", run_id: `run-${index + 1}`, feature, task_id: "T-01", stage: role === "monitor" ? "review" : "implementation", actor_role: role, event_type: "role_completed", status: "completed", timestamp, contract_version: "1", duration_ms: role === "monitor" ? 0 : 1, retry_count: 0 })),
+    { schema: "osd-run-event/v1", run_id: "run-eval", feature, stage: "verification", actor_role: "coordinator", event_type: "evaluation_completed", status: "completed", timestamp, contract_version: "1", duration_ms: 0, retry_count: 0 },
+  ];
+  write(root, `openspec/changes/${feature}/run-events.jsonl`, `${events.map((event) => JSON.stringify(event)).join("\n")}\n`);
+  write(root, `openspec/changes/${feature}/evaluation.json`, JSON.stringify({
+    schema: "osd-evaluation/v1",
+    feature,
+    context_package_version: "1",
+    policy_version: "1",
+    deterministic_checks: [{ command_id: "node-test", exit_code: 0, covered_acceptance_criteria: ["AC-01"] }],
+    optional_graders: [{ evaluator: "human-review", rubric_version: "v1", status: "not_run" }],
+  }));
+  write(root, `knowledge/archive/${feature}/runtime-summary.json`, JSON.stringify(summarizeRunEvents(events)));
 }
 
 function deliveryRecord({
@@ -127,8 +174,9 @@ test("mode contracts scale artifact requirements", () => {
   assert.ok(manifest.modes.lite.required_outputs.includes("openspec/changes/{feature}/spec.md"));
   assert.ok(!manifest.modes.standard.required_outputs.includes("knowledge/archive/{feature}/test-report.md"));
   assert.deepEqual(manifest.development_strategies.tdd.required_evidence, ["red", "green", "refactor"]);
-  assert.equal(manifest.schema, "osd-workflow-manifest/v4");
+  assert.equal(manifest.schema, "osd-workflow-manifest/v5");
   assert.ok(manifest.governance.approval_required_modes.includes("standard"));
+  assert.equal(manifest.runtime_governance.catalog_file, ".ai/runtime-governance/governance.json");
 });
 
 test("valid standard governance delivery passes", (t) => {
@@ -169,6 +217,30 @@ test("strict delivery requires a successful archive result", (t) => {
   writeStandardGovernance(root, "strict-change", { mode: "strict", status: "archived" });
   const result = verify({ target: root, structuralOnly: false, feature: "strict-change", mode: "strict", handoff: false });
   assert.deepEqual(result.errors, []);
+});
+
+test("strict delivery requires completed verifier, reviewer, and monitor role evidence", (t) => {
+  const root = fixture();
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  writeStandardGovernance(root, "strict-runtime-roles", { mode: "strict", status: "archived" });
+  const eventPath = join(root, "openspec/changes/strict-runtime-roles/run-events.jsonl");
+  const withoutMonitor = readFileSync(eventPath, "utf8").split(/\r?\n/).filter((line) => line && !line.includes('"actor_role":"monitor"')).join("\n");
+  writeFileSync(eventPath, `${withoutMonitor}\n`, "utf8");
+  const result = verify({ target: root, structuralOnly: false, feature: "strict-runtime-roles", mode: "strict", handoff: false });
+  assert.ok(result.errors.some((error) => error.includes("completed monitor role evidence")));
+});
+
+test("legacy v4 delivery passes with an explicit runtime-governance warning", (t) => {
+  const root = fixture();
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  writeStandardGovernance(root, "legacy-v4");
+  const manifestPath = join(root, ".ai/workflow-manifest.json");
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  manifest.schema = "osd-workflow-manifest/v4";
+  writeFileSync(manifestPath, JSON.stringify(manifest), "utf8");
+  const result = verify({ target: root, structuralOnly: false, feature: "legacy-v4", mode: "standard", handoff: false });
+  assert.deepEqual(result.errors, []);
+  assert.ok(result.warnings.some((warning) => warning.includes("runtime governance applies")));
 });
 
 test("legacy v3 structural verification reports a migration warning", (t) => {

@@ -22,6 +22,7 @@
   "scripts": {
     "init": "node ./bin/osd-workflow-init.mjs",
     "verify": "node ./scripts/verify-workflow-artifacts.mjs --structural-only",
+    "runtime": "node ./scripts/runtime-governance.mjs",
     "test": "node --test"
   },
   "engines": {

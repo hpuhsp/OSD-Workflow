@@ -88,6 +88,27 @@ The required delivery files are mode-dependent:
 
 The complete paths and optional outputs are defined only by `.ai/workflow-manifest.json`; the table above is a quick reference.
 
+## Runtime Governance Foundation
+
+Version 5 adds a small, local runtime-governance contract without introducing an OSD-owned scheduler, MCP service, RAG store, or hosted control plane. The unified catalog is `.ai/runtime-governance/governance.json`; it is the single source for resource ownership, policy, role boundaries, command IDs, and evaluation rules.
+
+For `standard` and `strict` deliveries, create one task-scoped context package per atomic task, a metadata-only event log, deterministic acceptance-criterion evaluation, and an event-derived runtime summary. The verifier checks them automatically. Runtime role boundaries are policy-first:
+
+- Coordinator: routes, decomposes, assigns, and aggregates; no business-code writes.
+- Executor: exactly one active write-capable executor per atomic task, with declared ownership and isolated execution.
+- Test verifier and reviewer: read-only by default; no automatic merge.
+- Monitor: event-only observation and feedback; no approval or automatic remediation.
+
+`lite` remains single-executor by default. `standard` can add test, review, or monitor roles based on risk. `strict` requires completion evidence from executor, test verifier, reviewer, and monitor. Scheduling, worktrees, sandboxes, and real handoff transport remain harness-adapter responsibilities, so teams can adopt the contract before adopting a heavier control plane.
+
+Useful local commands:
+
+```bash
+node scripts/runtime-governance.mjs context --feature {feature} --task T-01 --owned-area src/example.js --isolated true
+node scripts/runtime-governance.mjs summarize --feature {feature}
+node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode}
+```
+
 ## Install OSD Workflow
 
 Choose one installation method. The installer copies the OSD contract and safely merges a managed discovery block into common Agent instruction files. Existing project instructions remain intact.
@@ -186,7 +207,7 @@ Verify only the installed contract:
 node scripts/verify-workflow-artifacts.mjs --structural-only
 ```
 
-See [docs/USAGE.md](docs/USAGE.md) for task-specific prompts and routing examples.
+See [docs/USAGE.md](docs/USAGE.md) for task-specific prompts and routing examples. For the v5 local-first runtime-governance guide, see [docs/RUNTIME_GOVERNANCE_zh.md](docs/RUNTIME_GOVERNANCE_zh.md).
 
 ## Project Files
 
@@ -196,10 +217,12 @@ See [docs/USAGE.md](docs/USAGE.md) for task-specific prompts and routing example
 - `.ai/templates/`: compact delivery and handoff templates
 - `AGENTS.md` and Agent-specific adapters: automatic OSD discovery with project instruction preservation
 - `scripts/verify-workflow-artifacts.mjs`: lightweight delivery verifier
+- `scripts/runtime-governance.mjs`: local context, event, and summary utility
+- `.ai/runtime-governance/governance.json`: unified resource/policy/evaluation catalog
 - `bin/osd-workflow-init.mjs`: Node.js initializer
 - `scripts/install.ps1`: PowerShell initializer
 
-For the human workflow guide, see [docs/USAGE.md](docs/USAGE.md). For the Chinese guide, see [docs/USAGE_zh.md](docs/USAGE_zh.md).
+For the human workflow guide, see [docs/USAGE.md](docs/USAGE.md). For the Chinese guide, see [docs/USAGE_zh.md](docs/USAGE_zh.md); for v5 runtime governance, see [docs/RUNTIME_GOVERNANCE_zh.md](docs/RUNTIME_GOVERNANCE_zh.md).
 
 ## License
 

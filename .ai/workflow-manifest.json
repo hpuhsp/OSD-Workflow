@@ -1,5 +1,5 @@
 {
-  "schema": "osd-workflow-manifest/v4",
+  "schema": "osd-workflow-manifest/v5",
   "workflow": ".ai/workflows/feature-development.yaml",
   "execution_rule": ".ai/rules/workflow-execution-rule.md",
   "default_mode": "standard",
@@ -108,7 +108,22 @@
     "approval_required_modes": ["standard", "strict"],
     "structured_evidence_required_modes": ["standard", "strict"],
     "archive_required_modes": ["strict"],
-    "legacy_schemas": ["osd-workflow-manifest/v3"]
+    "legacy_schemas": ["osd-workflow-manifest/v3", "osd-workflow-manifest/v4"]
+  },
+  "runtime_governance": {
+    "enabled": true,
+    "contract_version": "osd-runtime-governance/v1",
+    "catalog_file": ".ai/runtime-governance/governance.json",
+    "context_directory": "openspec/changes/{feature}/context",
+    "run_events_file": "openspec/changes/{feature}/run-events.jsonl",
+    "evaluation_file": "openspec/changes/{feature}/evaluation.json",
+    "summary_file": "knowledge/archive/{feature}/runtime-summary.json",
+    "required_modes": ["standard", "strict"],
+    "required_roles_by_mode": {
+      "lite": ["executor"],
+      "standard": ["executor"],
+      "strict": ["executor", "test_verifier", "reviewer", "monitor"]
+    }
   },
   "references": [
     ".ai/rules/workflow-execution-rule.md",
@@ -129,6 +144,7 @@
     ".ai/templates/archive-result.json",
     ".ai/templates/feishu-project-requirement.md",
     ".ai/templates/agent-entry.md"
+    ,".ai/runtime-governance/governance.json"
   ],
   "task_types": {
     "new_feature": {
