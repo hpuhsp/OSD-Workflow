@@ -1,5 +1,5 @@
 {
-  "schema": "osd-workflow-manifest/v5",
+  "schema": "osd-workflow-manifest/v6",
   "workflow": ".ai/workflows/feature-development.yaml",
   "execution_rule": ".ai/rules/workflow-execution-rule.md",
   "contract_schemas": {
@@ -78,7 +78,7 @@
     },
     "archive": {
       "owner": "openspec",
-      "responsibility": "native OpenSpec change archive when the selected mode requires archival"
+      "responsibility": "native OpenSpec change archive for every accepted completed change"
     }
   },
   "sdd_required": [
@@ -113,8 +113,8 @@
     "task_pattern": "T-[0-9]+",
     "approval_required_modes": ["standard", "strict"],
     "structured_evidence_required_modes": ["standard", "strict"],
-    "archive_required_modes": ["strict"],
-    "legacy_schemas": ["osd-workflow-manifest/v3", "osd-workflow-manifest/v4"]
+    "archive_required_modes": ["lite", "standard", "strict"],
+    "legacy_schemas": ["osd-workflow-manifest/v3", "osd-workflow-manifest/v4", "osd-workflow-manifest/v5"]
   },
   "runtime_governance": {
     "enabled": true,
@@ -123,7 +123,7 @@
     "context_directory": "openspec/changes/{feature}/context",
     "run_events_file": "openspec/changes/{feature}/run-events.jsonl",
     "evaluation_file": "openspec/changes/{feature}/evaluation.json",
-    "summary_file": "knowledge/archive/{feature}/runtime-summary.json",
+    "summary_file": "knowledge/delivery/{feature}/runtime-summary.json",
     "required_modes": ["standard", "strict"],
     "required_roles_by_mode": {
       "lite": ["executor"],
@@ -139,7 +139,7 @@
     ".ai/skills/openspec-create/SKILL.md",
     ".ai/skills/implementation-plan/SKILL.md",
     ".ai/skills/test-generation/SKILL.md",
-    ".ai/skills/knowledge-archive/SKILL.md",
+    ".ai/skills/knowledge-delivery/SKILL.md",
     ".ai/templates/stage-report-compact.md",
     ".ai/templates/stage-report.md",
     ".ai/templates/handoff-brief.md",
@@ -186,20 +186,21 @@
   "modes": {
     "lite": {
       "description": "Simple, localized, low-risk work.",
-      "stages": ["specification", "implementation", "verification"],
+      "stages": ["specification", "implementation", "verification", "archive"],
       "required_outputs": [
         "openspec/changes/{feature}/spec.md",
-        "knowledge/archive/{feature}/stage-report.md"
+        "openspec/changes/{feature}/archive-result.json",
+        "knowledge/delivery/{feature}/stage-report.md"
       ],
       "optional_outputs": [
-        "knowledge/archive/{feature}/implementation.md",
-        "knowledge/archive/{feature}/test-report.md",
-        "knowledge/archive/{feature}/review-report.md"
+        "knowledge/delivery/{feature}/implementation.md",
+        "knowledge/delivery/{feature}/test-report.md",
+        "knowledge/delivery/{feature}/review-report.md"
       ]
     },
     "standard": {
       "description": "Default for medium-scope daily development.",
-      "stages": ["specification", "approval", "planning", "implementation", "verification", "review"],
+      "stages": ["specification", "approval", "planning", "implementation", "verification", "review", "archive"],
       "required_outputs": [
         "openspec/changes/{feature}/proposal.md",
         "openspec/changes/{feature}/spec.md",
@@ -207,14 +208,15 @@
         "openspec/changes/{feature}/osd-state.json",
         "openspec/changes/{feature}/tasks.md",
         "openspec/changes/{feature}/verification.json",
-        "knowledge/archive/{feature}/implementation.md",
-        "knowledge/archive/{feature}/stage-report.md"
+        "openspec/changes/{feature}/archive-result.json",
+        "knowledge/delivery/{feature}/implementation.md",
+        "knowledge/delivery/{feature}/stage-report.md"
       ],
       "optional_outputs": [
-        "knowledge/archive/{feature}/requirement.md",
+        "knowledge/delivery/{feature}/requirement.md",
         "openspec/changes/{feature}/design.md",
-        "knowledge/archive/{feature}/test-report.md",
-        "knowledge/archive/{feature}/review-report.md"
+        "knowledge/delivery/{feature}/test-report.md",
+        "knowledge/delivery/{feature}/review-report.md"
       ]
     },
     "strict": {
@@ -229,16 +231,16 @@
         "openspec/changes/{feature}/tasks.md",
         "openspec/changes/{feature}/verification.json",
         "openspec/changes/{feature}/archive-result.json",
-        "knowledge/archive/{feature}/implementation.md",
-        "knowledge/archive/{feature}/test-report.md",
-        "knowledge/archive/{feature}/review-report.md",
-        "knowledge/archive/{feature}/stage-report.md"
+        "knowledge/delivery/{feature}/implementation.md",
+        "knowledge/delivery/{feature}/test-report.md",
+        "knowledge/delivery/{feature}/review-report.md",
+        "knowledge/delivery/{feature}/stage-report.md"
       ],
       "optional_outputs": [
-        "knowledge/archive/{feature}/requirement.md",
-        "knowledge/archive/{feature}/test-plan.md",
-        "knowledge/archive/{feature}/spec-review.md",
-        "knowledge/archive/{feature}/codegraph-impact.md"
+        "knowledge/delivery/{feature}/requirement.md",
+        "knowledge/delivery/{feature}/test-plan.md",
+        "knowledge/delivery/{feature}/spec-review.md",
+        "knowledge/delivery/{feature}/codegraph-impact.md"
       ]
     }
   },
@@ -250,7 +252,7 @@
     }
   },
   "conditional_outputs": {
-    "agent_handoff": "knowledge/archive/{feature}/handoff-brief.md"
+    "agent_handoff": "knowledge/delivery/{feature}/handoff-brief.md"
   },
   "artifact_rules": {
     "must_be_regular_file": true,

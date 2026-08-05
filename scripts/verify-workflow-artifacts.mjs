@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, isAbsolute, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
@@ -14,8 +14,8 @@ import { validateDocument } from "./contract-schema.mjs";
 
 const VALID_MODES = new Set(["lite", "standard", "strict"]);
 const VALID_STRATEGIES = new Set(["tdd", "test_first", "verification_only"]);
-const SUPPORTED_MANIFEST_SCHEMAS = new Set(["osd-workflow-manifest/v3", "osd-workflow-manifest/v4", "osd-workflow-manifest/v5"]);
-const CURRENT_MANIFEST_SCHEMA = "osd-workflow-manifest/v5";
+const SUPPORTED_MANIFEST_SCHEMAS = new Set(["osd-workflow-manifest/v3", "osd-workflow-manifest/v4", "osd-workflow-manifest/v5", "osd-workflow-manifest/v6"]);
+const CURRENT_MANIFEST_SCHEMA = "osd-workflow-manifest/v6";
 const VALID_STATE_STAGES = new Set(["specification", "approval", "planning", "implementation", "verification", "review", "archive", "complete"]);
 const VALID_STATE_STATUSES = new Set(["draft", "proposed", "approved", "in_progress", "verified", "reviewed", "archived", "blocked", "complete"]);
 const VALID_APPROVAL_DECISIONS = new Set(["approved", "rejected", "changes_requested"]);
@@ -128,9 +128,27 @@ function insideRoot(root, path) {
   return rel !== ".." && !rel.startsWith(`..${process.platform === "win32" ? "\\" : "/"}`) && !isAbsolute(rel);
 }
 
-function resolveArtifact(root, template, feature) {
-  const path = resolve(root, template.replaceAll("{feature}", feature));
-  if (!insideRoot(root, path)) {
+function findArchivedChangeDirectory(root, feature) {
+  const archiveRoot = resolve(root, "openspec", "changes", "archive");
+  if (!existsSync(archiveRoot) || !statSync(archiveRoot).isDirectory()) return null;
+
+  const suffix = `-${feature}`;
+  const matches = readdirSync(archiveRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && entry.name.endsWith(suffix))
+    .map((entry) => join(archiveRoot, entry.name));
+  if (matches.length > 1) throw new Error(`Multiple native OpenSpec archives match feature ${feature}.`);
+  return matches[0] ?? null;
+}
+
+function resolveArtifact(root, template, feature, archivedChangeDirectory = null) {
+  const rendered = template.replaceAll("{feature}", feature);
+  const activePrefix = `openspec/changes/${feature}/`;
+  const usesChangeArtifact = rendered.startsWith(activePrefix);
+  const path = usesChangeArtifact && archivedChangeDirectory
+    ? resolve(archivedChangeDirectory, rendered.slice(activePrefix.length))
+    : resolve(root, rendered);
+  const boundary = usesChangeArtifact && archivedChangeDirectory ? archivedChangeDirectory : root;
+  if (!insideRoot(boundary, path)) {
     throw new Error(`Artifact path escapes target root: ${template}`);
   }
   return path;
@@ -155,7 +173,7 @@ function validateManifest(root, manifest, errors, warnings = []) {
   if (!SUPPORTED_MANIFEST_SCHEMAS.has(manifest.schema)) {
     errors.push(`Unsupported manifest schema: ${manifest.schema ?? "(missing)"}`);
   } else if (manifest.schema !== CURRENT_MANIFEST_SCHEMA) {
-    warnings.push(`Legacy manifest schema requires migration before v5 runtime governance applies: ${manifest.schema}`);
+    warnings.push(`Legacy manifest schema requires migration before v6 native archive governance applies: ${manifest.schema}`);
   }
   if (!VALID_MODES.has(manifest.default_mode)) {
     errors.push("Manifest default_mode must be lite, standard, or strict.");
@@ -285,8 +303,8 @@ function validateManifest(root, manifest, errors, warnings = []) {
     if (!Array.isArray(governance?.structured_evidence_required_modes) || !governance.structured_evidence_required_modes.includes("standard") || !governance.structured_evidence_required_modes.includes("strict")) {
       errors.push("Manifest governance structured_evidence_required_modes must include standard and strict.");
     }
-    if (!Array.isArray(governance?.archive_required_modes) || !governance.archive_required_modes.includes("strict")) {
-      errors.push("Manifest governance archive_required_modes must include strict.");
+    if (!Array.isArray(governance?.archive_required_modes) || !["lite", "standard", "strict"].every((mode) => governance.archive_required_modes.includes(mode))) {
+      errors.push("Manifest governance archive_required_modes must include lite, standard, and strict.");
     }
     for (const mode of governance?.approval_required_modes ?? []) {
       const requiredOutputs = manifest.modes?.[mode]?.required_outputs ?? [];
@@ -300,7 +318,7 @@ function validateManifest(root, manifest, errors, warnings = []) {
 
     const runtime = manifest.runtime_governance;
     const requiredRuntime = ["contract_version", "catalog_file", "context_directory", "run_events_file", "evaluation_file", "summary_file"];
-    if (runtime?.enabled !== true) errors.push("Manifest runtime_governance must be enabled for v5.");
+    if (runtime?.enabled !== true) errors.push("Manifest runtime_governance must be enabled for v6.");
     for (const field of requiredRuntime) {
       if (typeof runtime?.[field] !== "string" || runtime[field].trim() === "") errors.push(`Manifest runtime_governance is missing ${field}.`);
     }
@@ -358,7 +376,7 @@ function validateDiscoveryEntries(root, discovery, errors) {
 }
 
 function inferMode(root, feature, manifest) {
-  const report = join(root, "knowledge", "archive", feature, "stage-report.md");
+  const report = join(root, "knowledge", "delivery", feature, "stage-report.md");
   if (nonEmptyFile(report)) {
     const match = readText(report).match(/^\s*-\s*Mode:\s*(lite|standard|strict)\s*$/im);
     if (match) {
@@ -419,7 +437,7 @@ function validateState(path, feature, mode, strategy, errors, requireFinalState)
   if (!nonEmptyField(state.specification)) errors.push(`OSD state must name the specification: ${path}`);
   if (!nonEmptyField(state.updated_at) || Number.isNaN(Date.parse(state.updated_at))) errors.push(`OSD state updated_at must be an ISO-8601 timestamp: ${path}`);
   if (requireFinalState) {
-    const allowed = mode === "strict" ? new Set(["archived", "complete"]) : new Set(["verified", "reviewed", "complete"]);
+    const allowed = new Set(["archived", "complete"]);
     if (!allowed.has(state.status)) errors.push(`OSD state is not final for a passing ${mode} delivery: ${path}`);
   }
   return state;
@@ -516,15 +534,26 @@ function validateVerification(path, strategy, criteria, errors, requireTrustedEv
   return evidence;
 }
 
-function validateArchiveResult(path, errors) {
+function validateArchiveResult(path, errors, feature, root, archivedChangeDirectory) {
   const archive = readJsonArtifact(path, errors, "Archive result");
   if (!archive) return null;
   if (archive.schema !== "osd-archive-result/v1") errors.push(`Archive result has unsupported schema: ${path}`);
+  if (archive.feature !== feature) errors.push(`Archive result feature does not match ${feature}: ${path}`);
   if (archive.status !== "archived") errors.push(`Archive result is not archived: ${path}`);
   if (archive.exit_code !== 0) errors.push(`Archive result must have exit_code 0: ${path}`);
   for (const field of ["native_command", "archived_change_location", "completed_at", "summary"]) if (!nonEmptyField(archive[field])) errors.push(`Archive result is missing ${field}: ${path}`);
   if (!nonEmptyField(archive.completed_at) || Number.isNaN(Date.parse(archive.completed_at))) errors.push(`Archive result completed_at must be ISO-8601: ${path}`);
   if (!["not_required", "passed"].includes(archive.knowledge_sync)) errors.push(`Archive result knowledge_sync must be not_required or passed: ${path}`);
+  const expectedLocation = archivedChangeDirectory ? relative(root, archivedChangeDirectory).replaceAll("\\", "/") : "";
+  if (archive.archived_change_location !== expectedLocation) errors.push(`Archive result location does not match native OpenSpec archive: ${path}`);
+  const expectedCommand = `openspec archive ${feature} --yes`;
+  if (typeof archive.native_command !== "string" || !archive.native_command.startsWith(expectedCommand)) errors.push(`Archive result does not record the expected native OpenSpec command: ${path}`);
+  const provenance = archive.provenance;
+  if (provenance?.schema !== "osd-native-archive-attestation/v1" || provenance.runner !== "osd-openspec-archive") {
+    errors.push(`Archive result lacks native archive runner provenance: ${path}`);
+  } else if (JSON.stringify(provenance.argv) !== JSON.stringify(archive.native_command.split(" "))) {
+    errors.push(`Archive result provenance argv does not match native command: ${path}`);
+  }
   return archive;
 }
 
@@ -545,10 +574,10 @@ function sameSummary(expected, actual) {
   return Object.keys(expected).every((key) => expected[key] === actual?.[key]);
 }
 
-function validateRuntimeGovernance(root, manifest, feature, mode, strategy, criteria, taskIds, errors) {
+function validateRuntimeGovernance(root, manifest, feature, mode, strategy, criteria, taskIds, errors, archivedChangeDirectory) {
   const runtime = manifest.runtime_governance;
   if (!runtime?.enabled || !runtime.required_modes?.includes(mode)) return;
-  const resolveRuntime = (template) => resolveArtifact(root, template, feature);
+  const resolveRuntime = (template) => resolveArtifact(root, template, feature, archivedChangeDirectory);
   const catalogPath = resolve(root, runtime.catalog_file);
   const catalog = nonEmptyFile(catalogPath) ? readJsonArtifact(catalogPath, errors, "Runtime governance catalog") : null;
   if (!catalog) return;
@@ -670,6 +699,16 @@ export function verify(options) {
     return { root, mode, feature: options.feature, structuralOnly: false, errors, warnings };
   }
 
+  const archiveRequired = manifest.governance?.archive_required_modes?.includes(mode);
+  const archivedChangeDirectory = archiveRequired ? findArchivedChangeDirectory(root, options.feature) : null;
+  if (archiveRequired && !archivedChangeDirectory) {
+    errors.push(`Completed ${mode} change must be natively archived under openspec/changes/archive/: ${options.feature}`);
+  }
+  const activeChangeDirectory = resolve(root, "openspec", "changes", options.feature);
+  if (archiveRequired && existsSync(activeChangeDirectory)) {
+    errors.push(`Completed ${mode} change must not remain active after native OpenSpec archive: ${relative(root, activeChangeDirectory)}`);
+  }
+
   const required = [...manifest.modes[mode].required_outputs];
   if (options.handoff) {
     required.push(manifest.conditional_outputs?.agent_handoff);
@@ -680,7 +719,7 @@ export function verify(options) {
       errors.push("Manifest is missing the conditional handoff output path.");
       continue;
     }
-    const path = resolveArtifact(root, template, options.feature);
+    const path = resolveArtifact(root, template, options.feature, archivedChangeDirectory);
     if (!existsSync(path)) {
       errors.push(`Missing required output: ${relative(root, path)}`);
       continue;
@@ -696,18 +735,18 @@ export function verify(options) {
     validateContent(path, errors);
   }
 
-  const reportPath = join(root, "knowledge", "archive", options.feature, "stage-report.md");
+  const reportPath = join(root, "knowledge", "delivery", options.feature, "stage-report.md");
   const governanceEnabled = manifest.schema === CURRENT_MANIFEST_SCHEMA && ["standard", "strict"].includes(mode);
   if (nonEmptyFile(reportPath)) {
     validateDeliveryRecord(reportPath, mode, errors, governanceEnabled);
   }
 
   if (governanceEnabled) {
-    const specPath = resolveArtifact(root, "openspec/changes/{feature}/spec.md", options.feature);
-    const statePath = resolveArtifact(root, manifest.governance.state_file, options.feature);
-    const approvalPath = resolveArtifact(root, manifest.governance.approval_file, options.feature);
-    const taskPath = resolveArtifact(root, manifest.governance.task_file, options.feature);
-    const verificationPath = resolveArtifact(root, manifest.governance.verification_file, options.feature);
+    const specPath = resolveArtifact(root, "openspec/changes/{feature}/spec.md", options.feature, archivedChangeDirectory);
+    const statePath = resolveArtifact(root, manifest.governance.state_file, options.feature, archivedChangeDirectory);
+    const approvalPath = resolveArtifact(root, manifest.governance.approval_file, options.feature, archivedChangeDirectory);
+    const taskPath = resolveArtifact(root, manifest.governance.task_file, options.feature, archivedChangeDirectory);
+    const verificationPath = resolveArtifact(root, manifest.governance.verification_file, options.feature, archivedChangeDirectory);
     const reportText = nonEmptyFile(reportPath) ? readText(reportPath) : "";
     const strategy = reportText.match(/^\s*-\s*Development strategy:\s*(tdd|test_first|verification_only)\s*$/im)?.[1]?.toLowerCase();
     if (!strategy) errors.push(`Delivery record has no usable development strategy: ${reportPath}`);
@@ -717,11 +756,12 @@ export function verify(options) {
     validateState(statePath, options.feature, mode, strategy, errors, /^\s*-\s*Result:\s*pass\s*$/im.test(reportText));
     const tasks = validateTasks(taskPath, criteria, errors);
     if (strategy) validateVerification(verificationPath, strategy, criteria, errors, options.trustedEvidence);
-    if (strategy) validateRuntimeGovernance(root, manifest, options.feature, mode, strategy, criteria, tasks.ids, errors);
-    if (mode === "strict") {
-      const archivePath = resolveArtifact(root, manifest.governance.archive_result_file, options.feature);
-      validateArchiveResult(archivePath, errors);
-    }
+    if (strategy) validateRuntimeGovernance(root, manifest, options.feature, mode, strategy, criteria, tasks.ids, errors, archivedChangeDirectory);
+  }
+
+  if (archiveRequired) {
+    const archivePath = resolveArtifact(root, manifest.governance.archive_result_file, options.feature, archivedChangeDirectory);
+    validateArchiveResult(archivePath, errors, options.feature, root, archivedChangeDirectory);
   }
 
   return { root, mode, feature: options.feature, structuralOnly: false, errors, warnings };

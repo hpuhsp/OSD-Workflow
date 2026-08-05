@@ -129,7 +129,7 @@ workflow:
       required: true
       paths:
         - ".ai/"
-        - "knowledge/archive/{feature}/"
+        - "knowledge/delivery/{feature}/"
         - "openspec/changes/{feature}/"
 
   stage_catalog:
@@ -150,7 +150,7 @@ workflow:
     - id: approval
       purpose: "Record the human decision that the accepted specification may enter planning and implementation."
     - id: archive
-      purpose: "Preserve reusable context for strict work or cross-agent handoff."
+      purpose: "Run the native OpenSpec archive for every accepted completed change; delivery records remain outside the archive lifecycle."
 
   handoff:
     rule: "Create handoff-brief.md only when another agent will continue the task."

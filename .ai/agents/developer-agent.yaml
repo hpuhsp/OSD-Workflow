@@ -15,10 +15,10 @@ agent:
     - "linked acceptance-criteria IDs"
   mode_context:
     standard:
-      - "knowledge/archive/{feature}/implementation.md"
+      - "knowledge/delivery/{feature}/implementation.md"
     strict:
       - "openspec/changes/{feature}/spec.md"
       - "openspec/changes/{feature}/design.md"
       - "openspec/changes/{feature}/approval.md"
   handoff_context:
-    - "knowledge/archive/{feature}/handoff-brief.md"
+    - "knowledge/delivery/{feature}/handoff-brief.md"

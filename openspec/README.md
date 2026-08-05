@@ -10,7 +10,7 @@ Artifact depth scales by mode:
 - `standard`: `proposal.md` and `spec.md`; `design.md` when useful
 - `strict`: full `proposal.md`, `spec.md`, and `design.md`
 
-Every spec must define expected behavior, boundaries, and testable acceptance criteria before implementation begins. Record the OpenSpec change path and concise validation or acceptance result in `knowledge/archive/{feature}/stage-report.md`.
+Every spec must define expected behavior, boundaries, and testable acceptance criteria before implementation begins. Record the OpenSpec change path and concise validation or acceptance result in `knowledge/delivery/{feature}/stage-report.md`.
 
 For standard and strict changes, OSD additionally requires an explicit approval
 decision, `osd-state.json`, atomic `T-*` tasks covering `AC-*` criteria, and
@@ -18,4 +18,4 @@ structured `verification.json` evidence. These files strengthen the OSD delivery
 contract without replacing OpenSpec's native proposal, task, validation, apply,
 or archive lifecycle.
 
-Use the current OpenSpec CLI lifecycle for proposal, specification, validation, apply, and archive. OSD selects the depth and required evidence; it does not duplicate those commands.
+Use the current OpenSpec CLI lifecycle for proposal, specification, validation, apply, and archive. Every accepted completed OSD change uses native `openspec archive`; OpenSpec moves it under `openspec/changes/archive/`, while `knowledge/delivery/` retains only supplementary delivery records.

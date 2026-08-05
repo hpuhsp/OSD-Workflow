@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -28,15 +28,49 @@ function write(root, relativePath, content) {
   writeFileSync(path, content, "utf8");
 }
 
+function archiveResult(feature) {
+  const location = `openspec/changes/archive/2026-08-03-${feature}`;
+  const nativeCommand = `openspec archive ${feature} --yes`;
+  return JSON.stringify({
+    schema: "osd-archive-result/v1",
+    feature,
+    status: "archived",
+    native_command: nativeCommand,
+    exit_code: 0,
+    archived_change_location: location,
+    knowledge_sync: "not_required",
+    completed_at: "2026-08-03T00:03:00+08:00",
+    summary: "Native OpenSpec archive completed successfully.",
+    provenance: {
+      schema: "osd-native-archive-attestation/v1",
+      runner: "osd-openspec-archive",
+      argv: nativeCommand.split(" "),
+      repository_revision: "test",
+      workspace_dirty: false,
+      started_at: "2026-08-03T00:02:00+08:00",
+      recorded_at: "2026-08-03T00:03:00+08:00",
+    },
+  });
+}
+
+function moveChangeToNativeArchive(root, feature) {
+  const active = join(root, "openspec", "changes", feature);
+  const archived = join(root, "openspec", "changes", "archive", `2026-08-03-${feature}`);
+  mkdirSync(resolve(archived, ".."), { recursive: true });
+  renameSync(active, archived);
+}
+
 function writeLiteDelivery(root, feature = "small-fix") {
   write(root, `openspec/changes/${feature}/spec.md`, "# Spec\n\n## Acceptance Criteria\n\n- Expected behavior is defined.\n");
-  write(root, `knowledge/archive/${feature}/stage-report.md`, deliveryRecord({ feature }));
+  write(root, `openspec/changes/${feature}/archive-result.json`, archiveResult(feature));
+  write(root, `knowledge/delivery/${feature}/stage-report.md`, deliveryRecord({ feature }));
+  moveChangeToNativeArchive(root, feature);
 }
 
 function writeStandardGovernance(root, feature = "governed-change", overrides = {}) {
   const strategy = overrides.strategy ?? "tdd";
   const mode = overrides.mode ?? "standard";
-  const status = overrides.status ?? "reviewed";
+  const status = overrides.status ?? "archived";
   write(root, `openspec/changes/${feature}/proposal.md`, "# Proposal\n\nApproved scope.\n");
   write(root, `openspec/changes/${feature}/spec.md`, "# Spec\n\n## Acceptance Criteria\n\n- **AC-01**: Expected behavior is defined and observable.\n");
   write(root, `openspec/changes/${feature}/approval.md`, overrides.approval ?? "- Decision: approved\n- Reviewer: reviewer\n- Decision timestamp: 2026-08-03T00:00:00+08:00\n- Reviewed proposal: proposal.md\n- Reviewed specification: spec.md\n- Scope notes: approved\n- Residual risks: none\n");
@@ -65,28 +99,19 @@ function writeStandardGovernance(root, feature = "governed-change", overrides = 
   writeRuntimeGovernance(root, feature, mode);
   if (mode === "strict") {
     write(root, `openspec/changes/${feature}/design.md`, "# Design\n\n- Compatibility-preserving verifier extension.\n");
-    write(root, `knowledge/archive/${feature}/test-report.md`, "# Test Report\n\nResult: pass\n");
-    write(root, `knowledge/archive/${feature}/review-report.md`, "# Review Report\n\nResult: pass\n");
-    write(root, `openspec/changes/${feature}/archive-result.json`, JSON.stringify({
-      schema: "osd-archive-result/v1",
-      feature,
-      status: "archived",
-      native_command: "openspec archive",
-      exit_code: 0,
-      archived_change_location: "archive/" + feature,
-      knowledge_sync: "not_required",
-      completed_at: "2026-08-03T00:03:00+08:00",
-      summary: "archive completed",
-    }));
+    write(root, `knowledge/delivery/${feature}/test-report.md`, "# Test Report\n\nResult: pass\n");
+    write(root, `knowledge/delivery/${feature}/review-report.md`, "# Review Report\n\nResult: pass\n");
   }
-  write(root, `knowledge/archive/${feature}/implementation.md`, "# Implementation\n\n- T-01 complete.\n");
-  write(root, `knowledge/archive/${feature}/stage-report.md`, deliveryRecord({
+  write(root, `openspec/changes/${feature}/archive-result.json`, archiveResult(feature));
+  write(root, `knowledge/delivery/${feature}/implementation.md`, "# Implementation\n\n- T-01 complete.\n");
+  write(root, `knowledge/delivery/${feature}/stage-report.md`, deliveryRecord({
     feature,
     taskType: "new_feature",
     strategy,
     mode,
     extra: "- Approval: approval.md approved\n- Task traceability: T-01 covers AC-01\n- Structured evidence: verification.json\n- Red evidence: test failed before implementation\n- Green evidence: test passed after implementation\n- Refactor evidence: focused suite remained green\n",
   }));
+  if (overrides.archived !== false) moveChangeToNativeArchive(root, feature);
 }
 
 function writeRuntimeGovernance(root, feature, mode) {
@@ -131,7 +156,7 @@ function writeRuntimeGovernance(root, feature, mode) {
     deterministic_checks: [{ command_id: "node-test", exit_code: 0, covered_acceptance_criteria: ["AC-01"] }],
     optional_graders: [{ evaluator: "human-review", rubric_version: "v1", status: "not_run" }],
   }));
-  write(root, `knowledge/archive/${feature}/runtime-summary.json`, JSON.stringify(summarizeRunEvents(events)));
+  write(root, `knowledge/delivery/${feature}/runtime-summary.json`, JSON.stringify(summarizeRunEvents(events)));
 }
 
 function deliveryRecord({
@@ -169,13 +194,13 @@ test("mode contracts scale artifact requirements", () => {
   const strict = manifest.modes.strict.required_outputs.length;
   assert.ok(lite < standard);
   assert.ok(standard < strict);
-  assert.equal(lite, 2);
-  assert.equal(standard, 8);
+  assert.equal(lite, 3);
+  assert.equal(standard, 9);
   assert.equal(strict, 12);
   assert.ok(manifest.modes.lite.required_outputs.includes("openspec/changes/{feature}/spec.md"));
-  assert.ok(!manifest.modes.standard.required_outputs.includes("knowledge/archive/{feature}/test-report.md"));
+  assert.ok(!manifest.modes.standard.required_outputs.includes("knowledge/delivery/{feature}/test-report.md"));
   assert.deepEqual(manifest.development_strategies.tdd.required_evidence, ["red", "green", "refactor"]);
-  assert.equal(manifest.schema, "osd-workflow-manifest/v5");
+  assert.equal(manifest.schema, "osd-workflow-manifest/v6");
   assert.ok(manifest.governance.approval_required_modes.includes("standard"));
   assert.equal(manifest.runtime_governance.catalog_file, ".ai/runtime-governance/governance.json");
 });
@@ -186,6 +211,15 @@ test("valid standard governance delivery passes", (t) => {
   writeStandardGovernance(root);
   const result = verify({ target: root, structuralOnly: false, feature: "governed-change", mode: "standard", handoff: false });
   assert.deepEqual(result.errors, []);
+});
+
+test("delivery rejects a self-reported archive result while the change remains active", (t) => {
+  const root = fixture();
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  writeStandardGovernance(root, "active-change", { archived: false });
+  const result = verify({ target: root, structuralOnly: false, feature: "active-change", mode: "standard", handoff: false });
+  assert.ok(result.errors.some((error) => error.includes("must be natively archived")));
+  assert.ok(result.errors.some((error) => error.includes("must not remain active")));
 });
 
 test("trusted evidence gate rejects self-reported structured evidence", (t) => {
@@ -232,7 +266,7 @@ test("strict delivery requires completed verifier, reviewer, and monitor role ev
   const root = fixture();
   t.after(() => rmSync(root, { recursive: true, force: true }));
   writeStandardGovernance(root, "strict-runtime-roles", { mode: "strict", status: "archived" });
-  const eventPath = join(root, "openspec/changes/strict-runtime-roles/run-events.jsonl");
+  const eventPath = join(root, "openspec/changes/archive/2026-08-03-strict-runtime-roles/run-events.jsonl");
   const withoutMonitor = readFileSync(eventPath, "utf8").split(/\r?\n/).filter((line) => line && !line.includes('"actor_role":"monitor"')).join("\n");
   writeFileSync(eventPath, `${withoutMonitor}\n`, "utf8");
   const result = verify({ target: root, structuralOnly: false, feature: "strict-runtime-roles", mode: "strict", handoff: false });
@@ -249,7 +283,7 @@ test("legacy v4 delivery passes with an explicit runtime-governance warning", (t
   writeFileSync(manifestPath, JSON.stringify(manifest), "utf8");
   const result = verify({ target: root, structuralOnly: false, feature: "legacy-v4", mode: "standard", handoff: false });
   assert.deepEqual(result.errors, []);
-  assert.ok(result.warnings.some((warning) => warning.includes("runtime governance applies")));
+  assert.ok(result.warnings.some((warning) => warning.includes("native archive governance applies")));
 });
 
 test("legacy v3 structural verification reports a migration warning", (t) => {
@@ -297,7 +331,7 @@ test("delivery requires OpenSpec and Superpowers participation evidence", (t) =>
   const root = fixture();
   t.after(() => rmSync(root, { recursive: true, force: true }));
   writeLiteDelivery(root);
-  const report = join(root, "knowledge/archive/small-fix/stage-report.md");
+  const report = join(root, "knowledge/delivery/small-fix/stage-report.md");
   writeFileSync(report, readFileSync(report, "utf8").replace(/^- Superpowers participation:.*\n/m, ""), "utf8");
 
   const result = verify({ target: root, structuralOnly: false, feature: "small-fix", mode: "lite", handoff: false });
@@ -308,7 +342,7 @@ test("TDD requires red, green, and refactor evidence", (t) => {
   const root = fixture();
   t.after(() => rmSync(root, { recursive: true, force: true }));
   writeLiteDelivery(root, "business-rule");
-  write(root, "knowledge/archive/business-rule/stage-report.md", deliveryRecord({ feature: "business-rule", taskType: "new_feature", strategy: "tdd", extra: "- Green evidence: test passed\n- Refactor evidence: tests remained green\n" }));
+  write(root, "knowledge/delivery/business-rule/stage-report.md", deliveryRecord({ feature: "business-rule", taskType: "new_feature", strategy: "tdd", extra: "- Green evidence: test passed\n- Refactor evidence: tests remained green\n" }));
   const result = verify({ target: root, structuralOnly: false, feature: "business-rule", mode: "lite", handoff: false });
   assert.ok(result.errors.some((error) => error.includes("Red evidence for tdd")));
 });
@@ -317,7 +351,7 @@ test("complete TDD evidence passes", (t) => {
   const root = fixture();
   t.after(() => rmSync(root, { recursive: true, force: true }));
   writeLiteDelivery(root, "pricing-rule");
-  write(root, "knowledge/archive/pricing-rule/stage-report.md", deliveryRecord({ feature: "pricing-rule", taskType: "new_feature", strategy: "tdd", extra: "- Red evidence: pricing rule test failed with missing behavior\n- Green evidence: pricing rule passed after minimum implementation\n- Refactor evidence: focused suite remained green after cleanup\n" }));
+  write(root, "knowledge/delivery/pricing-rule/stage-report.md", deliveryRecord({ feature: "pricing-rule", taskType: "new_feature", strategy: "tdd", extra: "- Red evidence: pricing rule test failed with missing behavior\n- Green evidence: pricing rule passed after minimum implementation\n- Refactor evidence: focused suite remained green after cleanup\n" }));
   const result = verify({ target: root, structuralOnly: false, feature: "pricing-rule", mode: "lite", handoff: false });
   assert.deepEqual(result.errors, []);
 });
@@ -326,7 +360,7 @@ test("verification-only requires a strategy reason", (t) => {
   const root = fixture();
   t.after(() => rmSync(root, { recursive: true, force: true }));
   writeLiteDelivery(root, "docs-update");
-  write(root, "knowledge/archive/docs-update/stage-report.md", deliveryRecord({ feature: "docs-update", taskType: "maintenance", strategy: "verification_only", extra: "" }));
+  write(root, "knowledge/delivery/docs-update/stage-report.md", deliveryRecord({ feature: "docs-update", taskType: "maintenance", strategy: "verification_only", extra: "" }));
   const result = verify({ target: root, structuralOnly: false, feature: "docs-update", mode: "lite", handoff: false });
   assert.ok(result.errors.some((error) => error.includes("Strategy reason for verification_only")));
 });
@@ -335,7 +369,7 @@ test("verification-only with a reason passes", (t) => {
   const root = fixture();
   t.after(() => rmSync(root, { recursive: true, force: true }));
   writeLiteDelivery(root, "style-update");
-  write(root, "knowledge/archive/style-update/stage-report.md", deliveryRecord({ feature: "style-update", taskType: "maintenance", strategy: "verification_only", extra: "- Strategy reason: pure styling change has no meaningful unit-test boundary\n" }));
+  write(root, "knowledge/delivery/style-update/stage-report.md", deliveryRecord({ feature: "style-update", taskType: "maintenance", strategy: "verification_only", extra: "- Strategy reason: pure styling change has no meaningful unit-test boundary\n" }));
   const result = verify({ target: root, structuralOnly: false, feature: "style-update", mode: "lite", handoff: false });
   assert.deepEqual(result.errors, []);
 });
@@ -344,8 +378,9 @@ test("a directory cannot satisfy a required file", (t) => {
   const root = fixture();
   t.after(() => rmSync(root, { recursive: true, force: true }));
   writeLiteDelivery(root);
-  rmSync(join(root, "openspec/changes/small-fix/spec.md"));
-  mkdirSync(join(root, "openspec/changes/small-fix/spec.md"));
+  const specPath = join(root, "openspec/changes/archive/2026-08-03-small-fix/spec.md");
+  rmSync(specPath);
+  mkdirSync(specPath);
   const result = verify({ target: root, structuralOnly: false, feature: "small-fix", mode: "lite", handoff: false });
   assert.ok(result.errors.some((error) => error.includes("not a regular file")));
 });
@@ -354,7 +389,7 @@ test("an empty artifact fails", (t) => {
   const root = fixture();
   t.after(() => rmSync(root, { recursive: true, force: true }));
   writeLiteDelivery(root);
-  write(root, "knowledge/archive/small-fix/stage-report.md", "   \n");
+  write(root, "knowledge/delivery/small-fix/stage-report.md", "   \n");
   const result = verify({ target: root, structuralOnly: false, feature: "small-fix", mode: "lite", handoff: false });
   assert.ok(result.errors.some((error) => error.includes("is empty")));
 });

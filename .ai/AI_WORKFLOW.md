@@ -18,7 +18,7 @@ OSD is a thin control plane. It routes and governs minimum outcomes, then delega
 
 - Superpowers participates in specification support, implementation discipline, verification, and review inside OSD-controlled stages for every task.
 - OpenSpec participates as the specification source for every task.
-- The project stores shared workflow rules in `.ai/`, specifications in `openspec/changes/{feature}/`, and concise delivery evidence in `knowledge/archive/{feature}/`.
+- The project stores shared workflow rules in `.ai/`, active specifications in `openspec/changes/{feature}/`, native archives in `openspec/changes/archive/`, and concise delivery evidence in `knowledge/delivery/{feature}/`.
 
 ## What Stays Constant
 

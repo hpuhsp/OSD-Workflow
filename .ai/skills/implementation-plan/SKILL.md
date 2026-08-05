@@ -9,7 +9,7 @@ Delegate planning mechanics to the active Superpowers planning method. This adap
 
 ## Output
 
-Create `knowledge/archive/{feature}/implementation.md` with only the information needed to execute safely:
+Create `knowledge/delivery/{feature}/implementation.md` with only the information needed to execute safely:
 
 - Affected areas
 - Ordered implementation steps

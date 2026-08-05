@@ -21,7 +21,7 @@ OSD routes and governs minimum outcomes only. OpenSpec owns its native specifica
 3. Select `lite`, `standard`, or `strict`.
 4. Select `tdd`, `test_first`, or `verification_only` as the development strategy.
 5. Execute each OSD stage with Superpowers and escalate if new risk appears.
-6. Run the lightweight delivery verifier against the selected feature.
+6. Run the native OpenSpec archive, then verify the archived delivery.
 
 ## Modes
 
@@ -30,14 +30,15 @@ OSD routes and governs minimum outcomes only. OpenSpec owns its native specifica
 For clear, localized, low-risk work.
 
 ```text
-OSD route -> compact OpenSpec spec -> implementation -> focused verification
+OSD route -> compact OpenSpec spec -> implementation -> focused verification -> native archive
 ```
 
 Required artifacts:
 
 ```text
 openspec/changes/{feature}/spec.md
-knowledge/archive/{feature}/stage-report.md
+openspec/changes/{feature}/archive-result.json
+knowledge/delivery/{feature}/stage-report.md
 ```
 
 `lite` does not require a proposal, implementation plan, test report, or review report. Add those only when they improve risk control or handoff.
@@ -47,12 +48,12 @@ knowledge/archive/{feature}/stage-report.md
 Default for medium-scope daily work.
 
 ```text
-OSD route -> OpenSpec proposal/spec -> approval -> atomic tasks -> concise plan -> implementation -> verification -> concise review
+OSD route -> OpenSpec proposal/spec -> approval -> atomic tasks -> concise plan -> implementation -> verification -> concise review -> native archive
 ```
 
 Verification and review are summarized in `stage-report.md`; separate reports are optional unless risk or handoff value justifies them.
 
-Required artifacts are `proposal.md`, `spec.md`, `approval.md`, `osd-state.json`, `tasks.md`, `verification.json`, `knowledge/archive/{feature}/implementation.md`, and `stage-report.md`.
+Required artifacts are `proposal.md`, `spec.md`, `approval.md`, `osd-state.json`, `tasks.md`, `verification.json`, `archive-result.json`, `knowledge/delivery/{feature}/implementation.md`, and `stage-report.md`.
 
 ### Strict
 
@@ -72,7 +73,7 @@ Required artifacts are `proposal.md`, `spec.md`, `design.md`, `approval.md`, `os
 
 Mode controls process depth; strategy controls implementation mechanics. A simple business rule can use `lite + tdd`, while a complex configuration migration may use `strict + verification_only`.
 
-## Runtime Governance (Release 0.6)
+## Runtime Governance (Release 0.7)
 
 Runtime governance is local-first and policy-first. It adds no OSD scheduler, MCP server, RAG store, or hosted control plane. The sole managed catalog is `.ai/runtime-governance/governance.json`; per-change evidence stays next to its OpenSpec change.
 
@@ -93,6 +94,16 @@ node scripts/runtime-governance.mjs summarize --feature {feature}
 ```
 
 `authorize` is a pure permit-or-deny check. `run-verified-command.mjs` executes only a catalog-defined argv, then writes attested structured evidence. Use `--require-trusted-evidence` with the final verifier once the project has migrated its delivery process; this opt-in gate prevents old self-reported evidence from being misrepresented as attested evidence.
+
+## Native Archive
+
+After verification, archive every completed change through the controlled native command:
+
+```bash
+node scripts/archive-openspec-change.mjs --feature {feature}
+```
+
+Use `--skip-specs` only when the completed change has no specification delta. The command runs `openspec archive`, confirms the active change directory was moved beneath `openspec/changes/archive/`, then writes `archive-result.json` as an audit record. It is not accepted as self-reported proof. Run the final delivery verifier after this command.
 
 Use `.ai/evals/routing-cases.json` and `.ai/evals/pilot-scorecard.template.json` for a pilot. Review mode selection, gate failures, policy denials, retries, delivery duration, and human intervention before changing the workflow depth or adding infrastructure.
 
@@ -146,7 +157,7 @@ To fetch and apply the latest GitHub version in one command:
 npx --yes github:hpuhsp/OSD-Workflow update .
 ```
 
-Add `--with-docs` to refresh usage guides and `--dry-run` to preview. Update overwrites template-managed files but preserves project-owned OpenSpec changes and knowledge archives.
+Add `--with-docs` to refresh usage guides and `--dry-run` to preview. Update overwrites template-managed files but preserves project-owned active changes, native OpenSpec archives, and delivery records.
 
 When upgrading an active delivery from manifest v3, use the migration guidance
 to add approval, state, task, and structured-evidence artifacts. Legacy v3
@@ -174,13 +185,13 @@ Verify only the installed contract:
 node scripts/verify-workflow-artifacts.mjs --structural-only
 ```
 
-The verifier checks regular, non-empty required files, approval state, `AC-*` criteria, `T-*` task coverage, structured evidence, selected delivery-record fields, and strategy evidence. It does not execute arbitrary commands from artifacts, audit chat history, or prove that an external harness was invoked.
+The verifier checks regular, non-empty required files, approval state, `AC-*` criteria, `T-*` task coverage, structured evidence, selected delivery-record fields, strategy evidence, and the actual native OpenSpec archive location. It does not execute arbitrary commands from artifacts or audit chat history.
 
 For standard and strict work, a passing delivery requires an approved `approval.md`,
 an `osd-state.json` in a final state, tasks covering every acceptance criterion, and
-`verification.json` covering those criteria. Strict work additionally requires a
-successful native OpenSpec archive result. `lite` remains exempt from these heavier
-gates unless the task is escalated.
+`verification.json` covering those criteria. Every completed mode requires a
+successful native OpenSpec archive. `lite` remains exempt from the approval,
+state, task, and structured-evidence gates unless the task is escalated.
 
 ## Compact Delivery Record
 

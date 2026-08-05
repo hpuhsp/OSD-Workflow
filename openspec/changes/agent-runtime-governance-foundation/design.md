@@ -18,7 +18,7 @@ openspec/changes/{feature}/
   context/{task-id}.json
   run-events.jsonl
   evaluation.json
-knowledge/archive/{feature}/
+knowledge/delivery/{feature}/
   runtime-summary.json
 ~~~
 

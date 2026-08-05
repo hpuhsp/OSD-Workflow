@@ -1,13 +1,13 @@
-# Knowledge Archive
+# Knowledge Delivery
 
 ## Principle
 
-Archive only the context worth reusing. Required files are defined per mode in `.ai/workflow-manifest.json`.
+Keep only the delivery context worth reusing. Required files are defined per mode in `.ai/workflow-manifest.json`.
 
 Standard and strict changes must retain the approval decision, change state,
 atomic task mapping, and structured verification evidence alongside the native
 OpenSpec artifacts. These are traceability records, not replacements for the
-OpenSpec specification or archive lifecycle.
+native OpenSpec archive lifecycle.
 
 ## Lite
 
@@ -29,7 +29,7 @@ Add `requirement.md`, `test-report.md`, `review-report.md`, or optional OpenSpec
 
 ## Strict
 
-Keep links to the accepted OpenSpec spec/design plus the implementation decisions, verification, review, and delivery record required by the manifest. Do not copy OpenSpec content into duplicate archive files.
+Keep links to the accepted OpenSpec spec/design plus the implementation decisions, verification, review, and delivery record required by the manifest. Do not copy OpenSpec content into duplicate delivery files.
 
 ## Handoff
 

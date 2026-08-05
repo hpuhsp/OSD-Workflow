@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const templateRoot = path.resolve(__dirname, "..");
 
-const REQUIRED_ENTRIES = [".ai", "openspec", "knowledge", "scripts/verify-workflow-artifacts.mjs", "scripts/runtime-governance.mjs", "scripts/run-verified-command.mjs"];
+const REQUIRED_ENTRIES = [".ai", "openspec", "knowledge", "scripts/verify-workflow-artifacts.mjs", "scripts/runtime-governance.mjs", "scripts/run-verified-command.mjs", "scripts/archive-openspec-change.mjs"];
 const DOC_ENTRIES = ["docs"];
 const AGENT_ENTRY_TEMPLATE = ".ai/templates/agent-entry.md";
 const MANAGED_ENTRY_START = "<!-- osd-workflow:start -->";

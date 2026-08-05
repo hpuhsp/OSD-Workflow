@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+
+import { main as archiveOpenSpecChange } from "../scripts/archive-openspec-change.mjs";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const runner = join(projectRoot, "scripts", "run-verified-command.mjs");
@@ -46,11 +48,38 @@ test("verified command runner rejects unsafe feature paths before reading target
   );
 });
 
+test("native archive command records evidence only after OpenSpec moves the change", (t) => {
+  const root = tempProject("osd-native-archive-");
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const change = join(root, "openspec", "changes", "native-check");
+  mkdirSync(change, { recursive: true });
+  writeFileSync(join(change, "spec.md"), "# Spec\n", "utf8");
+
+  const exitCode = archiveOpenSpecChange(["--target", root, "--feature", "native-check"], {
+    spawn(command, args, options) {
+      assert.equal(command, "openspec");
+      assert.deepEqual(args, ["archive", "native-check", "--yes"]);
+      assert.equal(options.shell, false);
+      const archived = join(root, "openspec", "changes", "archive", "2026-08-05-native-check");
+      mkdirSync(resolve(archived, ".."), { recursive: true });
+      renameSync(change, archived);
+      return { status: 0, stdout: "archived" };
+    },
+    log() {},
+  });
+  const archived = join(root, "openspec", "changes", "archive", "2026-08-05-native-check");
+  assert.equal(exitCode, 0);
+  assert.equal(existsSync(change), false);
+  const result = JSON.parse(readFileSync(join(archived, "archive-result.json"), "utf8"));
+  assert.equal(result.provenance.runner, "osd-openspec-archive");
+  assert.equal(result.archived_change_location, "openspec/changes/archive/2026-08-05-native-check");
+});
+
 test("PowerShell installer includes every runtime dependency", { skip: process.platform !== "win32" }, (t) => {
   const root = mkdtempSync(join(tmpdir(), "osd-powershell-install-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   execFileSync("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", powerShellInstaller, "-Target", root], { stdio: "pipe" });
-  for (const file of ["verify-workflow-artifacts.mjs", "runtime-governance.mjs", "run-verified-command.mjs"]) {
+  for (const file of ["verify-workflow-artifacts.mjs", "runtime-governance.mjs", "run-verified-command.mjs", "archive-openspec-change.mjs"]) {
     assert.equal(existsSync(join(root, "scripts", file)), true);
   }
 });

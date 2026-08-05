@@ -56,7 +56,7 @@ Task type changes the specification focus:
 - Refactor: behavior invariants, impact boundary, rollback, regression coverage.
 - Maintenance/docs/config: exact change, operational impact, focused verification.
 
-Record the selected task type and mode in `knowledge/archive/{feature}/stage-report.md`. Escalate the mode when new risk or uncertainty appears. A lighter user-requested mode is allowed when residual risk is recorded.
+Record the selected task type and mode in `knowledge/delivery/{feature}/stage-report.md`. Escalate the mode when new risk or uncertainty appears. A lighter user-requested mode is allowed when residual risk is recorded.
 
 `intake` is conditional. Run it only when the request and repository context are insufficient to classify or specify the task. Otherwise begin at `specification`.
 
@@ -88,15 +88,15 @@ an atomic task and verification evidence.
 
 ### Lite
 
-Flow: OSD route -> compact OpenSpec with Superpowers assistance -> implementation -> verification.
+Flow: OSD route -> compact OpenSpec with Superpowers assistance -> implementation -> verification -> native archive.
 
 - Keep `openspec/changes/{feature}/spec.md` concise: expected change, boundaries, acceptance criteria.
-- Do not require a separate proposal, design, plan, review report, or full archive.
+- Do not require a separate proposal, design, plan, or review report.
 - Put focused verification and review evidence in one compact delivery record. Create separate reports only when they add value.
 
 ### Standard
 
-Flow: OSD route -> OpenSpec with Superpowers assistance -> approval -> atomic tasks -> plan -> implementation -> verification -> review.
+Flow: OSD route -> OpenSpec with Superpowers assistance -> approval -> atomic tasks -> plan -> implementation -> verification -> review -> native archive.
 
 - Use a concise OpenSpec proposal and spec; add design only when it adds value.
 - Keep the plan in `implementation.md` and summarize verification and review in the compact delivery record.
@@ -109,6 +109,10 @@ Flow: OSD route -> optional intake -> full OpenSpec with Superpowers assistance 
 - Use the global OpenSpec CLI against the project workspace.
 - Use full specification, design, verification, review, and archive evidence.
 - Use the detailed stage report only when traceability requires it.
+
+## Native Archive
+
+After every accepted completed change, run `node scripts/archive-openspec-change.mjs --feature {feature}`. Use `--skip-specs` only when the change has no specification delta. Do not hand-write `archive-result.json` as evidence: the controlled command writes it only after `openspec archive` has moved the change under `openspec/changes/archive/`.
 
 ## Runtime Governance
 

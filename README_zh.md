@@ -11,7 +11,7 @@ OpenSpec 和 Superpowers 必须参与，但都不能替代或重排 OSD Workflow
 
 OSD 刻意保持为薄编排层：只选择流程深度和最低证据，再把原生规格生命周期委派给 OpenSpec，把执行方法委派给 Superpowers。
 
-项目模板负责提供 `.ai/` 团队契约、`openspec/changes/` 规格资产，以及 `knowledge/archive/` 中的精简交付证据。
+项目模板负责提供 `.ai/` 团队契约、`openspec/changes/` 中的活动规格、`openspec/changes/archive/` 中的原生归档，以及 `knowledge/delivery/` 中的精简交付证据。
 
 本仓库是可安装的模板源，不是一个提供业务运行时的应用。请先将它安装到目标项目，再在目标项目中初始化 OpenSpec 工作区。
 
@@ -72,9 +72,10 @@ TDD 是条件化开发策略，不是第四种工作流模式。摘要证据写�
 `lite` 只要求：
 
 - `openspec/changes/{feature}/spec.md`
-- `knowledge/archive/{feature}/stage-report.md`
+- `openspec/changes/{feature}/archive-result.json`
+- `knowledge/delivery/{feature}/stage-report.md`
 
-`standard` 增加 OpenSpec proposal、明确批准、机器可读状态、原子任务、结构化验证证据和精简实施计划。验证与评审默认合并到 `stage-report.md`，只有在风险控制或交接需要时才单独生成报告；`strict` 额外保留完整设计、验证、评审和归档结果证据。
+`standard` 增加 OpenSpec proposal、明确批准、机器可读状态、原子任务、结构化验证证据和精简实施计划。所有已验收完成的变更均通过原生 OpenSpec CLI 归档。验证与评审默认合并到 `stage-report.md`，只有在风险控制或交接需要时才单独生成报告；`strict` 额外保留完整设计、验证和评审证据。
 
 `.ai/workflow-manifest.json` 是唯一机器可读产物契约。不要在多个文件中重复相同内容。仅在另一个 Agent 将继续任务时创建 `handoff-brief.md`。
 
@@ -82,8 +83,8 @@ TDD 是条件化开发策略，不是第四种工作流模式。摘要证据写�
 
 | 模式 | 必需文件 |
 |---|---|
-| `lite` | `openspec/changes/{feature}/spec.md`、`knowledge/archive/{feature}/stage-report.md` |
-| `standard` | `proposal.md`、`spec.md`、`approval.md`、`osd-state.json`、`tasks.md`、`verification.json`、`knowledge/archive/{feature}/implementation.md`、`stage-report.md` |
+| `lite` | `spec.md`、`archive-result.json`、`knowledge/delivery/{feature}/stage-report.md` |
+| `standard` | `proposal.md`、`spec.md`、`approval.md`、`osd-state.json`、`tasks.md`、`verification.json`、`archive-result.json`、`knowledge/delivery/{feature}/implementation.md`、`stage-report.md` |
 | `strict` | `proposal.md`、`spec.md`、`design.md`、`approval.md`、`osd-state.json`、`tasks.md`、`verification.json`、`archive-result.json`、`implementation.md`、`test-report.md`、`review-report.md`、`stage-report.md` |
 
 ## 安装 OSD Workflow
@@ -150,7 +151,7 @@ PowerShell：
 powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target . -Update -WithDocs
 ```
 
-`update` 只覆盖模板管理的文件，不删除项目自己的 OpenSpec 变更和知识归档。可以先使用 `--dry-run` 预览，更新后建议检查 Git diff。`--with-docs` 需要显式指定，避免意外更新已安装的使用指南。
+`update` 只覆盖模板管理的文件，不删除项目自己的活动变更、原生 OpenSpec 归档和交付记录。可以先使用 `--dry-run` 预览，更新后建议检查 Git diff。`--with-docs` 需要显式指定，避免意外更新已安装的使用指南。
 
 Manifest v3 迁移：旧版本创建的活跃交付记录需要补充 `OSD controller: osd_workflow`、非空 `OpenSpec participation` 和非空 `Superpowers participation` 三个字段后再执行校验。
 

@@ -21,6 +21,6 @@
 - Archive result: `openspec/changes/{feature}/archive-result.json` or N/A
 - Separate reports: N/A or paths when risk justifies them
 - Residual risk: none or short note
-- Handoff: N/A or `knowledge/archive/{feature}/handoff-brief.md`
+- Handoff: N/A or `knowledge/delivery/{feature}/handoff-brief.md`
 
 Keep this record short. Do not create one row per stage and do not paste logs or full file contents.

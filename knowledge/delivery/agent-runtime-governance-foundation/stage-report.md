@@ -16,8 +16,8 @@
 - Red evidence: new runtime-governance test failed because `scripts/runtime-governance.mjs` was absent
 - Green evidence: full repository suite passed after the helper, catalog, and verifier integration
 - Refactor evidence: N/A for test_first
-- Review: pass; see `knowledge/archive/agent-runtime-governance-foundation/review-report.md`
+- Review: pass; see `knowledge/delivery/agent-runtime-governance-foundation/review-report.md`
 - Archive result: N/A for standard
-- Separate reports: `knowledge/archive/agent-runtime-governance-foundation/review-report.md`
+- Separate reports: `knowledge/delivery/agent-runtime-governance-foundation/review-report.md`
 - Residual risk: scheduler, worktree/sandbox provisioning, and live monitor daemon remain adapter scope for a pilot phase
 - Handoff: N/A

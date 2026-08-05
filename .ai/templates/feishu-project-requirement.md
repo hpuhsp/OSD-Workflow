@@ -57,4 +57,4 @@
 ## Mapping
 
 - OpenSpec change path: `openspec/changes/{feature}/`
-- Archive path: `knowledge/archive/{feature}/`
+- Delivery record path: `knowledge/delivery/{feature}/`

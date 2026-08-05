@@ -26,7 +26,7 @@ Evidence belongs in the delivery record for lite and standard work. Strict work 
 
 ## Evidence
 
-For lite and standard work, record the following in `knowledge/archive/{feature}/stage-report.md`. Use `test-report.md` only when risk, complexity, or handoff value justifies a separate report. Strict work always writes `test-report.md` with:
+For lite and standard work, record the following in `knowledge/delivery/{feature}/stage-report.md`. Use `test-report.md` only when risk, complexity, or handoff value justifies a separate report. Strict work always writes `test-report.md` with:
 
 - What was verified.
 - Command or manual procedure.

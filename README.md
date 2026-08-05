@@ -11,7 +11,7 @@ OpenSpec and Superpowers participate in every task, but neither replaces or reor
 
 OSD is deliberately thin: it selects process depth and minimum evidence, then delegates the native specification lifecycle to OpenSpec and execution methods to Superpowers.
 
-The project template supplies the shared contract under `.ai/`, OpenSpec assets under `openspec/changes/`, and concise delivery evidence under `knowledge/archive/`.
+The project template supplies the shared contract under `.ai/`, active OpenSpec assets under `openspec/changes/`, native OpenSpec archives under `openspec/changes/archive/`, and concise delivery evidence under `knowledge/delivery/`.
 
 This repository is the installable template source. It does not implement an application runtime; install it into a target project, then initialize that project's OpenSpec workspace.
 
@@ -43,6 +43,8 @@ Every task must:
 
 OpenSpec and Superpowers participate in all three modes. Only process depth and artifact volume change.
 
+Every accepted completed change ends with native `openspec archive`, regardless of mode.
+
 ## Development Strategy
 
 Mode and development strategy are separate decisions:
@@ -72,9 +74,10 @@ Escalate when scope, uncertainty, or risk grows. A user may explicitly choose a 
 `lite` requires only:
 
 - `openspec/changes/{feature}/spec.md`
-- `knowledge/archive/{feature}/stage-report.md`
+- `openspec/changes/{feature}/archive-result.json`
+- `knowledge/delivery/{feature}/stage-report.md`
 
-`standard` adds an OpenSpec proposal, explicit approval, machine-readable state, atomic tasks, structured verification evidence, and a concise implementation plan. Verification and review stay in `stage-report.md` unless a separate report adds risk-control or handoff value. `strict` additionally requires design, full verification/review evidence, and an archive result.
+`standard` adds an OpenSpec proposal, explicit approval, machine-readable state, atomic tasks, structured verification evidence, and a concise implementation plan. Every completed change is then archived through the native OpenSpec CLI. Verification and review stay in `stage-report.md` unless a separate report adds risk-control or handoff value. `strict` additionally requires design and full verification/review evidence.
 
 The machine-readable output contract is `.ai/workflow-manifest.json`. Do not duplicate the same information across files. Create `handoff-brief.md` only when another agent will continue the task.
 
@@ -82,15 +85,15 @@ The required delivery files are mode-dependent:
 
 | Mode | Required files |
 |---|---|
-| `lite` | `openspec/changes/{feature}/spec.md`, `knowledge/archive/{feature}/stage-report.md` |
-| `standard` | `proposal.md`, `spec.md`, `approval.md`, `osd-state.json`, `tasks.md`, `verification.json`, `knowledge/archive/{feature}/implementation.md`, `stage-report.md` |
+| `lite` | `spec.md`, `archive-result.json`, `knowledge/delivery/{feature}/stage-report.md` |
+| `standard` | `proposal.md`, `spec.md`, `approval.md`, `osd-state.json`, `tasks.md`, `verification.json`, `archive-result.json`, `knowledge/delivery/{feature}/implementation.md`, `stage-report.md` |
 | `strict` | `proposal.md`, `spec.md`, `design.md`, `approval.md`, `osd-state.json`, `tasks.md`, `verification.json`, `archive-result.json`, `implementation.md`, `test-report.md`, `review-report.md`, `stage-report.md` |
 
 The complete paths and optional outputs are defined only by `.ai/workflow-manifest.json`; the table above is a quick reference.
 
 ## Runtime Governance Foundation
 
-Version 6 adds a small, local runtime-governance contract without introducing an OSD-owned scheduler, MCP service, RAG store, or hosted control plane. The unified catalog is `.ai/runtime-governance/governance.json`; it is the single source for resource ownership, policy, role boundaries, fixed command definitions, and evaluation rules.
+Release 0.7 adds a small, local runtime-governance contract without introducing an OSD-owned scheduler, MCP service, RAG store, or hosted control plane. The unified catalog is `.ai/runtime-governance/governance.json`; it is the single source for resource ownership, policy, role boundaries, fixed command definitions, and evaluation rules.
 
 For `standard` and `strict` deliveries, create one task-scoped context package per atomic task, a metadata-only event log, deterministic acceptance-criterion evaluation, and an event-derived runtime summary. The verifier checks them automatically. Runtime role boundaries are policy-first:
 
@@ -109,10 +112,11 @@ node scripts/runtime-governance.mjs authorize --feature {feature} --action '{"co
 node scripts/run-verified-command.mjs --feature {feature} --command-id node-test --step focused --criteria AC-01
 node scripts/runtime-governance.mjs evaluate --feature {feature}
 node scripts/runtime-governance.mjs summarize --feature {feature}
+node scripts/archive-openspec-change.mjs --feature {feature}
 node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode} --require-trusted-evidence
 ```
 
-`run-verified-command.mjs` never executes a command supplied by a change artifact. It executes only a fixed `argv` declared in the repository catalog and writes command provenance into `verification.json`. Use `--require-trusted-evidence` after a team has adopted that runner; it is intentionally opt-in for v5 migration compatibility.
+`run-verified-command.mjs` never executes a command supplied by a change artifact. It executes only a fixed `argv` declared in the repository catalog and writes command provenance into `verification.json`. `archive-openspec-change.mjs` runs the native `openspec archive` command, then records its observed result only after the change has moved to OpenSpec's archive directory. Use `--skip-specs` only for a completed change with no specification delta. The final verifier rejects a change that still exists in the active directory; `archive-result.json` is an audit record, never stand-alone proof.
 
 The installed `.ai/evals/` directory contains routing cases and a pilot scorecard template. Use them to measure route selection, verifier failures, policy denials, retries, duration, and human intervention before expanding the control plane.
 
@@ -180,9 +184,9 @@ PowerShell:
 powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target . -Update -WithDocs
 ```
 
-`update` overwrites only files managed by the template. It does not delete project-owned OpenSpec changes or knowledge archives. Use `--dry-run` to preview and review the Git diff after updating. `--with-docs` is opt-in so installed usage guides are not changed unexpectedly.
+`update` overwrites only files managed by the template. It does not delete project-owned active changes, native OpenSpec archives, or delivery records. Use `--dry-run` to preview and review the Git diff after updating. `--with-docs` is opt-in so installed usage guides are not changed unexpectedly.
 
-Manifest v3-v5 migration: retain existing delivery artifacts, run structural verification after update, and adopt the fixed-command runner per project. Trusted-evidence enforcement is opt-in through the verifier flag so existing evidence is not silently represented as runner-generated.
+Manifest v3-v6 migration: retain existing delivery artifacts, run structural verification after update, and migrate completed changes with the controlled native archive command before enforcing v6 delivery verification. Trusted-evidence enforcement is opt-in through the verifier flag so existing evidence is not silently represented as runner-generated.
 
 ## Daily Use
 
@@ -214,7 +218,7 @@ Verify only the installed contract:
 node scripts/verify-workflow-artifacts.mjs --structural-only
 ```
 
-See [docs/USAGE.md](docs/USAGE.md) for task-specific prompts and routing examples. For the v5 local-first runtime-governance guide, see [docs/RUNTIME_GOVERNANCE_zh.md](docs/RUNTIME_GOVERNANCE_zh.md).
+See [docs/USAGE.md](docs/USAGE.md) for task-specific prompts and routing examples. For the v6 local-first runtime-governance guide, see [docs/RUNTIME_GOVERNANCE_zh.md](docs/RUNTIME_GOVERNANCE_zh.md).
 
 ## Project Files
 
@@ -225,11 +229,12 @@ See [docs/USAGE.md](docs/USAGE.md) for task-specific prompts and routing example
 - `AGENTS.md` and Agent-specific adapters: automatic OSD discovery with project instruction preservation
 - `scripts/verify-workflow-artifacts.mjs`: lightweight delivery verifier
 - `scripts/runtime-governance.mjs`: local context, event, and summary utility
+- `scripts/archive-openspec-change.mjs`: controlled native OpenSpec archive utility
 - `.ai/runtime-governance/governance.json`: unified resource/policy/evaluation catalog
 - `bin/osd-workflow-init.mjs`: Node.js initializer
 - `scripts/install.ps1`: PowerShell initializer
 
-For the human workflow guide, see [docs/USAGE.md](docs/USAGE.md). For the Chinese guide, see [docs/USAGE_zh.md](docs/USAGE_zh.md); for v5 runtime governance, see [docs/RUNTIME_GOVERNANCE_zh.md](docs/RUNTIME_GOVERNANCE_zh.md).
+For the human workflow guide, see [docs/USAGE.md](docs/USAGE.md). For the Chinese guide, see [docs/USAGE_zh.md](docs/USAGE_zh.md); for v6 runtime governance, see [docs/RUNTIME_GOVERNANCE_zh.md](docs/RUNTIME_GOVERNANCE_zh.md).
 
 ## License
 

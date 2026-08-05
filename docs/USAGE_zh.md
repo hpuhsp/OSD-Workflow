@@ -39,13 +39,14 @@ OSD 只负责路由和最低结果治理。OpenSpec 负责自身原生规格生�
 
 用于简单、局部、低风险且预期明确的任务。
 
-流程：OSD 路由 → 精简 OpenSpec spec → 实现 → 聚焦验证。
+流程：OSD 路由 → 精简 OpenSpec spec → 实现 → 聚焦验证 → 原生归档。
 
 最小产物：
 
 ```text
 openspec/changes/{feature}/spec.md
-knowledge/archive/{feature}/stage-report.md
+openspec/changes/{feature}/archive-result.json
+knowledge/delivery/{feature}/stage-report.md
 ```
 
 `lite` 不要求 proposal、实施计划、测试报告或评审报告；只有在它们能改善风险控制或交接时才增加。
@@ -54,11 +55,11 @@ knowledge/archive/{feature}/stage-report.md
 
 用于中等规模日常任务，也是无法确定时的默认模式。
 
-流程：OSD 路由 → OpenSpec proposal/spec → 批准 → 原子任务 → 简短计划 → 实现 → 验证 → 精简评审。
+流程：OSD 路由 → OpenSpec proposal/spec → 批准 → 原子任务 → 简短计划 → 实现 → 验证 → 精简评审 → 原生归档。
 
 必需产物由 `.ai/workflow-manifest.json` 定义，包括 proposal、spec、implementation 和一份简短交付记录。验证与评审默认写入交付记录，只有风险或交接需要时才生成独立报告。
 
-具体必需文件是 `proposal.md`、`spec.md`、`approval.md`、`osd-state.json`、`tasks.md`、`verification.json`、`knowledge/archive/{feature}/implementation.md` 和 `stage-report.md`。
+具体必需文件是 `proposal.md`、`spec.md`、`approval.md`、`osd-state.json`、`tasks.md`、`verification.json`、`archive-result.json`、`knowledge/delivery/{feature}/implementation.md` 和 `stage-report.md`。
 
 #### Strict
 
@@ -66,7 +67,7 @@ knowledge/archive/{feature}/stage-report.md
 
 流程：OSD 路由 → 完整 OpenSpec → 规格评审 → 批准 → 原子任务 → 计划 → 实现 → 完整验证 → 评审 → 归档。
 
-具体必需文件是 `proposal.md`、`spec.md`、`design.md`、`approval.md`、`osd-state.json`、`tasks.md`、`verification.json`、`archive-result.json`、`implementation.md`、`test-report.md`、`review-report.md` 和 `stage-report.md`，分别位于对应的 OpenSpec 与知识归档目录。
+具体必需文件是 `proposal.md`、`spec.md`、`design.md`、`approval.md`、`osd-state.json`、`tasks.md`、`verification.json`、`archive-result.json`、`implementation.md`、`test-report.md`、`review-report.md` 和 `stage-report.md`，分别位于对应的 OpenSpec 与交付记录目录。
 
 ### 第四步：选择开发策略
 
@@ -175,7 +176,7 @@ osd-workflow update .
 npx --yes github:hpuhsp/OSD-Workflow update .
 ```
 
-增加 `--with-docs` 可同步更新使用指南，增加 `--dry-run` 可先预览。更新只覆盖模板管理文件，不删除项目自己的 OpenSpec 变更和知识归档。
+增加 `--with-docs` 可同步更新使用指南，增加 `--dry-run` 可先预览。更新只覆盖模板管理文件，不删除项目自己的活动变更、原生 OpenSpec 归档和交付记录。
 
 把活跃交付从 manifest v3 升级时，需要按照迁移说明增加批准、状态、任务和结构化证据产物。遗留 v3 校验必须显式报告，不能静默宣称已具备 v4 保证。
 
