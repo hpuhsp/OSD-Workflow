@@ -196,7 +196,7 @@ if ($Update -and -not (Test-Path -LiteralPath (Join-Path $targetRoot ".ai\workfl
     throw "No existing OSD Workflow installation found at: $targetRoot"
 }
 
-$entries = @(".ai", "openspec", "knowledge", "scripts/verify-workflow-artifacts.mjs")
+$entries = @(".ai", "openspec", "knowledge", "scripts/verify-workflow-artifacts.mjs", "scripts/runtime-governance.mjs", "scripts/run-verified-command.mjs")
 if ($WithDocs) {
     $entries += "docs"
 }

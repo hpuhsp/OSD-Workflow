@@ -90,7 +90,7 @@ The complete paths and optional outputs are defined only by `.ai/workflow-manife
 
 ## Runtime Governance Foundation
 
-Version 5 adds a small, local runtime-governance contract without introducing an OSD-owned scheduler, MCP service, RAG store, or hosted control plane. The unified catalog is `.ai/runtime-governance/governance.json`; it is the single source for resource ownership, policy, role boundaries, command IDs, and evaluation rules.
+Version 6 adds a small, local runtime-governance contract without introducing an OSD-owned scheduler, MCP service, RAG store, or hosted control plane. The unified catalog is `.ai/runtime-governance/governance.json`; it is the single source for resource ownership, policy, role boundaries, fixed command definitions, and evaluation rules.
 
 For `standard` and `strict` deliveries, create one task-scoped context package per atomic task, a metadata-only event log, deterministic acceptance-criterion evaluation, and an event-derived runtime summary. The verifier checks them automatically. Runtime role boundaries are policy-first:
 
@@ -105,9 +105,16 @@ Useful local commands:
 
 ```bash
 node scripts/runtime-governance.mjs context --feature {feature} --task T-01 --owned-area src/example.js --isolated true
+node scripts/runtime-governance.mjs authorize --feature {feature} --action '{"command_id":"node-test","role":"test_verifier","paths":["test/example.test.mjs"]}'
+node scripts/run-verified-command.mjs --feature {feature} --command-id node-test --step focused --criteria AC-01
+node scripts/runtime-governance.mjs evaluate --feature {feature}
 node scripts/runtime-governance.mjs summarize --feature {feature}
-node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode}
+node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode} --require-trusted-evidence
 ```
+
+`run-verified-command.mjs` never executes a command supplied by a change artifact. It executes only a fixed `argv` declared in the repository catalog and writes command provenance into `verification.json`. Use `--require-trusted-evidence` after a team has adopted that runner; it is intentionally opt-in for v5 migration compatibility.
+
+The installed `.ai/evals/` directory contains routing cases and a pilot scorecard template. Use them to measure route selection, verifier failures, policy denials, retries, duration, and human intervention before expanding the control plane.
 
 ## Install OSD Workflow
 
@@ -175,7 +182,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target . -Update
 
 `update` overwrites only files managed by the template. It does not delete project-owned OpenSpec changes or knowledge archives. Use `--dry-run` to preview and review the Git diff after updating. `--with-docs` is opt-in so installed usage guides are not changed unexpectedly.
 
-Manifest v3 migration: active delivery records created by older versions must add `OSD controller: osd_workflow`, non-empty `OpenSpec participation`, and non-empty `Superpowers participation` fields before verification.
+Manifest v3-v5 migration: retain existing delivery artifacts, run structural verification after update, and adopt the fixed-command runner per project. Trusted-evidence enforcement is opt-in through the verifier flag so existing evidence is not silently represented as runner-generated.
 
 ## Daily Use
 

@@ -1,6 +1,6 @@
 {
   "name": "osd-workflow",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Lightweight adaptive SDD workflow with dynamic TDD strategies using OpenSpec and Superpowers.",
   "license": "MIT",
   "type": "module",
@@ -23,9 +23,10 @@
     "init": "node ./bin/osd-workflow-init.mjs",
     "verify": "node ./scripts/verify-workflow-artifacts.mjs --structural-only",
     "runtime": "node ./scripts/runtime-governance.mjs",
+    "run-verified": "node ./scripts/run-verified-command.mjs",
     "test": "node --test"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20.11"
   }
 }

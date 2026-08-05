@@ -72,7 +72,7 @@ Required artifacts are `proposal.md`, `spec.md`, `design.md`, `approval.md`, `os
 
 Mode controls process depth; strategy controls implementation mechanics. A simple business rule can use `lite + tdd`, while a complex configuration migration may use `strict + verification_only`.
 
-## Runtime Governance (Manifest v5)
+## Runtime Governance (Release 0.6)
 
 Runtime governance is local-first and policy-first. It adds no OSD scheduler, MCP server, RAG store, or hosted control plane. The sole managed catalog is `.ai/runtime-governance/governance.json`; per-change evidence stays next to its OpenSpec change.
 
@@ -85,9 +85,16 @@ node scripts/runtime-governance.mjs context --feature {feature} --task T-01 --ow
 Then record metadata-only lifecycle events, evaluate deterministic checks against `AC-*`, and create the summary:
 
 ```bash
-node scripts/runtime-governance.mjs record-event --feature {feature} --event '{"schema":"osd-run-event/v1","run_id":"run-1","feature":"{feature}","task_id":"T-01","stage":"implementation","actor_role":"executor","event_type":"role_completed","status":"completed","timestamp":"2026-08-05T00:00:00+08:00","contract_version":"1"}'
+node scripts/runtime-governance.mjs authorize --feature {feature} --action '{"command_id":"node-test","role":"test_verifier","paths":["test/example.test.mjs"]}'
+node scripts/run-verified-command.mjs --feature {feature} --command-id node-test --step focused --criteria AC-01
+node scripts/runtime-governance.mjs evaluate --feature {feature}
+node scripts/runtime-governance.mjs record-event --feature {feature} --event '{"schema":"osd-run-event/v1","run_id":"run-1","feature":"{feature}","task_id":"T-01","stage":"verification","actor_role":"test_verifier","event_type":"verification_completed","status":"completed","timestamp":"2026-08-05T00:00:00+08:00","contract_version":"1"}'
 node scripts/runtime-governance.mjs summarize --feature {feature}
 ```
+
+`authorize` is a pure permit-or-deny check. `run-verified-command.mjs` executes only a catalog-defined argv, then writes attested structured evidence. Use `--require-trusted-evidence` with the final verifier once the project has migrated its delivery process; this opt-in gate prevents old self-reported evidence from being misrepresented as attested evidence.
+
+Use `.ai/evals/routing-cases.json` and `.ai/evals/pilot-scorecard.template.json` for a pilot. Review mode selection, gate failures, policy denials, retries, delivery duration, and human intervention before changing the workflow depth or adding infrastructure.
 
 The coordinator routes, decomposes, assigns, and aggregates but never writes business code. One executor has exclusive write ownership for an atomic task. Test verifier and reviewer are read-only; neither merges changes. Monitor only reports timeout, retry, authorization, verification-coverage, and blockage signals; it cannot approve delivery or remediate code. `lite` uses the executor by default, `standard` enables independent roles when risk demands them, and `strict` requires executor, test verifier, reviewer, and monitor completion evidence.
 

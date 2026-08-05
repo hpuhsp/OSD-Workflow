@@ -10,6 +10,7 @@ import {
   validateRunEvent,
   validateRuntimeCatalog,
 } from "./runtime-governance.mjs";
+import { validateDocument } from "./contract-schema.mjs";
 
 const VALID_MODES = new Set(["lite", "standard", "strict"]);
 const VALID_STRATEGIES = new Set(["tdd", "test_first", "verification_only"]);
@@ -38,6 +39,7 @@ export function parseArgs(argv) {
     feature: "",
     mode: "",
     handoff: false,
+    trustedEvidence: false,
     structuralOnly: false,
     json: false,
     help: false,
@@ -64,6 +66,8 @@ export function parseArgs(argv) {
       index += 1;
     } else if (arg === "--handoff") {
       options.handoff = true;
+    } else if (arg === "--require-trusted-evidence") {
+      options.trustedEvidence = true;
     } else if (arg === "--structural-only") {
       options.structuralOnly = true;
     } else if (arg === "--json") {
@@ -100,6 +104,7 @@ Options:
   --feature <feature>  Feature directory name to verify.
   --mode <mode>        lite, standard, or strict. Inferred from stage-report when omitted.
   --handoff            Also require handoff-brief.md.
+  --require-trusted-evidence  Require runner-generated provenance for structured evidence.
   --structural-only    Validate the workflow contract without checking a delivery.
   --json               Print a machine-readable result.
   -h, --help           Show this help message.
@@ -222,6 +227,17 @@ function validateManifest(root, manifest, errors, warnings = []) {
     if (typeof reference !== "string" || !nonEmptyFile(resolve(root, reference))) {
       errors.push(`Missing or empty referenced workflow file: ${reference}`);
     }
+  }
+
+  const contractSchemas = manifest.contract_schemas;
+  for (const name of ["runtime_context", "run_event", "evaluation", "verification_evidence"]) {
+    const schemaPath = contractSchemas?.[name];
+    if (typeof schemaPath !== "string" || !nonEmptyFile(resolve(root, schemaPath))) {
+      errors.push(`Manifest contract_schemas is missing ${name}.`);
+      continue;
+    }
+    const schema = readJsonArtifact(resolve(root, schemaPath), errors, `Contract schema ${name}`);
+    if (schema && (schema.$schema !== "https://json-schema.org/draft/2020-12/schema" || typeof schema.$id !== "string")) errors.push(`Contract schema ${name} is not a versioned JSON Schema.`);
   }
 
   for (const mode of VALID_MODES) {
@@ -464,9 +480,10 @@ function validateTasks(path, criteria, errors) {
   return { ids, covered };
 }
 
-function validateVerification(path, strategy, criteria, errors) {
+function validateVerification(path, strategy, criteria, errors, requireTrustedEvidence) {
   const evidence = readJsonArtifact(path, errors, "Verification evidence");
   if (!evidence) return null;
+  errors.push(...validateDocument("osd-verification-evidence-v1.schema.json", evidence).map((error) => `Verification evidence ${error}`));
   if (evidence.schema !== "osd-verification-evidence/v1") errors.push(`Verification evidence has unsupported schema: ${path}`);
   if (evidence.strategy !== strategy) errors.push(`Verification evidence strategy does not match ${strategy}: ${path}`);
   if (!Array.isArray(evidence.steps) || evidence.steps.length === 0) {
@@ -493,6 +510,7 @@ function validateVerification(path, strategy, criteria, errors) {
     }
     if ((step.step === "red" || step.step === "failing_before") && step.exit_code === 0) errors.push(`Verification evidence ${step.step} step must fail with a non-zero exit code: ${path}`);
     if (["green", "refactor", "passing_after", "focused"].includes(step.step) && step.exit_code !== 0) errors.push(`Verification evidence ${step.step} step must pass with exit code 0: ${path}`);
+    if (requireTrustedEvidence && (!step.provenance || step.provenance.schema !== "osd-command-attestation/v1" || step.provenance.runner !== "osd-verified-command")) errors.push(`Verification evidence step lacks trusted runner provenance: ${path}`);
   }
   for (const criterion of criteria) if (!covered.has(criterion)) errors.push(`Acceptance criterion ${criterion} has no verification evidence: ${path}`);
   return evidence;
@@ -698,7 +716,7 @@ export function verify(options) {
     if (approval !== "approved") errors.push(`Change must be approved before delivery verification: ${approvalPath}`);
     validateState(statePath, options.feature, mode, strategy, errors, /^\s*-\s*Result:\s*pass\s*$/im.test(reportText));
     const tasks = validateTasks(taskPath, criteria, errors);
-    if (strategy) validateVerification(verificationPath, strategy, criteria, errors);
+    if (strategy) validateVerification(verificationPath, strategy, criteria, errors, options.trustedEvidence);
     if (strategy) validateRuntimeGovernance(root, manifest, options.feature, mode, strategy, criteria, tasks.ids, errors);
     if (mode === "strict") {
       const archivePath = resolveArtifact(root, manifest.governance.archive_result_file, options.feature);

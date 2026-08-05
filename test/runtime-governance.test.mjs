@@ -72,6 +72,20 @@ test("context package is runnable only for approved task-scoped single-writer wo
     { task_id: "T-02", role: "executor", owned_areas: ["src/b.js"], isolated_execution: true },
   ], catalog());
   assert.ok(dependent.some((error) => error.includes("cannot run in parallel")));
+
+  const blocked = buildContextPackage({
+    feature: "runtime-change",
+    mode: "standard",
+    strategy: "test_first",
+    state: { status: "approved", stage: "planning", specification: "openspec/changes/runtime-change/spec.md" },
+    task: { id: "T-02", criteria: ["AC-01"], dependencies: ["T-01"], affected_areas: ["scripts/runtime-governance.mjs"], verification: "node-test" },
+    catalog: catalog(),
+    assignments: [{ task_id: "T-02", role: "executor", owned_areas: ["scripts/runtime-governance.mjs"], isolated_execution: true }],
+    completedTaskIds: [],
+    generated_at: "2026-08-05T00:00:00+08:00",
+  });
+  assert.equal(blocked.status, "blocked");
+  assert.ok(blocked.reasons.some((reason) => reason.includes("incomplete dependency")));
 });
 
 test("policy actions are pure and reject unknown commands, prohibited paths, or missing approval", () => {
@@ -88,6 +102,7 @@ test("run events reject sensitive payloads and summaries preserve operational ou
   const blocked = { ...completed, run_id: "run-2", actor_role: "monitor", event_type: "policy_denied", status: "blocked", timestamp: "2026-08-05T00:01:00+08:00" };
   assert.deepEqual(validateRunEvent(completed), []);
   assert.ok(validateRunEvent({ ...completed, raw_prompt: "secret" }).some((error) => error.includes("sensitive")));
+  assert.ok(validateRunEvent({ ...completed, extra: "unexpected" }).some((error) => error.includes("unsupported field")));
   assert.deepEqual(summarizeRunEvents([completed, blocked]), {
     schema: "osd-runtime-summary/v1",
     run_count: 2,

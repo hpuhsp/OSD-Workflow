@@ -1,0 +1,19 @@
+{
+  "schema": "osd-pilot-scorecard/v1",
+  "pilot_id": "YYYY-MM-team-project",
+  "workflow_version": "0.6.0",
+  "period": {"started_at": "ISO-8601", "ended_at": "ISO-8601"},
+  "metrics": {
+    "deliveries": 0,
+    "mode_distribution": {"lite": 0, "standard": 0, "strict": 0},
+    "mode_escalations": 0,
+    "verifier_failures": 0,
+    "policy_denials": 0,
+    "retry_count": 0,
+    "human_interventions": 0,
+    "median_delivery_duration_ms": 0
+  },
+  "findings": [],
+  "decision": "continue|adjust|stop",
+  "owner": "team or individual"
+}

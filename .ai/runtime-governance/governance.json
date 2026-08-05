@@ -11,6 +11,11 @@
   ],
   "policy": {
     "command_ids": ["node-test", "osd-structural", "openspec-validate"],
+    "commands": [
+      { "id": "node-test", "argv": ["node", "--test"], "roles": ["executor", "test_verifier"], "modes": ["lite", "standard", "strict"] },
+      { "id": "osd-structural", "argv": ["node", "scripts/verify-workflow-artifacts.mjs", "--structural-only"], "roles": ["test_verifier"], "modes": ["standard", "strict"] },
+      { "id": "openspec-validate", "argv": ["openspec", "validate"], "roles": ["test_verifier"], "modes": ["standard", "strict"] }
+    ],
     "prohibited_path_prefixes": [".git", ".env"],
     "approval_required_modes": ["standard", "strict"],
     "role_profiles": {

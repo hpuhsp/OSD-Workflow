@@ -3,11 +3,12 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import { parseArgs } from "../bin/osd-workflow-init.mjs";
 
-const projectRoot = resolve(import.meta.dirname, "..");
+const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const cliPath = join(projectRoot, "bin", "osd-workflow-init.mjs");
 
 test("initializer accepts one positional target", () => {

@@ -2,12 +2,13 @@ import assert from "node:assert/strict";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import { parseArgs, verify } from "../scripts/verify-workflow-artifacts.mjs";
 import { summarizeRunEvents } from "../scripts/runtime-governance.mjs";
 
-const projectRoot = resolve(import.meta.dirname, "..");
+const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
 function fixture() {
   const root = mkdtempSync(join(tmpdir(), "osd-workflow-test-"));
@@ -185,6 +186,14 @@ test("valid standard governance delivery passes", (t) => {
   writeStandardGovernance(root);
   const result = verify({ target: root, structuralOnly: false, feature: "governed-change", mode: "standard", handoff: false });
   assert.deepEqual(result.errors, []);
+});
+
+test("trusted evidence gate rejects self-reported structured evidence", (t) => {
+  const root = fixture();
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  writeStandardGovernance(root, "trusted-evidence");
+  const result = verify({ target: root, structuralOnly: false, feature: "trusted-evidence", mode: "standard", handoff: false, trustedEvidence: true });
+  assert.ok(result.errors.some((error) => error.includes("trusted runner provenance")));
 });
 
 test("standard delivery requires explicit approval", (t) => {

@@ -1,0 +1,11 @@
+{
+  "schema": "osd-routing-eval-cases/v1",
+  "purpose": "Use these cases to assess route selection and evidence quality during a pilot. They are not a scheduler input.",
+  "cases": [
+    {"id": "bug-local-regression", "task_type": "bug_fix", "expected_mode": "lite", "expected_strategy": "test_first", "prompt": "Fix a reproducible validation error in one module and add a regression check."},
+    {"id": "feature-public-api", "task_type": "new_feature", "expected_mode": "standard", "expected_strategy": "tdd", "prompt": "Add a backwards-compatible public API with observable acceptance criteria."},
+    {"id": "config-low-risk", "task_type": "maintenance", "expected_mode": "lite", "expected_strategy": "verification_only", "prompt": "Update a documented configuration default with a focused manual verification."},
+    {"id": "cross-module-refactor", "task_type": "refactor", "expected_mode": "standard", "expected_strategy": "test_first", "prompt": "Refactor two dependent modules while preserving characterized behavior."},
+    {"id": "release-data-migration", "task_type": "existing_change", "expected_mode": "strict", "expected_strategy": "test_first", "prompt": "Change persisted data behavior for a release-critical migration with rollback requirements."}
+  ]
+}

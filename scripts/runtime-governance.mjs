@@ -3,10 +3,14 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { validateDocument } from "./contract-schema.mjs";
 
 const ROLES = new Set(["coordinator", "executor", "test_verifier", "reviewer", "monitor"]);
 const MODES = new Set(["lite", "standard", "strict"]);
 const SENSITIVE_KEYS = new Set(["prompt", "raw_prompt", "source", "source_code", "secret", "secrets", "credential", "credentials", "tool_input", "tool_output", "raw_input", "raw_output"]);
+const EVENT_FIELDS = new Set(["schema", "run_id", "feature", "task_id", "stage", "actor_role", "event_type", "status", "timestamp", "contract_version", "duration_ms", "command_id", "tool_id", "retry_count", "external_trace_id", "token_total", "cost_total"]);
+const EVENT_TYPES = new Set(["role_started", "role_completed", "policy_allowed", "policy_denied", "verification_completed", "evaluation_completed", "monitor_alert"]);
+const EVENT_STATUSES = new Set(["started", "completed", "blocked", "denied", "failed"]);
 
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -18,6 +22,10 @@ function isIsoTimestamp(value) {
 
 function nonEmpty(value) {
   return typeof value === "string" && value.trim() !== "";
+}
+
+function isSafeFeatureName(feature) {
+  return feature !== "." && feature !== ".." && !/[\\/]/.test(feature) && /^[\p{L}\p{N}][\p{L}\p{N}._-]*$/u.test(feature);
 }
 
 function json(path) {
@@ -40,16 +48,20 @@ function acceptanceCriteriaFromSpec(path) {
   return [...new Set([...text.matchAll(/(?:\*\*)?(AC-[0-9]+)(?:\*\*)?\s*[:.)-]/g)].map((match) => match[1]))];
 }
 
-function taskFromPlan(path, taskId) {
-  const line = readFileSync(path, "utf8").split(/\r?\n/).find((candidate) => new RegExp(`^\\s*[-*]\\s*${taskId}\\s*:`, "i").test(candidate));
-  if (!line) return null;
-  return {
-    id: taskId,
-    criteria: [...new Set([...line.matchAll(/AC-[0-9]+/g)].map((match) => match[0]))],
-    dependencies: [...new Set([...line.matchAll(/T-[0-9]+/g)].map((match) => match[0]).filter((id) => id !== taskId))],
-    affected_areas: [],
-    verification: line.match(/\bVerification:\s*([^.]*)/i)?.[1]?.trim() || "",
-  };
+function tasksFromPlan(path) {
+  return readFileSync(path, "utf8").split(/\r?\n/)
+    .filter((line) => /^\s*[-*]\s*T-[0-9]+\s*:/i.test(line))
+    .map((line) => {
+      const id = line.match(/\bT-[0-9]+\b/i)?.[0];
+      return {
+        id,
+        criteria: [...new Set([...line.matchAll(/AC-[0-9]+/g)].map((match) => match[0]))],
+        dependencies: [...new Set([...(line.match(/\bDependencies:\s*([^.]*)/i)?.[1] ?? "").matchAll(/T-[0-9]+/g)].map((match) => match[0]))],
+        affected_areas: [],
+        status: line.match(/\bStatus:\s*(todo|in_progress|done|blocked)\b/i)?.[1]?.toLowerCase() ?? "",
+        verification: line.match(/\bVerification:\s*([^.]*)/i)?.[1]?.trim() || "",
+      };
+    }).filter((task) => task.id);
 }
 
 export function validateRuntimeCatalog(catalog) {
@@ -78,6 +90,24 @@ export function validateRuntimeCatalog(catalog) {
     return errors;
   }
   if (!Array.isArray(policy.command_ids) || policy.command_ids.some((id) => !nonEmpty(id))) errors.push("Runtime policy must define command_ids.");
+  if (policy.commands !== undefined) {
+    if (!Array.isArray(policy.commands)) {
+      errors.push("Runtime policy commands must be an array when provided.");
+    } else {
+      const commandIds = new Set();
+      for (const command of policy.commands) {
+        if (!isObject(command) || !nonEmpty(command.id) || !Array.isArray(command.argv) || command.argv.length === 0 || command.argv.some((arg) => !nonEmpty(arg))) {
+          errors.push("Runtime policy command must define a non-empty id and argv array.");
+          continue;
+        }
+        if (commandIds.has(command.id)) errors.push(`Runtime policy has duplicate command id: ${command.id}.`);
+        commandIds.add(command.id);
+        if (!Array.isArray(command.roles) || command.roles.some((role) => !ROLES.has(role))) errors.push(`Runtime policy command ${command.id} has invalid roles.`);
+        if (!Array.isArray(command.modes) || command.modes.some((mode) => !MODES.has(mode))) errors.push(`Runtime policy command ${command.id} has invalid modes.`);
+      }
+      for (const id of policy.command_ids ?? []) if (!commandIds.has(id)) errors.push(`Runtime policy command_ids contains undefined command: ${id}.`);
+    }
+  }
   if (!Array.isArray(policy.prohibited_path_prefixes)) errors.push("Runtime policy must define prohibited_path_prefixes.");
   if (!Array.isArray(policy.approval_required_modes) || !policy.approval_required_modes.includes("standard") || !policy.approval_required_modes.includes("strict")) errors.push("Runtime policy must require approval for standard and strict work.");
   const profiles = policy.role_profiles;
@@ -155,13 +185,14 @@ export function validatePolicyAction(action, catalog) {
   return errors;
 }
 
-export function buildContextPackage({ feature, mode, strategy, state, task, catalog, assignments, generated_at = new Date().toISOString() }) {
+export function buildContextPackage({ feature, mode, strategy, state, task, catalog, assignments, completedTaskIds = [], generated_at = new Date().toISOString() }) {
   const reasons = [...validateRuntimeCatalog(catalog), ...validateAssignmentPlan(assignments, catalog)];
   if (!nonEmpty(feature)) reasons.push("Context package requires feature.");
   if (!MODES.has(mode)) reasons.push("Context package requires a valid mode.");
   if (!nonEmpty(strategy)) reasons.push("Context package requires strategy.");
   if (!isObject(state) || state.status !== "approved") reasons.push("Context package requires an approved change state.");
   if (!isObject(task) || !nonEmpty(task.id) || !Array.isArray(task.criteria) || task.criteria.length === 0) reasons.push("Context package requires a task with linked acceptance criteria.");
+  for (const dependency of task?.dependencies ?? []) if (!completedTaskIds.includes(dependency)) reasons.push(`Context package has an incomplete dependency: ${dependency}.`);
   if (!isIsoTimestamp(generated_at)) reasons.push("Context package requires generated_at timestamp.");
   const assignment = Array.isArray(assignments) ? assignments.find((candidate) => candidate.task_id === task?.id && candidate.role === "executor") : null;
   if (!assignment) reasons.push("Context package requires an executor assignment for the task.");
@@ -189,7 +220,7 @@ export function buildContextPackage({ feature, mode, strategy, state, task, cata
 }
 
 export function validateContextPackage(context, { feature, mode, strategy, taskId, criteria, catalog } = {}) {
-  const errors = [];
+  const errors = validateDocument("osd-runtime-context-v1.schema.json", context);
   if (!isObject(context)) return ["Runtime context package must be an object."];
   if (context.schema !== "osd-runtime-context/v1") errors.push("Runtime context package has unsupported schema.");
   if (context.status !== "runnable") errors.push("Runtime context package is not runnable.");
@@ -207,10 +238,14 @@ export function validateContextPackage(context, { feature, mode, strategy, taskI
 }
 
 export function validateRunEvent(event) {
-  const errors = [];
+  const errors = validateDocument("osd-run-event-v1.schema.json", event);
   if (!isObject(event)) return ["Run event must be an object."];
   if (event.schema !== "osd-run-event/v1") errors.push("Run event has unsupported schema.");
+  for (const field of Object.keys(event)) if (!EVENT_FIELDS.has(field)) errors.push(`Run event contains unsupported field: ${field}.`);
   for (const field of ["run_id", "feature", "stage", "actor_role", "event_type", "status", "contract_version"]) if (!nonEmpty(event[field])) errors.push(`Run event is missing ${field}.`);
+  if (!ROLES.has(event.actor_role)) errors.push("Run event has unsupported actor_role.");
+  if (!EVENT_TYPES.has(event.event_type)) errors.push("Run event has unsupported event_type.");
+  if (!EVENT_STATUSES.has(event.status)) errors.push("Run event has unsupported status.");
   if (!isIsoTimestamp(event.timestamp)) errors.push("Run event has invalid timestamp.");
   if (event.task_id !== undefined && !nonEmpty(event.task_id)) errors.push("Run event task_id must be non-empty when provided.");
   if (event.duration_ms !== undefined && (!Number.isInteger(event.duration_ms) || event.duration_ms < 0)) errors.push("Run event duration_ms must be a non-negative integer.");
@@ -240,7 +275,7 @@ export function summarizeRunEvents(events) {
 }
 
 export function validateEvaluationRecord(evaluation, criteria = new Set()) {
-  const errors = [];
+  const errors = validateDocument("osd-evaluation-v1.schema.json", evaluation);
   if (!isObject(evaluation)) return ["Evaluation record must be an object."];
   if (evaluation.schema !== "osd-evaluation/v1") errors.push("Evaluation record has unsupported schema.");
   for (const field of ["feature", "context_package_version", "policy_version"]) if (!nonEmpty(evaluation[field])) errors.push(`Evaluation record is missing ${field}.`);
@@ -282,11 +317,16 @@ function parseCli(argv) {
 
 function runtimePaths(target, feature, manifest) {
   const config = manifest.runtime_governance;
-  const resolveTemplate = (template) => resolve(target, template.replaceAll("{feature}", feature));
+  if (!isSafeFeatureName(feature)) throw new Error("feature must be a single safe directory name without path separators.");
+  const resolveTemplate = (template) => {
+    const resolved = resolve(target, template.replaceAll("{feature}", feature));
+    if (!safeWithin(target, resolved)) throw new Error(`Runtime path escapes target root: ${template}`);
+    return resolved;
+  };
   return {
     catalog: resolve(target, config.catalog_file),
-    state: resolve(target, `openspec/changes/${feature}/osd-state.json`),
-    tasks: resolve(target, `openspec/changes/${feature}/tasks.md`),
+    state: resolveTemplate("openspec/changes/{feature}/osd-state.json"),
+    tasks: resolveTemplate("openspec/changes/{feature}/tasks.md"),
     contextDirectory: resolveTemplate(config.context_directory),
     events: resolveTemplate(config.run_events_file),
     evaluation: resolveTemplate(config.evaluation_file),
@@ -298,9 +338,10 @@ function loadContextInputs(target, feature, taskId) {
   const manifest = json(join(target, ".ai", "workflow-manifest.json"));
   const paths = runtimePaths(target, feature, manifest);
   const state = json(paths.state);
-  const task = taskFromPlan(paths.tasks, taskId);
+  const tasks = tasksFromPlan(paths.tasks);
+  const task = tasks.find((candidate) => candidate.id === taskId) ?? null;
   const catalog = json(paths.catalog);
-  return { manifest, paths, state, task, catalog };
+  return { manifest, paths, state, task, catalog, completedTaskIds: tasks.filter((candidate) => candidate.status === "done").map((candidate) => candidate.id) };
 }
 
 function main(argv = process.argv.slice(2)) {
@@ -308,9 +349,9 @@ function main(argv = process.argv.slice(2)) {
   const target = resolve(options.target ?? process.cwd());
   if (command === "context") {
     if (!nonEmpty(options.feature) || !nonEmpty(options.task)) throw new Error("context requires --feature and --task.");
-    const { paths, state, task, catalog } = loadContextInputs(target, options.feature, options.task);
+    const { paths, state, task, catalog, completedTaskIds } = loadContextInputs(target, options.feature, options.task);
     const assignment = { task_id: options.task, role: options.role ?? "executor", owned_areas: options["owned-area"] ? [options["owned-area"]] : [], isolated_execution: options.isolated === "true" };
-    const context = buildContextPackage({ feature: options.feature, mode: state.mode, strategy: state.strategy, state, task, catalog, assignments: [assignment] });
+    const context = buildContextPackage({ feature: options.feature, mode: state.mode, strategy: state.strategy, state, task, catalog, assignments: [assignment], completedTaskIds });
     mkdirSync(paths.contextDirectory, { recursive: true });
     const output = join(paths.contextDirectory, `${options.task}.json`);
     writeFileSync(output, `${JSON.stringify(context, null, 2)}\n`, "utf8");
@@ -329,6 +370,16 @@ function main(argv = process.argv.slice(2)) {
     console.log(JSON.stringify({ output: relative(target, paths.events), status: "recorded" }, null, 2));
     return 0;
   }
+  if (command === "authorize") {
+    if (!nonEmpty(options.feature) || !nonEmpty(options.action)) throw new Error("authorize requires --feature and --action JSON.");
+    const { state, catalog } = loadContextInputs(target, options.feature, options.task ?? "T-01");
+    const action = JSON.parse(options.action);
+    action.mode ??= state.mode;
+    action.approved ??= state.status === "approved" || ["in_progress", "verified", "reviewed", "archived", "complete"].includes(state.status);
+    const errors = validatePolicyAction(action, catalog);
+    console.log(JSON.stringify({ status: errors.length === 0 ? "permitted" : "denied", reasons: errors }, null, 2));
+    return errors.length === 0 ? 0 : 1;
+  }
   if (command === "summarize") {
     if (!nonEmpty(options.feature)) throw new Error("summarize requires --feature.");
     const manifest = json(join(target, ".ai", "workflow-manifest.json"));
@@ -342,7 +393,36 @@ function main(argv = process.argv.slice(2)) {
     console.log(JSON.stringify({ output: relative(target, paths.summary), summary }, null, 2));
     return 0;
   }
-  throw new Error("Usage: runtime-governance.mjs context|record-event|summarize [options]");
+  if (command === "evaluate") {
+    if (!nonEmpty(options.feature)) throw new Error("evaluate requires --feature.");
+    const manifest = json(join(target, ".ai", "workflow-manifest.json"));
+    const paths = runtimePaths(target, options.feature, manifest);
+    const state = json(paths.state);
+    const catalog = json(paths.catalog);
+    const specificationPath = resolve(target, state.specification);
+    const evidencePath = resolve(target, manifest.governance.verification_file.replaceAll("{feature}", options.feature));
+    if (!safeWithin(target, specificationPath) || !safeWithin(target, evidencePath)) throw new Error("Evaluation artifact path escapes target root.");
+    const criteria = new Set(acceptanceCriteriaFromSpec(specificationPath));
+    const evidence = json(evidencePath);
+    const deterministicChecks = (evidence.steps ?? [])
+      .filter((step) => Number.isInteger(step?.exit_code) && step.exit_code === 0)
+      .map((step) => ({ command_id: step.command_id, exit_code: step.exit_code, covered_acceptance_criteria: step.covered_acceptance_criteria ?? [] }));
+    const evaluation = {
+      schema: "osd-evaluation/v1",
+      feature: options.feature,
+      context_package_version: catalog.version,
+      policy_version: catalog.version,
+      deterministic_checks: deterministicChecks,
+      optional_graders: [{ evaluator: "not-run", rubric_version: "v1", status: "not_run" }],
+    };
+    const errors = validateEvaluationRecord(evaluation, criteria);
+    if (errors.length > 0) throw new Error(errors.join("\n"));
+    mkdirSync(dirname(paths.evaluation), { recursive: true });
+    writeFileSync(paths.evaluation, `${JSON.stringify(evaluation, null, 2)}\n`, "utf8");
+    console.log(JSON.stringify({ output: relative(target, paths.evaluation), status: "evaluated" }, null, 2));
+    return 0;
+  }
+  throw new Error("Usage: runtime-governance.mjs context|authorize|record-event|summarize|evaluate [options]");
 }
 
 if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {

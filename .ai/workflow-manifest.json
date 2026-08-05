@@ -2,6 +2,12 @@
   "schema": "osd-workflow-manifest/v5",
   "workflow": ".ai/workflows/feature-development.yaml",
   "execution_rule": ".ai/rules/workflow-execution-rule.md",
+  "contract_schemas": {
+    "runtime_context": ".ai/schemas/osd-runtime-context-v1.schema.json",
+    "run_event": ".ai/schemas/osd-run-event-v1.schema.json",
+    "evaluation": ".ai/schemas/osd-evaluation-v1.schema.json",
+    "verification_evidence": ".ai/schemas/osd-verification-evidence-v1.schema.json"
+  },
   "default_mode": "standard",
   "orchestration": {
     "controller": "osd_workflow",
@@ -144,7 +150,11 @@
     ".ai/templates/archive-result.json",
     ".ai/templates/feishu-project-requirement.md",
     ".ai/templates/agent-entry.md"
-    ,".ai/runtime-governance/governance.json"
+    ,".ai/runtime-governance/governance.json",
+    ".ai/schemas/osd-runtime-context-v1.schema.json",
+    ".ai/schemas/osd-run-event-v1.schema.json",
+    ".ai/schemas/osd-evaluation-v1.schema.json",
+    ".ai/schemas/osd-verification-evidence-v1.schema.json"
   ],
   "task_types": {
     "new_feature": {
