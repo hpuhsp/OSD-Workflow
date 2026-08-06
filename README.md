@@ -1,111 +1,83 @@
 # OSD Workflow 2.0
 
-OSD is a global CLI that gives any repository a lightweight, native-first AI delivery contract. It coordinates the work already available in your environment instead of copying a workflow template into every project.
+OSD is a native-first delivery orchestrator for AI-assisted software development. It owns the delivery contract: routing, stage order, evidence, review gates, and archive status. OpenSpec and Superpowers remain native specialists when they are present; OSD records a minimal, explicit fallback when they are not.
 
-OSD keeps the project footprint small, prefers native OpenSpec and Superpowers capabilities when present, and falls back to minimal local guidance when they are not. Task depth is decided at runtime through `dynamic_routing`, not by installation presets.
-
-## What You Get
-
-- A single global CLI with two aliases: `osd` and `osd-workflow`.
-- A small project contract in `.osd/`, using the `osd.config/v2` schema.
-- Optional native rules for Qoder, Claude, Gemini, Trae, and Cursor.
-- Stage-by-stage native adapter selection with explicit fallback reporting.
-
-OSD does not create `AGENTS.md`, `.ai/`, `openspec/`, `knowledge/`, or `scripts/` by default. It does not replace an Agent's own rules or tools.
-
-## Quick Start
-
-### 1. Install OSD globally
-
-Install from npm when the package is available to your registry:
+OSD is installed once as a CLI and initialized only in repositories that need the delivery contract. It is not a copied workflow template and does not replace either native tool.
 
 ```bash
 npm install --global osd-workflow
+osd init --agents qoder,claude
 ```
 
-Or install the current GitHub source directly:
+Requirements: Node.js `>=20.11`. Install OpenSpec or an Agent harness exposing Superpowers only when the project should use their native capabilities.
 
-```bash
-npm install --global github:hpuhsp/OSD-Workflow
-```
-
-Confirm either command alias is available:
-
-```bash
-osd --help
-# Equivalent alias: osd-workflow --help
-```
-
-### 2. Initialize a project
-
-Run the command from the repository you want to configure:
-
-```bash
-cd path/to/your-project
-osd init
-```
-
-Interactive terminals show an Agent multi-select. For CI, scripts, or repeatable setup, make the selection explicit:
-
-```bash
-osd init --agents qoder,cursor --yes
-```
-
-The default project output is intentionally limited:
+Initialization is intentionally small:
 
 ```text
 .osd/config.json
 .osd/rules/workflow.md
-<selected Agent rule files>
+<selected Agent rule>
 ```
 
-Supported Agent targets are `qoder`, `claude`, `gemini`, `trae`, and `cursor`. Use `all`, `none`, or `auto` when appropriate:
+It does not generate `AGENTS.md`, `.ai/`, `openspec/`, `knowledge/`, or project-local runner scripts. The package owns its contract, templates, and runtime code; a project receives only the configuration and Agent-facing rule it needs. Delivery state is created lazily when work begins.
+
+Run `osd doctor` after initialization to inspect the resolved Agent rules, verification command, and native/fallback adapter selection.
+
+## Native-First Routing
+
+| Delivery stage | Preferred adapter | Recorded fallback |
+| --- | --- | --- |
+| Specification and archive | OpenSpec | OSD Markdown specification/archive |
+| Planning | Superpowers `writing-plans` | OSD minimal plan |
+| Implementation | Superpowers TDD | Agent-native implementation |
+| Verification | Superpowers verification | Configured verification command |
+| Review | Superpowers review | Agent review record |
+
+OpenSpec is selected only when its CLI and the target project's `openspec/` workspace both exist. Superpowers is selected only when the current Agent harness exposes it. A missing specialist never bypasses the specification, verification, review, or archive gates.
+
+## Delivery Lifecycle
 
 ```bash
-osd init --agents all --yes
-osd init --agents none --yes
-osd init --agents qoder,claude --yes --dry-run
+osd start checkout --type bug_fix --adapter auto
+osd approve checkout
+osd plan checkout
+osd implement checkout
+osd verify checkout
+osd review checkout --result pass --summary "No regression found"
+osd archive checkout
 ```
 
-Re-running `init` updates only OSD's managed block in an existing Agent rule, preserving user-authored content.
+`start` determines a task mode and implementation strategy, resolves adapters, and creates a task-scoped state record. The following commands enforce real state transitions; a chat response cannot substitute for evidence.
 
-### 3. Check the active adapters
+- OpenSpec is used for specification and archive only when both its CLI and project workspace are available.
+- Superpowers is selected for planning, implementation, verification, and review only when the current Agent harness exposes it.
+- Fallback artifacts live under `.osd/changes/<feature>/` and are archived under `.osd/archive/`.
+- Verification runs `commands.verify` from `.osd/config.json`, normally inferred from `package.json` as `npm test`.
+- Standard and strict work require a proposal and task plan. Every archive requires successful verification; strict work additionally requires a passing review and acceptance-criteria evaluation.
+
+## Agent Rules
+
+`osd init` supports `qoder`, `claude`, `gemini`, `trae`, and `cursor`.
+
+- Qoder: `.qoder/rules/osd-workflow.md`. Its Model Decision mode is configured in Qoder's Rules UI; OSD does not invent unsupported frontmatter.
+- Claude Code: `.claude/rules/osd-workflow.md`.
+- Gemini CLI: `GEMINI.md`, importing `.osd/rules/workflow.md`.
+- Trae: `.trae/rules/osd-workflow.md` with `description` and `alwaysApply: false`.
+- Cursor: `.cursor/rules/osd-workflow.mdc` with an Agent Requested rule (`description`, empty `globs`, `alwaysApply: false`).
+
+Interactive terminals use arrow keys, Space, and Enter for multi-selection. Non-interactive use is explicit: `--agents auto` keeps detected targets, `--agents none` writes no Agent rule, and `--agents qoder,cursor --yes` selects targets directly.
+
+## Diagnostics And Governance
 
 ```bash
 osd doctor
 osd adapters list
+osd status checkout
+osd config get workflow.verification
+osd config set commands.verify '"pnpm test"'
+osd upgrade
 ```
 
-`doctor` validates the config, checks selected Agent rules, detects OpenSpec and Superpowers, finds a verification command, and shows the resolved adapter for every stage.
+For governed team delivery, `osd context`, `osd authorize`, `osd event`, `osd evaluate`, and `osd summarize` create task-scoped context, allow only configured commands, store metadata-only runtime events, evaluate acceptance-criterion coverage, and produce a compact summary. This governance layer is optional for ordinary work and required by the strict archive gate.
 
-## Native-First Workflow
-
-`.osd/config.json` defines six workflow stages. Each stage selects its preferred native adapter first, then its configured fallback only when `fallback_allowed` is enabled.
-
-| Stage | Preferred adapter | Fallback |
-| --- | --- | --- |
-| specification | OpenSpec | OSD markdown specification |
-| planning | Superpowers writing-plans | OSD minimal plan |
-| implementation | Superpowers TDD | Agent-native execution |
-| verification | Superpowers verification | configured command |
-| review | Superpowers review | Agent review |
-| archive | OpenSpec | OSD markdown archive |
-
-When a preferred adapter is unavailable, the selected fallback is visible in `osd doctor` and should be recorded with the task evidence. OSD does not have `light`, `standard`, `full`, or preset installation modes.
-
-## Configuration
-
-The generated `.osd/config.json` uses `osd.config/v2` and includes:
-
-```text
-native_first, dynamic_routing, fallback_allowed,
-agents, workflow, governance, commands
-```
-
-Set `commands.verify` when your project needs a specific verification command. Otherwise OSD detects common package-manager test commands during initialization.
-
-## More Information
-
-- [Usage guide](docs/USAGE.md)
-- [Chinese usage guide](docs/USAGE_zh.md)
-- [OSD 2.0 product specification](docs/OSD_2_0_IMPROVEMENT_SPEC_zh.md)
+See [the detailed usage guide](docs/USAGE.md), [the Chinese 2.0 architecture note](docs/OSD_2_0_ARCHITECTURE_zh.md), and [the original improvement specification](docs/OSD_2_0_IMPROVEMENT_SPEC_zh.md).

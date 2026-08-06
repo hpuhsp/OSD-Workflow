@@ -18,4 +18,4 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: npm test
-      - run: npm run verify
+      - run: node bin/osd-workflow-init.mjs --help

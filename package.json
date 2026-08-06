@@ -1,28 +1,33 @@
 {
   "name": "osd-workflow",
-  "version": "0.7.0",
-  "description": "Native-first workflow orchestrator with lightweight project initialization.",
+  "version": "2.0.0",
+  "description": "Native-first, evidence-governed delivery orchestration for AI-assisted software development.",
   "license": "MIT",
   "type": "module",
   "bin": {
     "osd": "./bin/osd-workflow-init.mjs",
-    "osd-workflow": "./bin/osd-workflow-init.mjs"
+    "osd-workflow": "./bin/osd-workflow-init.mjs",
+    "osd-workflow-init": "./bin/osd-workflow-init.mjs"
   },
   "files": [
     "bin",
-    "docs",
-    "scripts",
+    "assets",
+    "docs/USAGE.md",
+    "docs/USAGE_zh.md",
+    "docs/OSD_2_0_ARCHITECTURE_zh.md",
+    "docs/OSD_2_0_IMPROVEMENT_SPEC_zh.md",
+    "lib",
+    "scripts/install.ps1",
     "LICENSE",
     "README.md",
     "README_zh.md"
   ],
   "scripts": {
-    "init": "node ./bin/osd-workflow-init.mjs",
-    "verify": "node ./scripts/verify-workflow-artifacts.mjs --structural-only",
-    "runtime": "node ./scripts/runtime-governance.mjs",
-    "run-verified": "node ./scripts/run-verified-command.mjs",
-    "archive": "node ./scripts/archive-openspec-change.mjs",
+    "init": "node ./bin/osd-workflow-init.mjs init",
     "test": "node --test"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.4.1"
   },
   "engines": {
     "node": ">=20.11"

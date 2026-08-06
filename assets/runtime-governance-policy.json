@@ -1,0 +1,9 @@
+{
+  "schema": "osd-runtime-governance/v2",
+  "roles": ["executor", "test_verifier", "reviewer", "monitor"],
+  "constraints": {
+    "single_writer_role": "executor",
+    "read_only_roles": ["test_verifier", "reviewer", "monitor"],
+    "sensitive_event_fields_forbidden": ["prompt", "credential", "secret", "token", "password", "source_code", "raw_input", "raw_output"]
+  }
+}

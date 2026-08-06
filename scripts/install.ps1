@@ -1,28 +1,27 @@
 param(
     [string]$Target = ".",
-    [string[]]$Agents,
+    [string]$Agents = "auto",
     [switch]$Yes,
-    [switch]$DryRun,
-    [switch]$WithDocs,
-    [switch]$Force,
-    [switch]$Update
+    [switch]$DryRun
 )
 
 $ErrorActionPreference = "Stop"
 
-if ($WithDocs -or $Force -or $Update) {
-    Write-Warning "OSD 2.0 no longer copies a project template; -WithDocs, -Force, and -Update are ignored."
-}
-
-$root = (Resolve-Path (Join-Path (Split-Path -Parent $PSCommandPath) "..")).Path
+$root = Split-Path -Parent $PSScriptRoot
 $cli = Join-Path $root "bin\osd-workflow-init.mjs"
-$arguments = @($cli, "init", "--target", $Target)
-
-if ($Agents -and $Agents.Count -gt 0) {
-    $arguments += @("--agents", ($Agents -join ","))
+if (-not (Test-Path -LiteralPath $cli)) {
+    throw "OSD CLI is missing: $cli"
 }
+
+$nodePath = if ($env:OSD_NODE -and (Test-Path -LiteralPath $env:OSD_NODE)) {
+    $env:OSD_NODE
+} else {
+    (Get-Command node -ErrorAction Stop).Source
+}
+
+$arguments = @($cli, "init", $Target, "--agents", $Agents)
 if ($Yes) { $arguments += "--yes" }
 if ($DryRun) { $arguments += "--dry-run" }
 
-& node @arguments
+& $nodePath @arguments
 exit $LASTEXITCODE
