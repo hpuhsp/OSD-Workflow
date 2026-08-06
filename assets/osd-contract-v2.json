@@ -3,9 +3,12 @@
   "controller": "osd_workflow",
   "stages": ["specification", "approval", "planning", "implementation", "verification", "review", "archive", "complete"],
   "task_types": ["new_feature", "bug_fix", "existing_change", "refactor", "maintenance"],
+  "delivery_modes": ["lite", "standard", "strict"],
   "development_strategies": ["tdd", "test_first", "verification_only"],
   "guarantees": [
     "specification precedes implementation",
+    "adaptive mode selection records its score and factors",
+    "unit test evidence is represented in verification checks",
     "verification evidence precedes archive",
     "strict delivery requires passing review",
     "native adapters are selected before fallbacks",

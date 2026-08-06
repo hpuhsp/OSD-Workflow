@@ -28,9 +28,9 @@ Before starting a delivery, run `osd doctor`. It reports configuration health, A
 osd start account-lockout --type bug_fix
 ```
 
-Task type selects the default route:
+Task type contributes the base risk score. With `--mode auto`, OSD combines task type, declared scope, risk signals, and expected touched paths to select `lite`, `standard`, or `strict`.
 
-| Type | Default mode | Default strategy |
+| Type | Base mode | Default strategy |
 | --- | --- | --- |
 | `new_feature` | `standard` | `tdd` |
 | `bug_fix` | `lite` | `test_first` |
@@ -42,7 +42,10 @@ Override the route when needed:
 
 ```bash
 osd start account-lockout --mode strict --strategy test_first --adapter fallback
+osd start account-lockout --type bug_fix --scope system --risk auth,public_api --touches src/auth/session.js
 ```
+
+Adaptive mode scoring uses configurable values in `.osd/config.json` under `adaptive_mode`. The default model favors observable engineering risk: blast radius (`local`, `module`, `cross_module`, `system`), sensitive domains (`auth`, `payment`, `security`, `data_migration`, `public_api`), dependency or infrastructure changes, and path patterns such as migrations, API contracts, deployment files, and package manifests. The chosen mode, score, threshold, inputs, and factors are written to `state.json`; explicit `--mode` still records the suggested adaptive mode as an override.
 
 `--adapter auto` chooses OpenSpec only when the global command and an initialized `openspec/` workspace are both available. `--adapter fallback` creates the minimum OSD specification, proposal, and task templates under `.osd/changes/<feature>/artifacts/`. `--adapter openspec` fails rather than silently pretending OpenSpec is available. Superpowers is independently selected for planning, implementation, verification, and review only when the active Agent harness exposes the skill.
 
@@ -59,6 +62,8 @@ osd archive account-lockout
 
 The state machine is `specification -> planning -> implementation -> verification -> review -> archive -> complete`. Standard and strict deliveries require a proposal and task plan. Every archive requires successful verification. Strict deliveries also require a passing review and a passing acceptance-criteria evaluation.
 
+`osd verify` always creates verification evidence with checks. The `unit_test` check uses `commands.unitTest`, `commands.unit_test`, or common package scripts such as `test:unit` when available. If no dedicated unit-test command exists, the check is recorded as `covered_by_verify` when the broader `commands.verify` command runs. This keeps unit testing visible in the workflow without making it mandatory for every change. Teams can make it mandatory by setting `quality_gates.unit_test.required_for`, for example `["strict"]`.
+
 When OpenSpec is the selected specification backend, use its native `/opsx:propose` Agent workflow before `osd approve`. `osd archive` invokes the official `openspec archive <feature> --yes` command and refuses to write a native receipt unless the change was actually moved to `openspec/changes/archive/`. OSD does not imitate OpenSpec commands. When Superpowers is available in the Agent harness, the project rule directs it to perform planning, TDD, verification, and review inside the OSD stage; OSD does not imitate its methodology.
 
 ## Inspect And Configure
@@ -69,7 +74,9 @@ osd adapters list
 osd status account-lockout
 osd config get
 osd config get governance.require_review_for
+osd config set commands.unitTest '"npm run test:unit"'
 osd config set commands.verify '"pnpm test"'
+osd config set quality_gates.unit_test.required_for '["strict"]'
 osd upgrade
 ```
 
@@ -100,4 +107,4 @@ osd evaluate account-lockout
 osd summarize account-lockout
 ```
 
-Contexts record declared ownership and the current delivery contract. Authorizations only accept a command named in `.osd/config.json`; default `verify` maps to the configured verification command. Events reject prompts, credentials, tokens, source code, and raw tool I/O. Evaluation checks that every `AC-*` criterion in the specification is represented in the task plan and that verification passed.
+Contexts record declared ownership and the current delivery contract. Authorizations only accept a command named in `.osd/config.json`; default `verify` maps to the configured verification command and `unitTest` maps to the configured unit-test command when present. Events reject prompts, credentials, tokens, source code, and raw tool I/O. Evaluation checks that every `AC-*` criterion in the specification is represented in the task plan and that verification passed.

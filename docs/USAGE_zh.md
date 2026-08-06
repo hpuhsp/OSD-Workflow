@@ -28,9 +28,9 @@ osd init --agents none --yes
 osd start account-lockout --type bug_fix
 ```
 
-任务类型决定默认模式和开发策略：
+任务类型提供基础风险分。`--mode auto` 时，OSD 会综合任务类型、影响范围、风险信号和预计触达路径，自适应选择 `lite`、`standard` 或 `strict`。
 
-| 类型 | 默认模式 | 默认策略 |
+| 类型 | 基础模式 | 默认策略 |
 | --- | --- | --- |
 | `new_feature` | `standard` | `tdd` |
 | `bug_fix` | `lite` | `test_first` |
@@ -42,7 +42,10 @@ osd start account-lockout --type bug_fix
 
 ```bash
 osd start account-lockout --mode strict --strategy test_first --adapter fallback
+osd start account-lockout --type bug_fix --scope system --risk auth,public_api --touches src/auth/session.js
 ```
+
+自适应模式评分可在 `.osd/config.json` 的 `adaptive_mode` 中配置。默认模型关注可解释的工程风险：影响范围（`local`、`module`、`cross_module`、`system`）、敏感领域（`auth`、`payment`、`security`、`data_migration`、`public_api`）、依赖或基础设施变更，以及 migrations、API 契约、部署文件、包清单等路径模式。最终模式、分数、阈值、输入和判定因子都会写入 `state.json`；显式 `--mode` 覆盖时也会记录自适应建议值。
 
 `--adapter auto` 仅在 OpenSpec 全局命令与项目 `openspec/` 工作区都可用时选择 OpenSpec。`--adapter fallback` 在 `.osd/changes/<feature>/artifacts/` 创建最小的 proposal、spec 与 tasks；`--adapter openspec` 在条件不满足时直接失败，不会伪装调用了原生能力。Superpowers 对计划、实现、验证与审查独立解析，只有当前 Agent 运行环境暴露该 Skill 时才选用。
 
@@ -59,6 +62,8 @@ osd archive account-lockout
 
 状态机为 `specification -> planning -> implementation -> verification -> review -> archive -> complete`。标准和严格任务需要 proposal 与任务计划；所有归档都要求验证通过；严格任务还要求审查通过和验收标准评估通过。
 
+`osd verify` 总会生成包含多个 checks 的验证证据。`unit_test` 检查优先使用 `commands.unitTest`、`commands.unit_test` 或常见包脚本如 `test:unit`；没有专用单元测试命令时，会在总验证命令通过后记录为 `covered_by_verify`。这样单元测试在流程中始终可见，但不会默认成为所有变更的硬性要求。团队可以通过 `quality_gates.unit_test.required_for` 将其设为强制，例如 `["strict"]`。
+
 选择 OpenSpec 后，Agent 应先用其原生 `/opsx:propose` 工作流完成 proposal/spec，再执行 `osd approve`。`osd archive` 调用官方 `openspec archive <feature> --yes`，并且只有确认变更目录已移动到 `openspec/changes/archive/` 后才写入原生归档记录。Superpowers 存在时，Agent 在当前 OSD 阶段中使用其计划、TDD、验证和审查能力；OSD 不重写这两个工具的方法论。
 
 ## 诊断与配置
@@ -69,7 +74,9 @@ osd adapters list
 osd status account-lockout
 osd config get
 osd config get governance.require_review_for
+osd config set commands.unitTest '"npm run test:unit"'
 osd config set commands.verify '"pnpm test"'
+osd config set quality_gates.unit_test.required_for '["strict"]'
 osd upgrade
 ```
 
@@ -100,4 +107,4 @@ osd evaluate account-lockout
 osd summarize account-lockout
 ```
 
-上下文记录任务所有权和当前契约；授权只允许配置中的命令；事件拒绝保存提示词、凭据、token、源代码和原始工具 I/O；评估检查 spec 中每个 `AC-*` 是否映射到任务，并确认验证已经通过。
+上下文记录任务所有权和当前契约；授权只允许配置中的命令，默认 `verify` 映射到验证命令，存在专用单测命令时 `unitTest` 映射到单元测试命令；事件拒绝保存提示词、凭据、token、源代码和原始工具 I/O；评估检查 spec 中每个 `AC-*` 是否映射到任务，并确认验证已经通过。

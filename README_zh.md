@@ -47,12 +47,12 @@ osd review checkout --result pass --summary "No regression found"
 osd archive checkout
 ```
 
-`start` 会确定任务模式和实现策略、解析 adapter，并创建任务级状态记录。后续命令推进真实的状态转换，不能以 Agent 的对话内容代替证据。
+`start` 会确定任务模式和实现策略、解析 adapter，并创建任务级状态记录。模式默认自适应选择：任务类型提供基础分，声明的影响范围、风险信号和触达路径会把 `lite` 升级为 `standard` 或 `strict`。最终分数和判定因子会写入 `state.json`。
 
 - OpenSpec 仅在可用时承担规格与原生归档。
 - Superpowers 仅在当前 Agent 运行环境提供该能力时承担计划、实现、验证与审查。
 - fallback 产物保存在 `.osd/changes/<feature>/`，归档后移动到 `.osd/archive/`。
-- 验证执行 `.osd/config.json` 的 `commands.verify`，通常从 `package.json` 推断为 `npm test`。
+- 验证会记录 `unit_test` 检查，并执行 `.osd/config.json` 的 `commands.verify`，通常从 `package.json` 推断为 `npm test`。如果存在 `commands.unitTest` 或 `test:unit` 脚本，会作为专用单元测试命令；否则单元测试槽位会记录为由总验证命令覆盖。
 - 标准和严格任务需要 proposal 与任务计划；所有归档都要求验证成功，严格任务还要求审查通过和验收标准评估通过。
 
 ## Agent 规则
@@ -74,6 +74,7 @@ osd doctor
 osd adapters list
 osd status checkout
 osd config get workflow.verification
+osd config set commands.unitTest '"npm run test:unit"'
 osd config set commands.verify '"pnpm test"'
 osd upgrade
 ```

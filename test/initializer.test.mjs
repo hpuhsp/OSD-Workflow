@@ -12,6 +12,7 @@ import {
   archiveDelivery,
   beginImplementation,
   detectCapabilities,
+  evaluateAdaptiveMode,
   doctorProject,
   parseArgs,
   resolveWorkflowAdapters,
@@ -41,12 +42,15 @@ function createProject(prefix) {
 }
 
 test("parseArgs supports the complete OSD 2.0 delivery command surface", () => {
-  const start = parseArgs(["start", "login-fix", "--type", "bug_fix", "--mode", "lite", "--strategy", "test_first", "--adapter", "fallback"]);
+  const start = parseArgs(["start", "login-fix", "--type", "bug_fix", "--mode", "lite", "--strategy", "test_first", "--scope", "module", "--risk", "auth,public_api", "--touches", "src/auth.js,openapi.yaml", "--adapter", "fallback"]);
   assert.equal(start.command, "start");
   assert.equal(start.feature, "login-fix");
   assert.equal(start.type, "bug_fix");
   assert.equal(start.mode, "lite");
   assert.equal(start.strategy, "test_first");
+  assert.equal(start.scope, "module");
+  assert.deepEqual(start.riskSignals, ["auth", "public_api"]);
+  assert.deepEqual(start.touchedPaths, ["src/auth.js", "openapi.yaml"]);
   assert.equal(start.adapter, "fallback");
   assert.equal(parseArgs(["adapters", "list", "project"]).command, "adapters");
   assert.throws(() => parseArgs(["verify"]), /requires a feature name/);
@@ -72,6 +76,9 @@ test("init creates a small project contract and correct Agent rule formats", (t)
   const config = JSON.parse(readFileSync(join(target, ".osd", "config.json"), "utf8"));
   assert.equal(config.schema, "osd.config/v2");
   assert.equal(config.commands.verify, "npm test");
+  assert.equal(config.commands.unitTest, null);
+  assert.equal(config.quality_gates.unit_test.enabled, true);
+  assert.equal(config.adaptive_mode.enabled, true);
   assert.equal(existsSync(join(target, ".osd", "rules", "workflow.md")), true);
   assert.equal(existsSync(join(target, ".qoder", "rules", "osd-workflow.md")), true);
   assert.equal(existsSync(join(target, ".claude", "rules", "osd-workflow.md")), true);
@@ -101,13 +108,30 @@ test("fallback delivery is executable and enforces specification, evidence, revi
   run("plan", "checkout", target);
   run("implement", "checkout", target);
   run("verify", "checkout", target);
-  assert.equal(JSON.parse(readFileSync(join(target, ".osd", "changes", "checkout", "verification.json"), "utf8")).exit_code, 0);
+  const verification = JSON.parse(readFileSync(join(target, ".osd", "changes", "checkout", "verification.json"), "utf8"));
+  assert.equal(verification.exit_code, 0);
+  assert.equal(verification.checks.find((check) => check.id === "unit_test").status, "covered_by_verify");
+  assert.equal(verification.checks.find((check) => check.id === "unit_test").fallback_to_verify, true);
+  assert.equal(verification.checks.find((check) => check.id === "verify").status, "passed");
   run("review", "checkout", target, "--result", "pass", "--summary", "No regressions found.");
   run("archive", "checkout", target);
   const status = JSON.parse(run("status", "checkout", target));
   assert.equal(status.archived, true);
   assert.equal(status.status, "archived");
   assert.equal(existsSync(join(target, ".osd", "archive", "")), true);
+});
+
+test("adaptive mode scores task risk and records the reason in state", (t) => {
+  const target = createProject("osd-v2-adaptive-");
+  t.after(() => rmSync(target, { recursive: true, force: true }));
+  run("init", target, "--yes");
+  run("start", "auth-session-hardening", target, "--type", "bug_fix", "--scope", "system", "--risk", "auth", "--touches", "src/auth/session.js", "--adapter", "fallback");
+  const status = JSON.parse(run("status", "auth-session-hardening", target));
+  assert.equal(status.mode, "strict");
+  assert.equal(status.mode_decision.suggested, "strict");
+  assert.equal(status.mode_decision.override, null);
+  assert.ok(status.mode_decision.score >= 5);
+  assert.equal(evaluateAdaptiveMode({ type: "maintenance", scope: "local", riskSignals: ["docs"] }).selected, "lite");
 });
 
 test("native OpenSpec is selected only when both CLI and workspace are available", (t) => {
