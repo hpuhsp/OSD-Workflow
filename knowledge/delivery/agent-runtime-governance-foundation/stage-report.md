@@ -1,0 +1,23 @@
+# Delivery Record: Agent Runtime Governance Foundation
+
+- Task type: existing_change
+- Mode: standard
+- Development strategy: test_first
+- OSD controller: osd_workflow
+- OpenSpec participation: approved change and delta specification validated for `agent-runtime-governance-foundation`
+- Superpowers participation: execution discipline recorded as test_first; direct harness-specific invocation is not required by this repository implementation
+- Approval: `openspec/changes/agent-runtime-governance-foundation/approval.md` approved
+- Task traceability: T-01 through T-08 cover AC-01 through AC-14
+- Evidence: `openspec/changes/agent-runtime-governance-foundation/verification.json`; runtime contexts, events, evaluation, and summary verified
+- Result: pass
+- Specification: `openspec/changes/agent-runtime-governance-foundation/spec.md`
+- Changed files: `.ai`, `scripts`, `bin`, `test`, `docs`, `README.md`, OpenSpec change artifacts
+- Verification: `node --test` exit 0 (33 tests); structural verifier exit 0; delivery verifier exit 0
+- Red evidence: new runtime-governance test failed because `scripts/runtime-governance.mjs` was absent
+- Green evidence: full repository suite passed after the helper, catalog, and verifier integration
+- Refactor evidence: N/A for test_first
+- Review: pass; see `knowledge/delivery/agent-runtime-governance-foundation/review-report.md`
+- Archive result: N/A for standard
+- Separate reports: `knowledge/delivery/agent-runtime-governance-foundation/review-report.md`
+- Residual risk: scheduler, worktree/sandbox provisioning, and live monitor daemon remain adapter scope for a pilot phase
+- Handoff: N/A

@@ -1,0 +1,38 @@
+{
+  "schema": "osd-runtime-governance/v1",
+  "version": "1",
+  "resources": [
+    { "id": "specification", "canonical_owner": "openspec", "capability": "read", "sensitivity": "internal", "stages": ["planning", "implementation", "verification", "review"] },
+    { "id": "tasks", "canonical_owner": "osd_workflow", "capability": "read", "sensitivity": "internal", "stages": ["planning", "implementation", "verification", "review"] },
+    { "id": "state", "canonical_owner": "osd_workflow", "capability": "read", "sensitivity": "internal", "stages": ["planning", "implementation", "verification", "review"] },
+    { "id": "verification", "canonical_owner": "osd_workflow", "capability": "read", "sensitivity": "internal", "stages": ["verification", "review"] },
+    { "id": "review", "canonical_owner": "osd_workflow", "capability": "read", "sensitivity": "internal", "stages": ["review"] },
+    { "id": "archive", "canonical_owner": "openspec", "capability": "read", "sensitivity": "internal", "stages": ["archive"] }
+  ],
+  "policy": {
+    "command_ids": ["node-test", "osd-structural", "openspec-validate"],
+    "commands": [
+      { "id": "node-test", "argv": ["node", "--test"], "roles": ["executor", "test_verifier"], "modes": ["lite", "standard", "strict"] },
+      { "id": "osd-structural", "argv": ["node", "scripts/verify-workflow-artifacts.mjs", "--structural-only"], "roles": ["test_verifier"], "modes": ["standard", "strict"] },
+      { "id": "openspec-validate", "argv": ["openspec", "validate"], "roles": ["test_verifier"], "modes": ["standard", "strict"] }
+    ],
+    "prohibited_path_prefixes": [".git", ".env"],
+    "approval_required_modes": ["standard", "strict"],
+    "role_profiles": {
+      "coordinator": { "write_capable": false, "responsibility": "route, decompose, assign, and aggregate" },
+      "executor": { "write_capable": true, "responsibility": "perform one atomic task with exclusive write ownership" },
+      "test_verifier": { "write_capable": false, "responsibility": "run approved tests and verification commands" },
+      "reviewer": { "write_capable": false, "responsibility": "review the specification, task, diff, and evidence" },
+      "monitor": { "write_capable": false, "approval_capable": false, "remediation_capable": false, "responsibility": "observe runtime events and report timeout, retry, policy, evidence, and blockage signals" }
+    },
+    "mode_triggers": {
+      "lite": { "required_roles": ["executor"] },
+      "standard": { "required_roles": ["executor"] },
+      "strict": { "required_roles": ["executor", "test_verifier", "reviewer", "monitor"] }
+    }
+  },
+  "evaluation": {
+    "deterministic_required": true,
+    "optional_grader_statuses": ["pass", "fail", "not_run"]
+  }
+}

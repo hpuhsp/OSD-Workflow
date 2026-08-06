@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="760" viewBox="0 0 1440 760">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#5a5a5a"/></marker>
+</defs>
+<rect width="1440" height="760" fill="#f8f6f3"/>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif;}</style>
+<text x="720.0" y="58" text-anchor="middle" font-size="34" font-weight="700" fill="#1a1a1a">Runtime Responsibility Contract</text>
+<text x="720.0" y="92" text-anchor="middle" font-size="18" font-weight="400" fill="#6a6a6a">OSD 控制路由；OpenSpec 提供规格工具链；Superpowers 由 Agent/Harness 提供执行方法</text>
+<rect x="70" y="150" width="380" height="500" rx="28" fill="#fffaf0" stroke="#4a4a4a" stroke-width="2.5"/>
+<rect x="100" y="185" width="320" height="85" rx="22" fill="#9dd4c7" stroke="#4a4a4a" stroke-width="2.5"/>
+<text x="260.0" y="228" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a1a">OSD Workflow</text>
+<text x="260.0" y="256" text-anchor="middle" font-size="16" font-weight="400" fill="#6a6a6a">项目控制层</text>
+<rect x="125" y="300" width="270" height="62" rx="16" fill="#9dd4c7" stroke="#4a4a4a" stroke-width="2"/>
+<text x="260.0" y="338" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">Task routing</text>
+<rect x="125" y="382" width="270" height="62" rx="16" fill="#f4e4c1" stroke="#4a4a4a" stroke-width="2"/>
+<text x="260.0" y="420" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">Mode + strategy</text>
+<rect x="125" y="464" width="270" height="62" rx="16" fill="#e8e6e3" stroke="#4a4a4a" stroke-width="2"/>
+<text x="260.0" y="502" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">Stage order</text>
+<rect x="125" y="546" width="270" height="62" rx="16" fill="#a8c5e6" stroke="#4a4a4a" stroke-width="2"/>
+<text x="260.0" y="584" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">Minimum evidence</text>
+<rect x="530" y="150" width="380" height="500" rx="28" fill="#fffaf0" stroke="#4a4a4a" stroke-width="2.5"/>
+<rect x="560" y="185" width="320" height="85" rx="22" fill="#f4e4c1" stroke="#4a4a4a" stroke-width="2.5"/>
+<text x="720.0" y="228" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a1a">OpenSpec CLI</text>
+<text x="720.0" y="256" text-anchor="middle" font-size="16" font-weight="400" fill="#6a6a6a">全局规格工具</text>
+<rect x="585" y="300" width="270" height="62" rx="16" fill="#9dd4c7" stroke="#4a4a4a" stroke-width="2"/>
+<text x="720.0" y="338" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">npm install -g</text>
+<rect x="585" y="382" width="270" height="62" rx="16" fill="#f4e4c1" stroke="#4a4a4a" stroke-width="2"/>
+<text x="720.0" y="420" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">openspec init</text>
+<rect x="585" y="464" width="270" height="62" rx="16" fill="#e8e6e3" stroke="#4a4a4a" stroke-width="2"/>
+<text x="720.0" y="502" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">Native lifecycle</text>
+<rect x="585" y="546" width="270" height="62" rx="16" fill="#a8c5e6" stroke="#4a4a4a" stroke-width="2"/>
+<text x="720.0" y="584" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">Specification authority</text>
+<rect x="990" y="150" width="380" height="500" rx="28" fill="#fffaf0" stroke="#4a4a4a" stroke-width="2.5"/>
+<rect x="1020" y="185" width="320" height="85" rx="22" fill="#a8c5e6" stroke="#4a4a4a" stroke-width="2.5"/>
+<text x="1180.0" y="228" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a1a">Superpowers</text>
+<text x="1180.0" y="256" text-anchor="middle" font-size="16" font-weight="400" fill="#6a6a6a">Agent/Harness 执行</text>
+<rect x="1045" y="300" width="270" height="62" rx="16" fill="#9dd4c7" stroke="#4a4a4a" stroke-width="2"/>
+<text x="1180.0" y="338" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">Planning</text>
+<rect x="1045" y="382" width="270" height="62" rx="16" fill="#f4e4c1" stroke="#4a4a4a" stroke-width="2"/>
+<text x="1180.0" y="420" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">Implementation</text>
+<rect x="1045" y="464" width="270" height="62" rx="16" fill="#e8e6e3" stroke="#4a4a4a" stroke-width="2"/>
+<text x="1180.0" y="502" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">TDD / test-first</text>
+<rect x="1045" y="546" width="270" height="62" rx="16" fill="#a8c5e6" stroke="#4a4a4a" stroke-width="2"/>
+<text x="1180.0" y="584" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">Verification + review</text>
+<line x1="450" y1="390" x2="530" y2="390" stroke="#5a5a5a" stroke-width="4" marker-end="url(#arrow)"/>
+<line x1="910" y1="390" x2="990" y2="390" stroke="#5a5a5a" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="490" y="350" text-anchor="middle" font-size="14" font-weight="400" fill="#6a6a6a">uses</text>
+<text x="950" y="350" text-anchor="middle" font-size="14" font-weight="400" fill="#6a6a6a">runs within</text>
+</svg>

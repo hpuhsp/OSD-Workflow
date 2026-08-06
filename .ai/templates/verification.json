@@ -1,0 +1,15 @@
+{
+  "schema": "osd-verification-evidence/v1",
+  "feature": "{feature}",
+  "strategy": "tdd|test_first|verification_only",
+  "steps": [
+    {
+      "step": "red|green|refactor|failing_before|passing_after|focused",
+      "command_id": "repository-defined command identifier",
+      "exit_code": 0,
+      "observed_at": "ISO-8601 timestamp",
+      "covered_acceptance_criteria": ["AC-01"],
+      "summary": "short observed result"
+    }
+  ]
+}

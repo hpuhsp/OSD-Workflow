@@ -1,0 +1,11 @@
+{
+  "schema": "osd-change-state/v1",
+  "feature": "agent-runtime-governance-foundation",
+  "task_type": "existing_change",
+  "mode": "standard",
+  "strategy": "test_first",
+  "stage": "review",
+  "status": "reviewed",
+  "specification": "openspec/changes/agent-runtime-governance-foundation/spec.md",
+  "updated_at": "2026-08-05T00:30:00+08:00"
+}

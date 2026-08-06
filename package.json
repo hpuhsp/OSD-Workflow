@@ -11,12 +11,17 @@
   "files": [
     "bin",
     "docs",
+    "scripts",
     "LICENSE",
     "README.md",
     "README_zh.md"
   ],
   "scripts": {
     "init": "node ./bin/osd-workflow-init.mjs",
+    "verify": "node ./scripts/verify-workflow-artifacts.mjs --structural-only",
+    "runtime": "node ./scripts/runtime-governance.mjs",
+    "run-verified": "node ./scripts/run-verified-command.mjs",
+    "archive": "node ./scripts/archive-openspec-change.mjs",
     "test": "node --test"
   },
   "engines": {

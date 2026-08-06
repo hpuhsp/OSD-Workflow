@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  test:
+  contract:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -18,3 +18,4 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: npm test
+      - run: npm run verify

@@ -1,0 +1,11 @@
+{
+  "schema": "osd-change-state/v1",
+  "feature": "osd-workflow-governance-hardening",
+  "task_type": "existing_change",
+  "mode": "strict",
+  "strategy": "test_first",
+  "stage": "review",
+  "status": "reviewed",
+  "specification": "openspec/changes/osd-workflow-governance-hardening/spec.md",
+  "updated_at": "2026-08-03T00:00:00+08:00"
+}

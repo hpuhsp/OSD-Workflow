@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="680" viewBox="0 0 1180 680">
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#5a5a5a"/></marker>
+</defs>
+<rect width="1180" height="680" fill="#f8f6f3"/>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif;}</style>
+<text x="590.0" y="58" text-anchor="middle" font-size="34" font-weight="700" fill="#1a1a1a">Adaptive OSD Delivery Route</text>
+<text x="590.0" y="92" text-anchor="middle" font-size="18" font-weight="400" fill="#6a6a6a">OSD 按风险选择流程深度，OpenSpec 定义规格，Superpowers 执行交付</text>
+<rect x="80" y="190" width="260" height="96" rx="18" fill="#a8c5e6" stroke="#4a4a4a" stroke-width="2.5"/>
+<text x="210.0" y="230" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a1a">User Task</text>
+<text x="210.0" y="260" text-anchor="middle" font-size="16" font-weight="400" fill="#6a6a6a">任务</text>
+<rect x="460" y="190" width="260" height="96" rx="18" fill="#9dd4c7" stroke="#4a4a4a" stroke-width="2.5"/>
+<text x="590.0" y="230" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a1a">OSD Route</text>
+<text x="590.0" y="260" text-anchor="middle" font-size="16" font-weight="400" fill="#6a6a6a">路由</text>
+<rect x="840" y="190" width="260" height="96" rx="18" fill="#f4e4c1" stroke="#4a4a4a" stroke-width="2.5"/>
+<text x="970.0" y="230" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a1a">OpenSpec</text>
+<text x="970.0" y="260" text-anchor="middle" font-size="16" font-weight="400" fill="#6a6a6a">规格权威</text>
+<rect x="840" y="410" width="260" height="96" rx="18" fill="#9dd4c7" stroke="#4a4a4a" stroke-width="2.5"/>
+<text x="970.0" y="450" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a1a">Superpowers</text>
+<text x="970.0" y="480" text-anchor="middle" font-size="16" font-weight="400" fill="#6a6a6a">执行方法</text>
+<rect x="460" y="410" width="260" height="96" rx="18" fill="#a8c5e6" stroke="#4a4a4a" stroke-width="2.5"/>
+<text x="590.0" y="450" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a1a">Verification</text>
+<text x="590.0" y="480" text-anchor="middle" font-size="16" font-weight="400" fill="#6a6a6a">验证证据</text>
+<rect x="80" y="410" width="260" height="96" rx="18" fill="#e8e6e3" stroke="#4a4a4a" stroke-width="2.5"/>
+<text x="210.0" y="450" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a1a">Delivery Record</text>
+<text x="210.0" y="480" text-anchor="middle" font-size="16" font-weight="400" fill="#6a6a6a">交付记录</text>
+<line x1="340" y1="238" x2="460" y2="238" stroke="#5a5a5a" stroke-width="4" marker-end="url(#arrow)"/>
+<line x1="720" y1="238" x2="840" y2="238" stroke="#5a5a5a" stroke-width="4" marker-end="url(#arrow)"/>
+<line x1="970" y1="286" x2="970" y2="410" stroke="#5a5a5a" stroke-width="4" marker-end="url(#arrow)"/>
+<line x1="840" y1="458" x2="720" y2="458" stroke="#5a5a5a" stroke-width="4" marker-end="url(#arrow)"/>
+<line x1="460" y1="458" x2="340" y2="458" stroke="#5a5a5a" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="260" y="565" width="660" height="50" rx="18" fill="#fffaf0" stroke="#e3cfa4" stroke-width="2"/>
+<text x="590" y="597" text-anchor="middle" font-size="16" font-weight="400" fill="#6a6a6a">OSD selects depth; OpenSpec defines what; Superpowers guides how</text>
+</svg>

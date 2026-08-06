@@ -1,1 +1,6 @@
-node_modules/
+/outputs/
+/designs/
+/graphify-out/
+/designs/osd-workflow-internal-share/
+/HANDOFF.md
+/HANDOFF_zh.md
