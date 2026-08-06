@@ -1,19 +1,16 @@
 {
   "name": "osd-workflow",
   "version": "0.7.0",
-  "description": "Lightweight adaptive SDD workflow with dynamic TDD strategies using OpenSpec and Superpowers.",
+  "description": "Native-first workflow orchestrator with lightweight project initialization.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "osd-workflow": "./bin/osd-workflow-init.mjs",
-    "osd-workflow-init": "./bin/osd-workflow-init.mjs"
+    "osd": "./bin/osd-workflow-init.mjs",
+    "osd-workflow": "./bin/osd-workflow-init.mjs"
   },
   "files": [
-    ".ai",
     "bin",
     "docs",
-    "knowledge",
-    "openspec",
     "scripts",
     "LICENSE",
     "README.md",

@@ -75,11 +75,13 @@ test("native archive command records evidence only after OpenSpec moves the chan
   assert.equal(result.archived_change_location, "openspec/changes/archive/2026-08-05-native-check");
 });
 
-test("PowerShell installer includes every runtime dependency", { skip: process.platform !== "win32" }, (t) => {
+test("PowerShell installer delegates to minimal OSD 2.0 initialization", { skip: process.platform !== "win32" }, (t) => {
   const root = mkdtempSync(join(tmpdir(), "osd-powershell-install-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
-  execFileSync("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", powerShellInstaller, "-Target", root], { stdio: "pipe" });
-  for (const file of ["verify-workflow-artifacts.mjs", "runtime-governance.mjs", "run-verified-command.mjs", "archive-openspec-change.mjs"]) {
-    assert.equal(existsSync(join(root, "scripts", file)), true);
-  }
+  execFileSync("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", powerShellInstaller, "-Target", root, "-Agents", "qoder", "-Yes"], { stdio: "pipe" });
+  assert.equal(existsSync(join(root, ".osd", "config.json")), true);
+  assert.equal(existsSync(join(root, ".osd", "rules", "workflow.md")), true);
+  assert.equal(existsSync(join(root, ".qoder", "rules", "osd-workflow.md")), true);
+  assert.equal(existsSync(join(root, ".ai")), false);
+  assert.equal(existsSync(join(root, "scripts")), false);
 });

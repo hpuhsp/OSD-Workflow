@@ -1,122 +1,159 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
-import { parseArgs } from "../bin/osd-workflow-init.mjs";
+import {
+  defaultConfig,
+  detectCapabilities,
+  doctorProject,
+  mergeManagedAgentRule,
+  parseArgs,
+  resolveWorkflowAdapters,
+} from "../bin/osd-workflow-init.mjs";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const cliPath = join(projectRoot, "bin", "osd-workflow-init.mjs");
 
-test("initializer accepts one positional target", () => {
-  const options = parseArgs(["target-project", "--dry-run"]);
+function tempProject(prefix) {
+  return mkdtempSync(join(tmpdir(), prefix));
+}
+
+function run(...args) {
+  return execFileSync(process.execPath, [cliPath, ...args], { encoding: "utf8" });
+}
+
+test("parseArgs supports init defaults and non-interactive options", () => {
+  const options = parseArgs(["target-project", "--agents", "qoder,trae", "--yes", "--dry-run"]);
   assert.equal(options.command, "init");
+  assert.equal(options.target, "target-project");
+  assert.deepEqual(options.agents, ["qoder", "trae"]);
+  assert.equal(options.yes, true);
   assert.equal(options.dryRun, true);
-  assert.equal(options.force, false);
-  assert.ok(options.target.endsWith("target-project"));
 });
 
-test("update command enables overwrite by default", () => {
-  const options = parseArgs(["update", "target-project"]);
-  assert.equal(options.command, "update");
-  assert.equal(options.force, true);
-  assert.ok(options.target.endsWith("target-project"));
+test("parseArgs supports doctor and adapters list", () => {
+  assert.deepEqual(parseArgs(["doctor", "project"]), {
+    command: "doctor", subcommand: null, target: "project", agents: null, yes: false, dryRun: false, help: false,
+  });
+  const adapters = parseArgs(["adapters", "list", "--target", "project"]);
+  assert.equal(adapters.command, "adapters");
+  assert.equal(adapters.subcommand, "list");
+  assert.equal(adapters.target, "project");
 });
 
-test("initializer rejects multiple positional targets", () => {
-  assert.throws(
-    () => parseArgs(["first-target", "second-target", "--dry-run"]),
-    /Specify the target only once/,
-  );
+test("parseArgs rejects duplicate targets and unknown Agent targets", () => {
+  assert.throws(() => parseArgs(["first", "--target", "second"]), /Specify the target only once/);
+  assert.throws(() => parseArgs(["--agents", "unknown"]), /Unknown agent target/);
 });
 
-test("initializer rejects mixed positional and target option", () => {
-  assert.throws(
-    () => parseArgs(["first-target", "--target", "second-target"]),
-    /Specify the target only once/,
-  );
-});
-
-test("update refreshes managed files and preserves project artifacts", (t) => {
-  const target = mkdtempSync(join(tmpdir(), "osd-workflow-update-"));
+test("init creates only OSD state and selected Agent rules", (t) => {
+  const target = tempProject("osd-v2-init-");
   t.after(() => rmSync(target, { recursive: true, force: true }));
+  writeFileSync(join(target, "package.json"), JSON.stringify({ scripts: { test: "node --test" } }), "utf8");
 
-  execFileSync(process.execPath, [cliPath, "init", target], { stdio: "pipe" });
+  run("init", target, "--agents", "qoder,cursor", "--yes");
 
-  const managedFile = join(target, ".ai", "AI_WORKFLOW.md");
-  const projectArtifact = join(target, "openspec", "changes", "active-feature", "notes.md");
-  writeFileSync(managedFile, "outdated workflow", "utf8");
-  mkdirSync(resolve(projectArtifact, ".."), { recursive: true });
-  writeFileSync(projectArtifact, "keep project-owned content", "utf8");
-
-  execFileSync(process.execPath, [cliPath, "update", target], { stdio: "pipe" });
-
-  assert.equal(readFileSync(managedFile, "utf8"), readFileSync(join(projectRoot, ".ai", "AI_WORKFLOW.md"), "utf8"));
-  assert.equal(readFileSync(projectArtifact, "utf8"), "keep project-owned content");
-});
-
-test("initializer installs only the default AGENTS discovery entry", (t) => {
-  const target = mkdtempSync(join(tmpdir(), "osd-workflow-agents-"));
-  t.after(() => rmSync(target, { recursive: true, force: true }));
-
-  execFileSync(process.execPath, [cliPath, "init", target], { stdio: "pipe" });
-
-  const content = readFileSync(join(target, "AGENTS.md"), "utf8");
-  assert.match(content, /<!-- osd-workflow:start -->/);
-  assert.match(content, /OSD Workflow as the top-level controller/);
-  assert.match(content, /<!-- osd-workflow:end -->/);
-  for (const entry of ["CLAUDE.md", "GEMINI.md", ".github/copilot-instructions.md", ".cursor/rules/osd-workflow.mdc"]) {
-    assert.throws(() => readFileSync(join(target, entry), "utf8"));
+  const config = JSON.parse(readFileSync(join(target, ".osd", "config.json"), "utf8"));
+  assert.equal(config.schema, "osd.config/v2");
+  assert.equal(config.native_first, true);
+  assert.equal(config.dynamic_routing, true);
+  assert.equal(config.fallback_allowed, true);
+  assert.equal(config.commands.verify, "npm test");
+  assert.deepEqual(Object.keys(config.workflow), ["specification", "planning", "implementation", "verification", "review", "archive"]);
+  assert.equal(existsSync(join(target, ".osd", "rules", "workflow.md")), true);
+  assert.equal(existsSync(join(target, ".qoder", "rules", "osd-workflow.md")), true);
+  assert.equal(existsSync(join(target, ".cursor", "rules", "osd-workflow", "RULE.md")), true);
+  for (const absent of ["AGENTS.md", ".ai", "openspec", "knowledge", "scripts", "GEMINI.md"]) {
+    assert.equal(existsSync(join(target, absent)), false, `${absent} must not be generated`);
   }
 });
 
-test("initializer and updater preserve project-owned agent instructions", (t) => {
-  const target = mkdtempSync(join(tmpdir(), "osd-workflow-agent-merge-"));
+test("init is non-blocking without Agent selections", (t) => {
+  const target = tempProject("osd-v2-noninteractive-");
   t.after(() => rmSync(target, { recursive: true, force: true }));
 
-  const agentFile = join(target, "AGENTS.md");
-  writeFileSync(agentFile, "# Project Rules\n\nKeep this instruction.\n", "utf8");
-  execFileSync(process.execPath, [cliPath, "init", target], { stdio: "pipe" });
-  writeFileSync(
-    agentFile,
-    readFileSync(agentFile, "utf8").replace("# OSD Workflow Agent Entry", "# Stale OSD Entry"),
-    "utf8",
-  );
+  run("init", target, "--yes");
 
-  execFileSync(process.execPath, [cliPath, "update", target], { stdio: "pipe" });
-
-  const updated = readFileSync(agentFile, "utf8");
-  assert.match(updated, /Keep this instruction\./);
-  assert.match(updated, /# OSD Workflow Agent Entry/);
-  assert.doesNotMatch(updated, /# Stale OSD Entry/);
-  assert.equal((updated.match(/<!-- osd-workflow:start -->/g) ?? []).length, 1);
+  assert.equal(existsSync(join(target, ".osd", "config.json")), true);
+  assert.equal(existsSync(join(target, "AGENTS.md")), false);
+  assert.equal(existsSync(join(target, ".qoder")), false);
 });
 
-test("initializer leaves an optional existing Cursor rule untouched", (t) => {
-  const target = mkdtempSync(join(tmpdir(), "osd-workflow-cursor-"));
+test("agent rule merge preserves user content and never duplicates managed block", (t) => {
+  const target = tempProject("osd-v2-agent-merge-");
   t.after(() => rmSync(target, { recursive: true, force: true }));
+  const rulePath = join(target, ".qoder", "rules", "osd-workflow.md");
+  mkdirSync(join(target, ".qoder", "rules"), { recursive: true });
+  writeFileSync(rulePath, "---\ndescription: \"User rule\"\n---\n# Local instructions\nKeep this content.\n", { encoding: "utf8", flag: "w" });
 
-  const cursorRule = join(target, ".cursor", "rules", "osd-workflow.mdc");
-  mkdirSync(resolve(cursorRule, ".."), { recursive: true });
-  writeFileSync(cursorRule, "---\ndescription: Existing project rule\nalwaysApply: false\n---\n\nKeep this Cursor instruction.\n", "utf8");
+  run("init", target, "--agents", "qoder", "--yes");
+  run("init", target, "--agents", "qoder", "--yes");
 
-  execFileSync(process.execPath, [cliPath, "init", target], { stdio: "pipe" });
-
-  const updated = readFileSync(cursorRule, "utf8");
-  assert.match(updated, /^alwaysApply: false$/m);
-  assert.match(updated, /Keep this Cursor instruction\./);
-  assert.doesNotMatch(updated, /<!-- osd-workflow:start -->/);
+  const content = readFileSync(rulePath, "utf8");
+  assert.match(content, /Keep this content/);
+  assert.match(content, /\.osd\/rules\/workflow\.md/);
+  assert.equal((content.match(/<!-- osd-workflow:start -->/g) || []).length, 1);
+  assert.equal((content.match(/<!-- osd-workflow:end -->/g) || []).length, 1);
 });
 
-test("update rejects a directory without an existing installation", (t) => {
-  const target = mkdtempSync(join(tmpdir(), "osd-workflow-missing-"));
+test("dry-run reports the plan without writing files", (t) => {
+  const target = tempProject("osd-v2-dry-run-");
   t.after(() => rmSync(target, { recursive: true, force: true }));
+  const output = run("init", target, "--agents", "gemini", "--yes", "--dry-run");
+  assert.match(output, /created/);
+  assert.equal(existsSync(join(target, ".osd", "config.json")), false);
+  assert.equal(existsSync(join(target, "GEMINI.md")), false);
+});
 
-  assert.throws(
-    () => execFileSync(process.execPath, [cliPath, "update", target], { stdio: "pipe" }),
-    (error) => error.status === 1 && error.stderr.toString().includes("No existing OSD Workflow installation"),
-  );
+test("adapter resolution prefers native integrations and reports fallbacks", () => {
+  const config = defaultConfig({ verifyCommand: "npm test" });
+  const native = resolveWorkflowAdapters(config, {
+    openspec: { available: true }, superpowers: { available: true }, verificationCommand: { available: true },
+  });
+  assert.equal(native.every((entry) => entry.status === "native"), true);
+
+  const fallback = resolveWorkflowAdapters(config, {
+    openspec: { available: false }, superpowers: { available: false }, verificationCommand: { available: true },
+  });
+  assert.deepEqual(fallback.map((entry) => entry.selected), ["osd.markdown-spec", "osd.minimal-plan", "agent-native", "command", "agent-review", "osd.markdown-archive"]);
+  assert.equal(fallback.every((entry) => entry.fallbackUsed), true);
+});
+
+test("doctor reports config, Agent rule, capabilities, verification command, and adapter resolution", (t) => {
+  const target = tempProject("osd-v2-doctor-");
+  t.after(() => rmSync(target, { recursive: true, force: true }));
+  writeFileSync(join(target, "package.json"), JSON.stringify({ scripts: { test: "node --test" } }), "utf8");
+  run("init", target, "--agents", "qoder", "--yes");
+  const lines = [];
+  const report = doctorProject({ target }, {
+    output: (line) => lines.push(line),
+    env: { OSD_OPENSPEC_AVAILABLE: "true", OSD_SUPERPOWERS_AVAILABLE: "true" },
+  });
+  assert.equal(report.config.ok, true);
+  assert.deepEqual(report.agents, [{ agent: "qoder", present: true }]);
+  assert.equal(report.capabilities.verificationCommand.detail, "npm test");
+  assert.equal(report.adapters.length, 6);
+  assert.equal(report.adapters.every((entry) => entry.status === "native"), true);
+  assert.match(lines.join("\n"), /OpenSpec: available/);
+});
+
+test("capability detection accepts explicit native availability", () => {
+  const capabilities = detectCapabilities(process.cwd(), null, {
+    env: { OSD_OPENSPEC_AVAILABLE: "yes", OSD_SUPERPOWERS_AVAILABLE: "1" },
+    spawn: () => ({ status: 1 }),
+  });
+  assert.equal(capabilities.openspec.available, true);
+  assert.equal(capabilities.superpowers.available, true);
+});
+
+test("managed block helper replaces only the OSD section", () => {
+  const first = mergeManagedAgentRule("# User note\n", "OSD first");
+  const next = mergeManagedAgentRule(first, "OSD second");
+  assert.match(next, /# User note/);
+  assert.match(next, /OSD second/);
+  assert.equal((next.match(/osd-workflow:start/g) || []).length, 1);
 });

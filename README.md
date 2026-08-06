@@ -1,241 +1,60 @@
-# OSD Workflow
+# OSD Workflow 2.0
 
-OSD Workflow is a lightweight team standard for adaptive, specification-driven AI development.
+OSD is a global CLI that adds a small, native-first workflow contract to an existing project. It does not copy an OSD project template.
 
-OSD Workflow is the top-level controller and connects two required runtime capabilities:
-
-- **OpenSpec** as the specification authority inside the OSD specification stage.
-- **Superpowers** as the execution method inside OSD-controlled stages.
-
-OpenSpec and Superpowers participate in every task, but neither replaces or reorders the OSD workflow.
-
-OSD is deliberately thin: it selects process depth and minimum evidence, then delegates the native specification lifecycle to OpenSpec and execution methods to Superpowers.
-
-The project template supplies the shared contract under `.ai/`, active OpenSpec assets under `openspec/changes/`, native OpenSpec archives under `openspec/changes/archive/`, and concise delivery evidence under `knowledge/delivery/`.
-
-This repository is the installable template source. It does not implement an application runtime; install it into a target project, then initialize that project's OpenSpec workspace.
-
-## At A Glance
-
-![Adaptive OSD delivery route](docs/assets/readme/workflow-loop.png)
-
-![Runtime responsibility contract](docs/assets/readme/runtime-contract.png)
-
-![Installed project structure](docs/assets/readme/project-structure.png)
-
-## Design Goal
-
-Standardize the SDD outcome without forcing every task through the same amount of ceremony.
-
-Every task must:
-
-1. Define expected behavior and acceptance criteria in OpenSpec before coding.
-2. Implement within the accepted specification through Superpowers-guided execution.
-3. Produce focused verification evidence.
-
-## Adaptive Modes
-
-| Mode | Use for | Required flow |
-|---|---|---|
-| `lite` | Simple, localized, low-risk work | OSD route → compact OpenSpec → implementation → verification |
-| `standard` | Normal medium-scope work; default | OSD route → OpenSpec proposal/spec → approval → atomic tasks → implementation → verification → review |
-| `strict` | Complex, ambiguous, high-risk, cross-module, or release-critical work | OSD route → full OpenSpec → spec review → approval → atomic tasks → implementation → full verification → review → archive |
-
-OpenSpec and Superpowers participate in all three modes. Only process depth and artifact volume change.
-
-Every accepted completed change ends with native `openspec archive`, regardless of mode.
-
-## Development Strategy
-
-Mode and development strategy are separate decisions:
-
-| Strategy | Use for | Evidence |
-|---|---|---|
-| `tdd` | Core business logic, algorithms, state machines, permissions, billing, public APIs | Red, Green, Refactor |
-| `test_first` | Bug fixes, existing behavior changes, refactors | Failing-before and passing-after evidence |
-| `verification_only` | Docs, config, pure styling, exploration, impractical test boundary | Reason plus focused verification |
-
-TDD is conditional, not a fourth workflow mode. Summary evidence stays in the delivery record; standard and strict work additionally records structured evidence in `verification.json`. No separate TDD report is required.
-
-## Task-Aware Routing
-
-| Task type | Specification focus | Start mode | Default strategy |
-|---|---|---|---|
-| New feature | Value, scope, non-goals, acceptance, compatibility | `standard` | `tdd` for executable behavior |
-| Bug fix | Reproduction, observed/expected behavior, root cause, regression | `lite` | `test_first` |
-| Existing behavior change | Current behavior, desired delta, compatibility, consumers | `standard` | `test_first` |
-| Refactor | Behavior invariants, impact, rollback, regression | `standard` | `test_first` characterization |
-| Maintenance/docs/config | Exact change, operational impact, focused verification | `lite` | `verification_only` |
-
-Escalate when scope, uncertainty, or risk grows. A user may explicitly choose a lighter or stricter mode if residual risk is recorded.
-
-## Minimal Artifacts
-
-`lite` requires only:
-
-- `openspec/changes/{feature}/spec.md`
-- `openspec/changes/{feature}/archive-result.json`
-- `knowledge/delivery/{feature}/stage-report.md`
-
-`standard` adds an OpenSpec proposal, explicit approval, machine-readable state, atomic tasks, structured verification evidence, and a concise implementation plan. Every completed change is then archived through the native OpenSpec CLI. Verification and review stay in `stage-report.md` unless a separate report adds risk-control or handoff value. `strict` additionally requires design and full verification/review evidence.
-
-The machine-readable output contract is `.ai/workflow-manifest.json`. Do not duplicate the same information across files. Create `handoff-brief.md` only when another agent will continue the task.
-
-The required delivery files are mode-dependent:
-
-| Mode | Required files |
-|---|---|
-| `lite` | `spec.md`, `archive-result.json`, `knowledge/delivery/{feature}/stage-report.md` |
-| `standard` | `proposal.md`, `spec.md`, `approval.md`, `osd-state.json`, `tasks.md`, `verification.json`, `archive-result.json`, `knowledge/delivery/{feature}/implementation.md`, `stage-report.md` |
-| `strict` | `proposal.md`, `spec.md`, `design.md`, `approval.md`, `osd-state.json`, `tasks.md`, `verification.json`, `archive-result.json`, `implementation.md`, `test-report.md`, `review-report.md`, `stage-report.md` |
-
-The complete paths and optional outputs are defined only by `.ai/workflow-manifest.json`; the table above is a quick reference.
-
-## Runtime Governance Foundation
-
-Release 0.7 adds a small, local runtime-governance contract without introducing an OSD-owned scheduler, MCP service, RAG store, or hosted control plane. The unified catalog is `.ai/runtime-governance/governance.json`; it is the single source for resource ownership, policy, role boundaries, fixed command definitions, and evaluation rules.
-
-For `standard` and `strict` deliveries, create one task-scoped context package per atomic task, a metadata-only event log, deterministic acceptance-criterion evaluation, and an event-derived runtime summary. The verifier checks them automatically. Runtime role boundaries are policy-first:
-
-- Coordinator: routes, decomposes, assigns, and aggregates; no business-code writes.
-- Executor: exactly one active write-capable executor per atomic task, with declared ownership and isolated execution.
-- Test verifier and reviewer: read-only by default; no automatic merge.
-- Monitor: event-only observation and feedback; no approval or automatic remediation.
-
-`lite` remains single-executor by default. `standard` can add test, review, or monitor roles based on risk. `strict` requires completion evidence from executor, test verifier, reviewer, and monitor. Scheduling, worktrees, sandboxes, and real handoff transport remain harness-adapter responsibilities, so teams can adopt the contract before adopting a heavier control plane.
-
-Useful local commands:
+Install the package globally, then run either command alias from a project:
 
 ```bash
-node scripts/runtime-governance.mjs context --feature {feature} --task T-01 --owned-area src/example.js --isolated true
-node scripts/runtime-governance.mjs authorize --feature {feature} --action '{"command_id":"node-test","role":"test_verifier","paths":["test/example.test.mjs"]}'
-node scripts/run-verified-command.mjs --feature {feature} --command-id node-test --step focused --criteria AC-01
-node scripts/runtime-governance.mjs evaluate --feature {feature}
-node scripts/runtime-governance.mjs summarize --feature {feature}
-node scripts/archive-openspec-change.mjs --feature {feature}
-node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode} --require-trusted-evidence
+npm install --global osd-workflow
+osd init
+# or: osd-workflow init
 ```
 
-`run-verified-command.mjs` never executes a command supplied by a change artifact. It executes only a fixed `argv` declared in the repository catalog and writes command provenance into `verification.json`. `archive-openspec-change.mjs` runs the native `openspec archive` command, then records its observed result only after the change has moved to OpenSpec's archive directory. Use `--skip-specs` only for a completed change with no specification delta. The final verifier rejects a change that still exists in the active directory; `archive-result.json` is an audit record, never stand-alone proof.
-
-The installed `.ai/evals/` directory contains routing cases and a pilot scorecard template. Use them to measure route selection, verifier failures, policy denials, retries, duration, and human intervention before expanding the control plane.
-
-## Install OSD Workflow
-
-Choose one installation method. The installer copies the OSD contract and safely merges a managed discovery block into common Agent instruction files. Existing project instructions remain intact.
-
-Using Node.js / npx:
-
-```bash
-npx --yes github:hpuhsp/OSD-Workflow init --target . --with-docs
-```
-
-Using PowerShell from a cloned OSD Workflow repository:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target D:\WorkPlace\demo -WithDocs
-```
-
-Template files are skipped unless `--force` or `-Force` is supplied. Agent instruction files are the exception: only the marked OSD block is merged or refreshed. Use `--dry-run` or `-DryRun` to preview changes.
-
-The installer creates or merges only the root `AGENTS.md` by default. Qoder is supported through its native `AGENTS.md` compatibility. If a project uses Claude, Gemini, GitHub Copilot, or Cursor, copy the same managed entry into that tool's native instruction path as needed; the optional paths are `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, and `.cursor/rules/osd-workflow.mdc`. The installer avoids creating unused duplicate adapters.
-
-### Complete Runtime Setup
-
-After OSD Workflow is installed in the project:
-
-1. Install the OpenSpec CLI globally (the installer does not install it):
-
-   ```bash
-   npm install -g @fission-ai/openspec@latest
-   ```
-
-2. Initialize the project OpenSpec workspace:
-
-   ```bash
-   openspec init
-   ```
-
-3. Ensure Superpowers is available in the AI agent or harness used by each developer. It is an execution capability supplied by the harness, not copied into the target project by this repository.
-
-## One-Click Update
-
-Update an existing installation with the currently installed CLI:
-
-```bash
-osd-workflow update .
-```
-
-Fetch the latest repository version and update in one command:
-
-```bash
-npx --yes github:hpuhsp/OSD-Workflow update .
-```
-
-Update usage guides too:
-
-```bash
-osd-workflow update . --with-docs
-```
-
-PowerShell:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target . -Update -WithDocs
-```
-
-`update` overwrites only files managed by the template. It does not delete project-owned active changes, native OpenSpec archives, or delivery records. Use `--dry-run` to preview and review the Git diff after updating. `--with-docs` is opt-in so installed usage guides are not changed unexpectedly.
-
-Manifest v3-v6 migration: retain existing delivery artifacts, run structural verification after update, and migrate completed changes with the controlled native archive command before enforcing v6 delivery verification. Trusted-evidence enforcement is opt-in through the verifier flag so existing evidence is not silently represented as runner-generated.
-
-## Daily Use
-
-Start a task:
+By default, initialization creates only:
 
 ```text
-{task}
+.osd/config.json
+.osd/rules/workflow.md
 ```
 
-Repository-changing requests automatically trigger OSD when the Agent loads project instructions. For an Agent that does not, use the shortest explicit fallback:
-
-```text
-Execute with OSD: {task}
-```
-
-The Agent should start with `OSD: <task_type> | <mode> | <strategy> | <current_stage>`, not a generic OpenSpec or Superpowers process.
-
-Verify a delivery:
+Agent rules are opt-in. OSD supports `qoder`, `claude`, `gemini`, `trae`, and `cursor`:
 
 ```bash
-node scripts/verify-workflow-artifacts.mjs --feature {feature} --mode {mode}
+osd init --agents qoder,cursor --yes
+osd init --agents all --yes
+osd init --agents none --yes
 ```
 
-If `--mode` is omitted, the verifier reads the mode from `stage-report.md`, falling back to the manifest default (`standard`). A successful delivery prints `Result: DELIVERY PASS`.
+`init` never creates `AGENTS.md`, `.ai/`, `openspec/`, `knowledge/`, or `scripts/`. Existing Agent rule files keep user-authored content; OSD updates only its managed block.
 
-Verify only the installed contract:
+## Native-First Routing
+
+`.osd/config.json` uses `osd.config/v2`. It defines `native_first`, `dynamic_routing`, `fallback_allowed`, Agent targets, governance, verification commands, and six workflow stages:
+
+| Stage | Preferred adapter | Fallback |
+| --- | --- | --- |
+| specification | OpenSpec | OSD markdown specification |
+| planning | Superpowers writing-plans | OSD minimal plan |
+| implementation | Superpowers TDD | Agent-native execution |
+| verification | Superpowers verification | configured command |
+| review | Superpowers review | Agent review |
+| archive | OpenSpec | OSD markdown archive |
+
+Task depth is chosen at runtime through `dynamic_routing`; OSD 2.0 has no installation presets or light/standard/full template variants. When a preferred adapter is unavailable, OSD selects its configured fallback and reports that decision.
+
+## Diagnostics
 
 ```bash
-node scripts/verify-workflow-artifacts.mjs --structural-only
+osd doctor
+osd adapters list
 ```
 
-See [docs/USAGE.md](docs/USAGE.md) for task-specific prompts and routing examples. For the v6 local-first runtime-governance guide, see [docs/RUNTIME_GOVERNANCE_zh.md](docs/RUNTIME_GOVERNANCE_zh.md).
+`doctor` reports config validity, selected Agent rules, OpenSpec and Superpowers detection, the verification command, and stage-by-stage adapter resolution. `adapters list` lists native and fallback availability.
 
-## Project Files
+For CI and automation, use non-interactive flags. They never prompt:
 
-- `.ai/workflows/feature-development.yaml`: human-readable routing contract
-- `.ai/workflow-manifest.json`: machine-readable artifact contract
-- `.ai/rules/workflow-execution-rule.md`: adaptive SDD rules
-- `.ai/templates/`: compact delivery and handoff templates
-- `AGENTS.md` and Agent-specific adapters: automatic OSD discovery with project instruction preservation
-- `scripts/verify-workflow-artifacts.mjs`: lightweight delivery verifier
-- `scripts/runtime-governance.mjs`: local context, event, and summary utility
-- `scripts/archive-openspec-change.mjs`: controlled native OpenSpec archive utility
-- `.ai/runtime-governance/governance.json`: unified resource/policy/evaluation catalog
-- `bin/osd-workflow-init.mjs`: Node.js initializer
-- `scripts/install.ps1`: PowerShell initializer
+```bash
+osd init --agents qoder,claude --yes --dry-run
+```
 
-For the human workflow guide, see [docs/USAGE.md](docs/USAGE.md). For the Chinese guide, see [docs/USAGE_zh.md](docs/USAGE_zh.md); for v6 runtime governance, see [docs/RUNTIME_GOVERNANCE_zh.md](docs/RUNTIME_GOVERNANCE_zh.md).
-
-## License
-
-MIT
+See [the usage guide](docs/USAGE.md) and [the OSD 2.0 specification](docs/OSD_2_0_IMPROVEMENT_SPEC_zh.md).
