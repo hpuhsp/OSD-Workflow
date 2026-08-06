@@ -1,23 +1,44 @@
-# OSD Workflow 2.0
+# OSD Workflow
 
-OSD 是一个全局 CLI，为任意代码仓库提供轻量、native-first 的 AI 交付契约。它编排环境中已经可用的能力，而不是向每个项目复制一套工作流模板。
+## 面向 AI 辅助交付的 Native-First 工作流编排器
 
-OSD 优先使用 OpenSpec 与 Superpowers 的原生能力；原生能力不可用时，才使用最小 fallback。任务轻重由运行时 `dynamic_routing` 决定，不通过初始化 preset 决定。
+OSD 是一个全局 CLI，为已有软件项目增加轻量、明确的工作流契约。它优先编排开发环境中已经可用且能力更强的原生工具；只有原生能力不可用时，才使用最小 fallback。
 
-## 项目提供什么
+OSD 不是项目模板，不替代 Agent，也不是另一套执行框架。它为开发者和编码 Agent 提供一致的方式来判断任务需要哪些环节、由哪个 adapter 执行，以及交付后应留下哪些证据。
 
-- 两个全局命令别名：`osd` 与 `osd-workflow`。
-- 一个基于 `osd.config/v2` 的轻量项目契约 `.osd/`。
-- Qoder、Claude、Gemini、Trae、Cursor 的可选原生规则文件。
-- 可观测的逐阶段 adapter 选择与 fallback 状态。
+## 为什么需要 OSD
 
-OSD 默认不会生成 `AGENTS.md`、`.ai/`、`openspec/`、`knowledge/` 或 `scripts/`，也不会替代 Agent 自身的规则和工具。
+AI 辅助交付通常会走向两个极端：所有修改都被迫遵循过重的流程，或有实际风险的工作完全跳过规格、验证和评审。OSD 通过四条原则解决这个问题：
+
+1. **全局 CLI，项目轻量**：全局安装一次，每个项目只维护一个 `.osd` 契约。
+2. **Native-first**：优先使用 OpenSpec、Superpowers 和 Agent 自身的原生能力，不重复造轮子。
+3. **运行时路由**：根据实际工作中的范围、风险和不确定性决定任务深度，而不是通过初始化 preset 固化流程。
+4. **可观测 fallback**：原生 adapter 不可用时，使用配置允许的 fallback，并在诊断和交付证据中明确显示该选择。
+
+## 工作模型
+
+每项非平凡任务都经过相同的六个阶段。adapter 可以变化，但交付目标不变。
+
+```text
+Specification -> Planning -> Implementation -> Verification -> Review -> Archive
+```
+
+| 阶段 | Native-first adapter | 最小 fallback |
+| --- | --- | --- |
+| Specification | OpenSpec | OSD markdown specification |
+| Planning | Superpowers writing-plans | OSD minimal plan |
+| Implementation | Superpowers TDD | Agent-native execution |
+| Verification | Superpowers verification | 项目验证命令 |
+| Review | Superpowers review | Agent review |
+| Archive | OpenSpec | OSD markdown archive |
+
+adapter、治理规则、已选择的 Agent rule 与验证命令都保存在 `.osd/config.json`，schema 为 `osd.config/v2`。
 
 ## 快速开始
 
-### 1. 全局安装 OSD
+### 1. 全局安装
 
-当 npm registry 中已发布该包时：
+当 npm registry 中已发布 `osd-workflow` 时：
 
 ```bash
 npm install --global osd-workflow
@@ -29,29 +50,29 @@ npm install --global osd-workflow
 npm install --global github:hpuhsp/OSD-Workflow
 ```
 
-确认命令可用：
+OSD 提供两个等价命令：
 
 ```bash
 osd --help
-# 等价别名：osd-workflow --help
+osd-workflow --help
 ```
 
 ### 2. 初始化项目
 
-进入需要配置的项目根目录后执行：
+进入待配置项目的根目录：
 
 ```bash
-cd path/to/your-project
+cd path/to/project
 osd init
 ```
 
-交互终端会显示 Agent 多选。CI、脚本或需要可重复执行时，显式指定目标：
+交互模式会显示 banner 并让你选择 Agent target。CI、脚本和可重复执行的环境应显式传入全部选项：
 
 ```bash
 osd init --agents qoder,cursor --yes
 ```
 
-默认只创建以下项目文件：
+初始化只创建：
 
 ```text
 .osd/config.json
@@ -59,7 +80,7 @@ osd init --agents qoder,cursor --yes
 <用户选择的 Agent rule 文件>
 ```
 
-支持的 Agent target：`qoder`、`claude`、`gemini`、`trae`、`cursor`。还可使用 `all`、`none`、`auto`：
+支持的 Agent target：`qoder`、`claude`、`gemini`、`trae`、`cursor`。
 
 ```bash
 osd init --agents all --yes
@@ -67,45 +88,41 @@ osd init --agents none --yes
 osd init --agents qoder,claude --yes --dry-run
 ```
 
-重复执行 `init` 时，OSD 仅更新 Agent rule 中的 managed block，并保留用户已有内容。
+重复初始化仅更新 Agent rule 中 OSD 的 managed block，不会删除用户内容，也不会重复插入该 block。
 
-### 3. 检查当前 adapter
+### 3. 检查环境
 
 ```bash
 osd doctor
 osd adapters list
 ```
 
-`doctor` 会校验配置、检查所选 Agent rule、检测 OpenSpec 与 Superpowers、识别验证命令，并报告每个阶段最终选择的 adapter。
+`doctor` 会检查 OSD 配置、已选 Agent rule、OpenSpec、Superpowers、项目验证命令，以及每个阶段最终选择的 adapter。`adapters list` 仅展示 adapter 的可用性，不提供项目健康汇总。
 
-## Native-First 工作流
+## 项目契约
 
-`.osd/config.json` 定义六个工作流阶段。每个阶段先选择 preferred 原生 adapter；只有在 `fallback_allowed` 启用时，才会使用对应 fallback。
-
-| 阶段 | Preferred adapter | Fallback |
-| --- | --- | --- |
-| specification | OpenSpec | OSD markdown specification |
-| planning | Superpowers writing-plans | OSD minimal plan |
-| implementation | Superpowers TDD | Agent-native execution |
-| verification | Superpowers verification | configured command |
-| review | Superpowers review | Agent review |
-| archive | OpenSpec | OSD markdown archive |
-
-原生 adapter 不可用时，`osd doctor` 会明确显示 fallback 选择，任务证据中也应记录该状态。OSD 不提供 `light`、`standard`、`full` 或 preset 初始化档位。
-
-## 配置
-
-生成的 `.osd/config.json` 使用 `osd.config/v2`，包含：
+OSD 在 `.osd/config.json` 中写入以下配置键：
 
 ```text
-native_first, dynamic_routing, fallback_allowed,
-agents, workflow, governance, commands
+schema: osd.config/v2
+native_first
+dynamic_routing
+fallback_allowed
+agents
+workflow
+governance
+commands
 ```
 
-项目需要固定验证命令时，可设置 `commands.verify`。否则 OSD 在初始化时会尝试识别常见包管理器的测试命令。
+项目需要固定验证命令时设置 `commands.verify`。未设置时，OSD 会在初始化期间识别常见包管理器的测试命令。
 
-## 延伸阅读
+## OSD 不做什么
 
-- [使用指南](docs/USAGE_zh.md)
-- [English usage guide](docs/USAGE.md)
-- [OSD 2.0 产品规格](docs/OSD_2_0_IMPROVEMENT_SPEC_zh.md)
+- 不向项目复制 `.ai/`、`openspec/`、`knowledge/`、`scripts/` 或 `AGENTS.md`。
+- 不设计 `light`、`standard`、`full` 或 preset 初始化档位。
+- 不替代 OpenSpec、Superpowers 或 Agent 自身的原生工作流。
+- 不要求托管服务、调度器、RAG 存储或控制平面。
+
+## 产品规格
+
+[OSD 2.0 产品规格](docs/OSD_2_0_IMPROVEMENT_SPEC_zh.md)以中文维护。

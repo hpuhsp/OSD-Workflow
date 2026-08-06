@@ -1,23 +1,44 @@
-# OSD Workflow 2.0
+# OSD Workflow
 
-OSD is a global CLI that gives any repository a lightweight, native-first AI delivery contract. It coordinates the work already available in your environment instead of copying a workflow template into every project.
+## Native-First Workflow Coordination for AI-Assisted Delivery
 
-OSD keeps the project footprint small, prefers native OpenSpec and Superpowers capabilities when present, and falls back to minimal local guidance when they are not. Task depth is decided at runtime through `dynamic_routing`, not by installation presets.
+OSD is a global CLI that adds a small, explicit workflow contract to an existing software project. It coordinates the strongest capability already available in the developer's environment, then uses a minimal fallback only when that native capability is unavailable.
 
-## What You Get
+OSD is not a project template, an Agent replacement, or another execution framework. It gives people and coding Agents a shared way to decide what work is needed, which adapter should perform it, and what evidence should remain after delivery.
 
-- A single global CLI with two aliases: `osd` and `osd-workflow`.
-- A small project contract in `.osd/`, using the `osd.config/v2` schema.
-- Optional native rules for Qoder, Claude, Gemini, Trae, and Cursor.
-- Stage-by-stage native adapter selection with explicit fallback reporting.
+## Why OSD
 
-OSD does not create `AGENTS.md`, `.ai/`, `openspec/`, `knowledge/`, or `scripts/` by default. It does not replace an Agent's own rules or tools.
+AI-assisted delivery commonly fails in one of two ways: every change is forced through too much ceremony, or meaningful work skips specification, verification, and review entirely. OSD addresses this with four rules:
+
+1. **Global CLI, light projects**: install once; each project receives only a `.osd` contract.
+2. **Native first**: prefer OpenSpec, Superpowers, and Agent-native capabilities rather than reimplementing them.
+3. **Runtime routing**: decide task depth from scope, risk, and uncertainty while doing the work, not from an initialization preset.
+4. **Observable fallback**: when a native adapter is unavailable, select the configured fallback and surface that decision in diagnostics and delivery evidence.
+
+## Operating Model
+
+Every non-trivial task flows through the same six stages. The selected adapter can change, but the delivery intent remains stable.
+
+```text
+Specification -> Planning -> Implementation -> Verification -> Review -> Archive
+```
+
+| Stage | Native-first adapter | Minimal fallback |
+| --- | --- | --- |
+| Specification | OpenSpec | OSD markdown specification |
+| Planning | Superpowers writing-plans | OSD minimal plan |
+| Implementation | Superpowers TDD | Agent-native execution |
+| Verification | Superpowers verification | Project verification command |
+| Review | Superpowers review | Agent review |
+| Archive | OpenSpec | OSD markdown archive |
+
+The exact adapters, governance controls, selected Agent rules, and verification command are stored in `.osd/config.json` under the `osd.config/v2` schema.
 
 ## Quick Start
 
-### 1. Install OSD globally
+### 1. Install globally
 
-Install from npm when the package is available to your registry:
+Install from your npm registry when `osd-workflow` is published there:
 
 ```bash
 npm install --global osd-workflow
@@ -29,29 +50,29 @@ Or install the current GitHub source directly:
 npm install --global github:hpuhsp/OSD-Workflow
 ```
 
-Confirm either command alias is available:
+OSD exposes two equivalent commands:
 
 ```bash
 osd --help
-# Equivalent alias: osd-workflow --help
+osd-workflow --help
 ```
 
 ### 2. Initialize a project
 
-Run the command from the repository you want to configure:
+At the root of the project you want to configure:
 
 ```bash
-cd path/to/your-project
+cd path/to/project
 osd init
 ```
 
-Interactive terminals show an Agent multi-select. For CI, scripts, or repeatable setup, make the selection explicit:
+The interactive command displays a banner and lets you select Agent targets. For CI, scripts, and repeatable setup, provide all choices explicitly:
 
 ```bash
 osd init --agents qoder,cursor --yes
 ```
 
-The default project output is intentionally limited:
+Initialization creates only:
 
 ```text
 .osd/config.json
@@ -59,7 +80,7 @@ The default project output is intentionally limited:
 <selected Agent rule files>
 ```
 
-Supported Agent targets are `qoder`, `claude`, `gemini`, `trae`, and `cursor`. Use `all`, `none`, or `auto` when appropriate:
+Supported Agent targets are `qoder`, `claude`, `gemini`, `trae`, and `cursor`.
 
 ```bash
 osd init --agents all --yes
@@ -67,45 +88,41 @@ osd init --agents none --yes
 osd init --agents qoder,claude --yes --dry-run
 ```
 
-Re-running `init` updates only OSD's managed block in an existing Agent rule, preserving user-authored content.
+Repeated initialization updates only OSD's managed block in an existing Agent rule. It never removes user-authored instructions or creates duplicate managed blocks.
 
-### 3. Check the active adapters
+### 3. Verify the environment
 
 ```bash
 osd doctor
 osd adapters list
 ```
 
-`doctor` validates the config, checks selected Agent rules, detects OpenSpec and Superpowers, finds a verification command, and shows the resolved adapter for every stage.
+`doctor` checks the OSD config, selected Agent rules, OpenSpec availability, Superpowers availability, the project verification command, and the resolved adapter for every stage. `adapters list` provides the same adapter availability view without the project health summary.
 
-## Native-First Workflow
+## Project Contract
 
-`.osd/config.json` defines six workflow stages. Each stage selects its preferred native adapter first, then its configured fallback only when `fallback_allowed` is enabled.
-
-| Stage | Preferred adapter | Fallback |
-| --- | --- | --- |
-| specification | OpenSpec | OSD markdown specification |
-| planning | Superpowers writing-plans | OSD minimal plan |
-| implementation | Superpowers TDD | Agent-native execution |
-| verification | Superpowers verification | configured command |
-| review | Superpowers review | Agent review |
-| archive | OpenSpec | OSD markdown archive |
-
-When a preferred adapter is unavailable, the selected fallback is visible in `osd doctor` and should be recorded with the task evidence. OSD does not have `light`, `standard`, `full`, or preset installation modes.
-
-## Configuration
-
-The generated `.osd/config.json` uses `osd.config/v2` and includes:
+OSD writes the following configuration keys to `.osd/config.json`:
 
 ```text
-native_first, dynamic_routing, fallback_allowed,
-agents, workflow, governance, commands
+schema: osd.config/v2
+native_first
+dynamic_routing
+fallback_allowed
+agents
+workflow
+governance
+commands
 ```
 
-Set `commands.verify` when your project needs a specific verification command. Otherwise OSD detects common package-manager test commands during initialization.
+Set `commands.verify` when a project requires a specific verification command. If it is absent, OSD detects common package-manager test commands during initialization.
 
-## More Information
+## What OSD Does Not Do
 
-- [Usage guide](docs/USAGE.md)
-- [Chinese usage guide](docs/USAGE_zh.md)
-- [OSD 2.0 product specification](docs/OSD_2_0_IMPROVEMENT_SPEC_zh.md)
+- It does not copy `.ai/`, `openspec/`, `knowledge/`, `scripts/`, or `AGENTS.md` into projects.
+- It does not impose `light`, `standard`, `full`, or preset installation modes.
+- It does not replace OpenSpec, Superpowers, or an Agent's native workflow.
+- It does not require a hosted service, scheduler, RAG store, or control plane.
+
+## Product Specification
+
+The OSD 2.0 product specification is available in [Chinese](docs/OSD_2_0_IMPROVEMENT_SPEC_zh.md).
