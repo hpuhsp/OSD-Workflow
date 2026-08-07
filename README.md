@@ -1,27 +1,72 @@
 # OSD Workflow 2.0
 
-OSD is a native-first delivery orchestrator for AI-assisted software development. It owns the delivery contract: routing, stage order, evidence, review gates, and archive status. OpenSpec and Superpowers remain native specialists when they are present; OSD records a minimal, explicit fallback when they are not.
+OSD is a **native-first delivery orchestrator** for AI-assisted software development: a single global CLI that owns the delivery contract — task routing, stage order, evidence, review gates, and archive status — so AI-generated changes ship with the same discipline as hand-written ones.
 
-OSD is installed once as a CLI and initialized only in repositories that need the delivery contract. It is not a copied workflow template and does not replace either native tool.
+## Why OSD
+
+Coding agents are great at producing code, but they do not naturally produce a *process*. Without an explicit contract, a delivery has no agreed workflow, no evidence that work actually happened, no gate before a change ships, and no record of what was delivered. OSD closes that gap:
+
+- **Native-first routing** — OpenSpec and Superpowers keep their native strengths when present; a minimal, traceable fallback covers their stages when they are not. A missing specialist never skips the specification, verification, review, or archive gates.
+- **Evidence-governed stages** — every stage writes file evidence under `.osd/changes/<feature>/`, and verification and review results decide whether a delivery may advance or archive.
+- **Risk-adaptive modes** — `osd start` scores task type, declared scope, risk signals, and touched paths to select `lite`, `standard`, or `strict` automatically.
+- **Reversible** — `osd rollback <feature> --to <stage>` moves a delivery back to an earlier stage without deleting artifacts.
+- **Non-invasive** — a project receives only a small config and an Agent rule; no copied templates, no `AGENTS.md`, `.ai/`, `openspec/`, or `knowledge/` boilerplate.
+
+OSD is not a workflow template and does not replace either native tool. It is installed once as a global CLI and initialized only in repositories that need the delivery contract.
+
+## Install
+
+**Prerequisite:** Node.js `>=20.11`.
 
 ```bash
+node -v                        # check Node.js first
 npm install --global osd-workflow
-osd init --agents qoder,claude
+osd --version                  # verify the installation
 ```
 
-Requirements: Node.js `>=20.11`. Install OpenSpec or an Agent harness exposing Superpowers only when the project should use their native capabilities.
+Upgrade the CLI with npm; refresh a project's contract with `osd upgrade` (run inside the project):
 
-Initialization is intentionally small:
+```bash
+npm update --global osd-workflow
+osd upgrade
+```
+
+To remove the CLI:
+
+```bash
+npm uninstall --global osd-workflow
+```
+
+Uninstalling leaves existing `.osd/` directories untouched; delete them per project if they are no longer needed.
+
+## Initialize
+
+Run `osd init` in the project root that needs the delivery contract:
+
+```bash
+cd your-project
+osd init
+```
+
+The interactive prompt selects one or more Agent rule targets with arrow keys, Space, and Enter. For automation, pass `--agents` explicitly:
+
+```bash
+osd init --agents qoder,claude --yes   # write rules for these agents
+osd init --agents auto --yes           # keep only detected targets
+osd init --agents none --yes           # contract only, no Agent rule
+```
+
+`init` writes exactly three small files (plus the selected Agent rule):
 
 ```text
-.osd/config.json
-.osd/rules/workflow.md
-<selected Agent rule>
+.osd/config.json               # delivery contract: verification command, gates, adapters
+.osd/rules/workflow.md         # OSD workflow rules, read by the Agent
+.claude/rules/osd-workflow.md  # Agent rule entry (example: Claude Code)
 ```
 
-It does not generate `AGENTS.md`, `.ai/`, `openspec/`, `knowledge/`, or project-local runner scripts. The package owns its contract, templates, and runtime code; a project receives only the configuration and Agent-facing rule it needs. Delivery state is created lazily when work begins.
+It deliberately creates no `AGENTS.md`, `.ai/`, `openspec/`, `knowledge/`, or project-local runner scripts. The package owns the contract, templates, and runtime code; a project receives only the configuration and the Agent-facing rule it needs. Delivery state is created lazily when work begins.
 
-Run `osd doctor` after initialization to inspect the resolved Agent rules, verification command, and native/fallback adapter selection.
+After initialization, run `osd doctor` to inspect the resolved Agent rules, verification command, and native/fallback adapter selection before starting a delivery.
 
 ## Native-First Routing
 
@@ -65,8 +110,6 @@ osd archive checkout
 - Gemini CLI: `GEMINI.md`, importing `.osd/rules/workflow.md`.
 - Trae: `.trae/rules/osd-workflow.md` with `description` and `alwaysApply: false`.
 - Cursor: `.cursor/rules/osd-workflow.mdc` with an Agent Requested rule (`description`, empty `globs`, `alwaysApply: false`).
-
-Interactive terminals use arrow keys, Space, and Enter for multi-selection. Non-interactive use is explicit: `--agents auto` keeps detected targets, `--agents none` writes no Agent rule, and `--agents qoder,cursor --yes` selects targets directly.
 
 ## Diagnostics And Governance
 
