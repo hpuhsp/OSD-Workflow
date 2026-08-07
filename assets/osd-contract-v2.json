@@ -12,6 +12,7 @@
     "verification evidence precedes archive",
     "strict delivery requires passing review",
     "native adapters are selected before fallbacks",
-    "fallback usage is stored in delivery state"
+    "fallback usage is stored in delivery state",
+    "stage rollback is supported before archive for recovery"
   ]
 }

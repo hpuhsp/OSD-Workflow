@@ -1,7 +1,7 @@
 # Design: OSD P0 Safety Core Improvements
 
-**Date:** 2026-08-06  
-**Branch:** `feature/osd-improvements`  
+**Date:** 2026-08-06
+**Branch:** `feature/osd-improvements`
 **Scope:** P0 improvements from architecture analysis report
 
 ## Goal
@@ -22,7 +22,7 @@ Fix the three most critical trust gaps in OSD 2.0's delivery contract:
 
 ## Architecture
 
-All changes are within `lib/osd-core.mjs`. No new files, no new dependencies. The design follows OSD's existing patterns: single-file core, zero runtime deps, hand-rolled validation, test-injectable I/O.
+Runtime changes are concentrated in `lib/osd-core.mjs` with focused tests and documentation updates. No new runtime dependencies are required. The design follows OSD's existing patterns: single-file core, zero runtime deps, hand-rolled validation, test-injectable I/O.
 
 ### Change 1: Rollback Command
 
@@ -32,7 +32,7 @@ All changes are within `lib/osd-core.mjs`. No new files, no new dependencies. Th
 - Load state via existing `loadState()`
 - Validate target stage is earlier than current stage (using `WORKFLOW_STAGES` index)
 - Validate target stage is a valid stage name
-- Call `transition(state, targetStage, "rolled_back")` — reuses existing history mechanism
+- Restore the status associated with the target stage and mark the latest history entry as a rollback
 - Call `saveState(target, state)`
 - Output confirmation
 
@@ -55,7 +55,7 @@ All changes are within `lib/osd-core.mjs`. No new files, no new dependencies. Th
 **Behavior:**
 - Extend `containsSensitiveData(value)` to check string values against known secret patterns
 - Add `SENSITIVE_VALUE_PATTERNS` constant array of regex patterns
-- Patterns cover: AWS keys (AKIA/ASIA), GitHub tokens (ghp_), OpenAI keys (sk-), JWTs (eyJ...eyJ), private key headers (BEGIN PRIVATE KEY), generic high-specificity patterns
+- Patterns cover: AWS keys (AKIA/ASIA), GitHub tokens (ghp_), OpenAI keys (sk-), JWTs (eyJ...eyJ), private key headers (BEGIN PRIVATE KEY), and Slack tokens. Broad generic token matching is avoided so normal metadata such as commit hashes remains recordable.
 
 **Patterns (initial set):**
 ```javascript
@@ -64,7 +64,7 @@ const SENSITIVE_VALUE_PATTERNS = [
   /^ASIA[0-9A-Z]{16}$/,                    // AWS STS Token
   /^ghp_[A-Za-z0-9]{36}$/,                 // GitHub PAT
   /^gho_[A-Za-z0-9]{36}$/,                 // GitHub OAuth
-  /^sk-[A-Za-z0-9]{20,}$/,                 // OpenAI/Stripe secret key
+  /^sk-(?:proj-)?[A-Za-z0-9_-]{20,}$/,     // OpenAI/Stripe secret key
   /^pk_[A-Za-z0-9]{20,}$/,                 // Stripe publishable
   /^eyJ[A-Za-z0-9+/=_-]+\.eyJ[A-Za-z0-9+/=_-]+\.[A-Za-z0-9+/=_-]+$/, // JWT
   /-----BEGIN [A-Z ]*PRIVATE KEY-----/,    // PEM private key
@@ -102,6 +102,7 @@ const SENSITIVE_VALUE_PATTERNS = [
 - `schema` field equals `"osd.config/v2"`
 - `agents` is an array (if present)
 - `workflow` keys (if present) are valid stage names
+- configured workflow adapters are known OSD adapters
 - `adaptive_mode.thresholds` has numeric values (if present)
 
 **Code touch points:**
@@ -117,12 +118,12 @@ const SENSITIVE_VALUE_PATTERNS = [
 
 All three changes follow TDD: write failing test first, implement, verify green.
 
-**Test file:** `test/initializer.test.mjs` (extend existing suite)
+**Test files:** focused suites under `test/rollback.test.mjs`, `test/sensitive-data.test.mjs`, `test/schema-validation.test.mjs`, `test/doctor-enhanced.test.mjs`, and `test/error-paths.test.mjs`.
 
 **New tests:**
 1. `rollbackDelivery reverts state to an earlier stage and records history`
    - Start a delivery, advance to verification, rollback to planning
-   - Assert state.stage === "planning", history has rolled_back entry
+   - Assert state.stage === "planning", state.status === "approved", history has rollback marker
 2. `rollbackDelivery rejects same-stage, later-stage, and complete rollback`
    - Assert throws on rollback to current stage
    - Assert throws on rollback to later stage
@@ -139,6 +140,7 @@ All three changes follow TDD: write failing test first, implement, verify green.
    - Assert accepts valid state
 5. `validateConfig rejects corrupted config and accepts valid config`
    - Assert rejects missing schema
+   - Assert rejects unknown workflow adapters
    - Assert accepts valid config
 
 ## File Impact
@@ -146,7 +148,11 @@ All three changes follow TDD: write failing test first, implement, verify green.
 | File | Change type |
 |------|-------------|
 | `lib/osd-core.mjs` | Modified: add rollback, extend sensitive data, add validators |
-| `test/initializer.test.mjs` | Modified: add 5 new test cases |
+| `test/rollback.test.mjs` | Added rollback command and boundary tests |
+| `test/sensitive-data.test.mjs` | Added event sensitive-value tests |
+| `test/schema-validation.test.mjs` | Added state/config validation tests |
+| `test/doctor-enhanced.test.mjs` | Added active-change and archive diagnostics tests |
+| `test/error-paths.test.mjs` | Added stage gate and argument error tests |
 | `docs/USAGE.md` | Modified: add rollback command docs |
 | `docs/USAGE_zh.md` | Modified: add rollback command docs |
 | `assets/osd-contract-v2.json` | Modified: add rollback to guarantees |

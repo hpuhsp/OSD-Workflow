@@ -11,6 +11,14 @@ const cliPath = join(projectRoot, "bin", "osd-workflow-init.mjs");
 
 function tempProject(prefix) { return mkdtempSync(join(tmpdir(), prefix)); }
 function run(...args) { return execFileSync(process.execPath, [cliPath, ...args], { encoding: "utf8" }); }
+function outputFromFailedCommand(fn) {
+  try {
+    fn();
+    assert.fail("Expected command to fail");
+  } catch (err) {
+    return (err.stderr || "") + (err.stdout || "") + err.message;
+  }
+}
 
 // Test 1: Valid state is accepted
 test("status works with valid state", (t) => {
@@ -84,6 +92,31 @@ test("corrupted config.json is rejected", (t) => {
     const combined = (err.stderr || "") + (err.stdout || "");
     assert.match(combined, /osd.config/, "Should mention invalid config schema");
   }
+});
+
+test("config with unknown workflow adapter is rejected", (t) => {
+  const target = tempProject("osd-sv-badadapter-");
+  t.after(() => rmSync(target, { recursive: true, force: true }));
+  writeFileSync(join(target, "package.json"), JSON.stringify({ scripts: { test: "node --version" } }), "utf8");
+  run("init", target, "--yes");
+
+  const configPath = join(target, ".osd", "config.json");
+  const config = JSON.parse(readFileSync(configPath, "utf8"));
+  config.workflow.planning.preferred = "made-up-adapter";
+  writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+  const output = outputFromFailedCommand(() => run("doctor", target));
+  assert.match(output, /Invalid adapter/);
+});
+
+test("config set refuses unknown workflow adapter", (t) => {
+  const target = tempProject("osd-sv-setadapter-");
+  t.after(() => rmSync(target, { recursive: true, force: true }));
+  writeFileSync(join(target, "package.json"), JSON.stringify({ scripts: { test: "node --version" } }), "utf8");
+  run("init", target, "--yes");
+
+  const output = outputFromFailedCommand(() => run("config", "set", "workflow.planning.preferred", "made-up-adapter", "--target", target));
+  assert.match(output, /Invalid adapter|Refusing to save invalid/);
 });
 
 // Test 5: Missing state schema is rejected

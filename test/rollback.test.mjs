@@ -26,6 +26,13 @@ function run(...args) {
   return execFileSync(process.execPath, [cliPath, ...args], { encoding: "utf8" });
 }
 
+function setVerifyCommand(target, command = `${process.execPath} --version`) {
+  const configPath = join(target, ".osd", "config.json");
+  const config = JSON.parse(readFileSync(configPath, "utf8"));
+  config.commands.verify = command;
+  writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n", "utf8");
+}
+
 function createProject(prefix) {
   const target = tempProject(prefix);
   writeFileSync(join(target, "package.json"), JSON.stringify({ scripts: { test: "node --version" } }), "utf8");
@@ -127,6 +134,7 @@ test("rollback rejects rollback from completed delivery", (t) => {
   const target = createProject("osd-rollback-complete-");
   t.after(() => rmSync(target, { recursive: true, force: true }));
   run("init", target, "--yes");
+  setVerifyCommand(target);
 
   const feature = "complete-delivery";
   advanceTo(target, feature, "review");

@@ -62,6 +62,14 @@ osd archive account-lockout
 
 The state machine is `specification -> planning -> implementation -> verification -> review -> archive -> complete`. Standard and strict deliveries require a proposal and task plan. Every archive requires successful verification. Strict deliveries also require a passing review and a passing acceptance-criteria evaluation.
 
+If a delivery needs to move back before archive, roll it back to an earlier stage:
+
+```bash
+osd rollback account-lockout --to implementation
+```
+
+Rollback only changes OSD state and appends a history/event record. It refuses same-stage, forward, complete, and archived rollbacks. Existing artifacts remain on disk so the corrected stage can overwrite the relevant evidence when it runs again.
+
 `osd verify` always creates verification evidence with checks. The `unit_test` check uses `commands.unitTest`, `commands.unit_test`, or common package scripts such as `test:unit` when available. If no dedicated unit-test command exists, the check is recorded as `covered_by_verify` when the broader `commands.verify` command runs. This keeps unit testing visible in the workflow without making it mandatory for every change. Teams can make it mandatory by setting `quality_gates.unit_test.required_for`, for example `["strict"]`.
 
 When OpenSpec is the selected specification backend, use its native `/opsx:propose` Agent workflow before `osd approve`. `osd archive` invokes the official `openspec archive <feature> --yes` command and refuses to write a native receipt unless the change was actually moved to `openspec/changes/archive/`. OSD does not imitate OpenSpec commands. When Superpowers is available in the Agent harness, the project rule directs it to perform planning, TDD, verification, and review inside the OSD stage; OSD does not imitate its methodology.

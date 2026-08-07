@@ -11,6 +11,12 @@ const cliPath = join(projectRoot, "bin", "osd-workflow-init.mjs");
 
 function tempProject(prefix) { return mkdtempSync(join(tmpdir(), prefix)); }
 function run(...args) { return execFileSync(process.execPath, [cliPath, ...args], { encoding: "utf8", stdio: "pipe" }); }
+function setVerifyCommand(target, command = `${process.execPath} --version`) {
+  const configPath = join(target, ".osd", "config.json");
+  const config = JSON.parse(readFileSync(configPath, "utf8"));
+  config.commands.verify = command;
+  writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n", "utf8");
+}
 
 test("doctor reports active changes with their stages", (t) => {
   const target = tempProject("osd-dr-active-");
@@ -54,6 +60,7 @@ test("doctor reports archive count", (t) => {
   t.after(() => rmSync(target, { recursive: true, force: true }));
   writeFileSync(join(target, "package.json"), JSON.stringify({ scripts: { test: "node --version" } }), "utf8");
   run("init", target, "--yes");
+  setVerifyCommand(target);
   run("start", "dr-arch", target, "--adapter", "fallback");
   run("approve", "dr-arch", target);
   run("plan", "dr-arch", target);

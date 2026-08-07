@@ -1,7 +1,7 @@
 # OSD Rollback — 规格文档
 
-**日期:** 2026-08-07  
-**分支:** `feature/osd-improvements`  
+**日期:** 2026-08-07
+**分支:** `feature/osd-improvements`
 **状态:** 待批准
 
 ## 问题陈述
@@ -43,10 +43,10 @@ osd rollback <feature> --to <stage> [--target <path>]
 
 ### 合法阶段名
 
-取自 `WORKFLOW_STAGES` (`osd-core.mjs:27-34`) 加 `complete`：
+取自 `WORKFLOW_STAGES` (`osd-core.mjs:27-34`)：
 
 ```
-specification, planning, implementation, verification, review, archive, complete
+specification, planning, implementation, verification, review, archive
 ```
 
 ### 回退规则
@@ -60,7 +60,7 @@ specification, planning, implementation, verification, review, archive, complete
 
 1. 调用 `loadState(target, feature)` 读取当前状态
 2. 验证目标阶段合法且早于当前阶段
-3. 调用 `transition(state, targetStage, "rolled_back")` — 复用现有 history 机制，追加 `{ stage: targetStage, status: "rolled_back", at: <timestamp> }`
+3. 根据目标阶段恢复对应状态（如 `planning/approved`、`implementation/planned`），并在最新 history 记录上标记 `rollback: true`
 4. 调用 `saveState(target, state)` — 复用现有写入逻辑
 5. 输出确认信息
 
@@ -98,7 +98,7 @@ TDD — 先写失败测试，再实现。
 
 ### 测试用例
 
-1. **回滚正常工作：** start → approve → plan → implement → rollback --to planning → 断言 `state.stage === "planning"`，history 末尾 `{ stage: "planning", status: "rolled_back" }`
+1. **回滚正常工作：** start → approve → plan → implement → rollback --to planning → 断言 `state.stage === "planning"`、`state.status === "approved"`，history 末尾带有 `rollback: true`
 
 2. **blocked 状态可回滚：** start → approve → plan → implement → verify (失败) → state 变 `verification/blocked` → rollback --to implementation → 断言 `state.stage === "implementation"`
 
@@ -115,7 +115,11 @@ TDD — 先写失败测试，再实现。
 | 文件 | 改动类型 |
 |------|----------|
 | `lib/osd-core.mjs` | 修改：parseArgs + usage + run + 新增 rollbackDelivery |
-| `test/initializer.test.mjs` | 修改：新增 6 个测试用例 |
+| `test/rollback.test.mjs` | 新增：rollback 命令与边界测试 |
+| `test/schema-validation.test.mjs` | 新增：状态与配置校验测试 |
+| `test/sensitive-data.test.mjs` | 新增：事件敏感值过滤测试 |
+| `test/doctor-enhanced.test.mjs` | 新增：doctor 活跃变更与归档统计测试 |
+| `test/error-paths.test.mjs` | 新增：错误路径测试 |
 | `docs/USAGE.md` | 修改：新增 rollback 命令说明 |
 | `docs/USAGE_zh.md` | 修改：新增 rollback 命令说明 |
 | `assets/osd-contract-v2.json` | 修改：guarantees 加入 `"stage rollback is supported for recovery"` |

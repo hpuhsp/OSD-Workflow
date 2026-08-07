@@ -63,6 +63,14 @@ test("recordEvent accepts normal text values", (t) => {
   assert.ok(output.includes("deploy completed"));
 });
 
+test("recordEvent accepts commit hashes as normal metadata", (t) => {
+  const target = tempProject("osd-sd-sha-");
+  t.after(() => rmSync(target, { recursive: true, force: true }));
+  setup(target, "sd-sha");
+  const output = run("event", "sd-sha", target, "--event", JSON.stringify({ commit: "0123456789abcdef0123456789abcdef01234567" }));
+  assert.ok(output.includes("0123456789abcdef0123456789abcdef01234567"));
+});
+
 test("recordEvent rejects nested sensitive key name", (t) => {
   const target = tempProject("osd-sd-nest-");
   t.after(() => rmSync(target, { recursive: true, force: true }));

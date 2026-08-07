@@ -54,6 +54,7 @@ osd archive checkout
 - Fallback artifacts live under `.osd/changes/<feature>/` and are archived under `.osd/archive/`.
 - Verification records a `unit_test` check and runs `commands.verify` from `.osd/config.json`, normally inferred from `package.json` as `npm test`. A dedicated `commands.unitTest` or `test:unit` script is used when present; otherwise the unit-test slot is recorded as covered by the broader verification command.
 - Standard and strict work require a proposal and task plan. Every archive requires successful verification; strict work additionally requires a passing review and acceptance-criteria evaluation.
+- If a delivery reaches the wrong stage or becomes blocked, `osd rollback <feature> --to <stage>` moves the state back to an earlier workflow stage and records the rollback in history without deleting existing artifacts.
 
 ## Agent Rules
 
