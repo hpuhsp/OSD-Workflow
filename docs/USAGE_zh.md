@@ -62,6 +62,14 @@ osd archive account-lockout
 
 状态机为 `specification -> planning -> implementation -> verification -> review -> archive -> complete`。标准和严格任务需要 proposal 与任务计划；所有归档都要求验证通过；严格任务还要求审查通过和验收标准评估通过。
 
+归档前如果需要退回更早阶段，可以执行：
+
+```bash
+osd rollback account-lockout --to implementation
+```
+
+回滚只修改 OSD 状态，并追加 history/event 记录；同阶段、向后推进、`complete` 和已归档任务都会被拒绝。已有 artifact 会保留在磁盘上，修正后重新运行对应阶段时会覆盖相关证据。
+
 `osd verify` 总会生成包含多个 checks 的验证证据。`unit_test` 检查优先使用 `commands.unitTest`、`commands.unit_test` 或常见包脚本如 `test:unit`；没有专用单元测试命令时，会在总验证命令通过后记录为 `covered_by_verify`。这样单元测试在流程中始终可见，但不会默认成为所有变更的硬性要求。团队可以通过 `quality_gates.unit_test.required_for` 将其设为强制，例如 `["strict"]`。
 
 选择 OpenSpec 后，Agent 应先用其原生 `/opsx:propose` 工作流完成 proposal/spec，再执行 `osd approve`。`osd archive` 调用官方 `openspec archive <feature> --yes`，并且只有确认变更目录已移动到 `openspec/changes/archive/` 后才写入原生归档记录。Superpowers 存在时，Agent 在当前 OSD 阶段中使用其计划、TDD、验证和审查能力；OSD 不重写这两个工具的方法论。
