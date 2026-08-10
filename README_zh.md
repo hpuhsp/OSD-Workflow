@@ -18,16 +18,22 @@ OSD 不是工作流模板，也不替代 OpenSpec 或 Superpowers。它全局安
 
 **前置要求：** Node.js `>=20.11`。
 
+OSD 未发布到 npm registry，从源码全局安装：
+
 ```bash
 node -v                        # 先确认 Node.js 版本
-npm install --global osd-workflow
+git clone https://github.com/hpuhsp/OSD-Workflow.git
+cd OSD-Workflow
+npm install --global .         # 全局安装 osd CLI
 osd --version                  # 验证安装
 ```
 
-CLI 升级用 npm；项目契约刷新用 `osd upgrade`（在项目目录内执行）：
+CLI 升级：拉取最新源码后重装；项目契约刷新用 `osd upgrade`（在项目目录内执行）：
 
 ```bash
-npm update --global osd-workflow
+cd OSD-Workflow
+git pull
+npm install --global .
 osd upgrade
 ```
 
