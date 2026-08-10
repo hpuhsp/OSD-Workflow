@@ -3,9 +3,7 @@
 ## Install And Initialize
 
 ```bash
-git clone https://github.com/hpuhsp/OSD-Workflow.git
-cd OSD-Workflow
-npm install --global .   # install the osd CLI globally
+npm install --global osd-workflow
 cd your-project
 osd init
 ```

@@ -3,9 +3,7 @@
 ## 安装与初始化
 
 ```bash
-git clone https://github.com/hpuhsp/OSD-Workflow.git
-cd OSD-Workflow
-npm install --global .   # 全局安装 osd CLI
+npm install --global osd-workflow
 cd your-project
 osd init
 ```

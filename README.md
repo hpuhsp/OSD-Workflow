@@ -18,22 +18,16 @@ OSD is not a workflow template and does not replace either native tool. It is in
 
 **Prerequisite:** Node.js `>=20.11`.
 
-OSD is not published to the npm registry; install the CLI globally from source:
-
 ```bash
 node -v                        # check Node.js first
-git clone https://github.com/hpuhsp/OSD-Workflow.git
-cd OSD-Workflow
-npm install --global .         # install the osd CLI globally
+npm install --global osd-workflow
 osd --version                  # verify the installation
 ```
 
-Upgrade the CLI by pulling the latest source and re-installing; refresh a project's contract with `osd upgrade` (run inside the project):
+Upgrade the CLI with npm; refresh a project's contract with `osd upgrade` (run inside the project):
 
 ```bash
-cd OSD-Workflow
-git pull
-npm install --global .
+npm update --global osd-workflow
 osd upgrade
 ```
 
