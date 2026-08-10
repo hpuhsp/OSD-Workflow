@@ -1,13 +1,13 @@
 {
   "name": "osd-workflow",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "Native-first, evidence-governed delivery orchestration for AI-assisted software development.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "osd": "bin/osd-workflow-init.mjs",
-    "osd-workflow": "bin/osd-workflow-init.mjs",
-    "osd-workflow-init": "bin/osd-workflow-init.mjs"
+    "osd": "./bin/osd-workflow-init.mjs",
+    "osd-workflow": "./bin/osd-workflow-init.mjs",
+    "osd-workflow-init": "./bin/osd-workflow-init.mjs"
   },
   "files": [
     "bin",
