@@ -5,9 +5,9 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "osd": "./bin/osd-workflow-init.mjs",
-    "osd-workflow": "./bin/osd-workflow-init.mjs",
-    "osd-workflow-init": "./bin/osd-workflow-init.mjs"
+    "osd": "bin/osd-workflow-init.mjs",
+    "osd-workflow": "bin/osd-workflow-init.mjs",
+    "osd-workflow-init": "bin/osd-workflow-init.mjs"
   },
   "files": [
     "bin",
